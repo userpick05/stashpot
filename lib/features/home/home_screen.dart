@@ -7,6 +7,7 @@ import '../../core/providers/planner_providers.dart';
 import '../../core/providers/recipe_providers.dart';
 import '../../core/update/update_service.dart';
 import '../../core/update/update_sheet.dart';
+import '../../core/utils/shopping_actions.dart';
 import '../../core/widgets/invite_code_sheet.dart';
 import '../../models/planned_meal.dart';
 import '../recipes/recipe_detail_screen.dart';
@@ -30,6 +31,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _checkForUpdate() async {
     final info = await UpdateService.checkForUpdate();
     if (info != null && mounted) showUpdateSheet(context, info);
+  }
+
+  // Open the "running low?" picker, then add the chosen item to the shopping
+  // list AFTER the sheet has fully closed (so the snackbar isn't shown mid
+  // route-transition, which would leave it stuck on screen).
+  Future<void> _openRunningLow() async {
+    final item = await showRunningLowSheet(context);
+    if (item != null && mounted) {
+      await sendItemToShopping(context, ref, item);
+    }
   }
 
   String _greeting() {
@@ -123,7 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               color: scheme.secondaryContainer,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () => showRunningLowSheet(context),
+                onTap: _openRunningLow,
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Row(

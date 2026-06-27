@@ -9,6 +9,7 @@ import '../../models/shopping_item.dart';
 /// Adds a pantry item to the shopping list, carrying its name, quantity and
 /// store. Shows a snackbar with Undo. Shared by the pantry-item action and the
 /// Home "Running low?" flow so both behave identically.
+///
 Future<void> sendItemToShopping(
   BuildContext context,
   WidgetRef ref,
@@ -19,6 +20,8 @@ Future<void> sendItemToShopping(
   if (householdId == null || uid == null) return;
 
   final svc = ref.read(firestoreServiceProvider);
+  final messenger = ScaffoldMessenger.of(context);
+
   final shoppingItem = ShoppingItem(
     id: const Uuid().v4(),
     name: item.name,
@@ -30,11 +33,16 @@ Future<void> sendItemToShopping(
   );
   await svc.addShoppingItem(householdId, shoppingItem);
 
-  if (context.mounted) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
+  // Show on the next frame, not in the middle of this route-change/rebuild.
+  // When a snackbar is shown mid-transition its entrance animation can skip the
+  // "completed" callback that arms the auto-dismiss timer, so it sticks forever.
+  // We also close it on an explicit timer as a backstop, so dismissal never
+  // depends on that fragile internal timer.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    messenger.hideCurrentSnackBar();
+    final controller = messenger.showSnackBar(
       SnackBar(
+        duration: const Duration(seconds: 4),
         content: Text('Added "${item.name}" to shopping list'),
         action: SnackBarAction(
           label: 'Undo',
@@ -42,5 +50,6 @@ Future<void> sendItemToShopping(
         ),
       ),
     );
-  }
+    Future.delayed(const Duration(seconds: 4, milliseconds: 300), controller.close);
+  });
 }

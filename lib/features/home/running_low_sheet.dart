@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/inventory_providers.dart';
 import '../../core/utils/category_icons.dart';
-import '../../core/utils/shopping_actions.dart';
 import '../../models/inventory_item.dart';
 
-/// Quick "running low?" flow: search the pantry and tap an item to push it onto
-/// the shopping list. Opened from the Home screen.
-Future<void> showRunningLowSheet(BuildContext context) {
-  return showModalBottomSheet(
+/// Quick "running low?" flow: search the pantry and tap an item. Returns the
+/// chosen item (or null if dismissed). The caller adds it to the shopping list
+/// AFTER this sheet has fully closed — showing the snackbar while the sheet is
+/// still animating away leaves it stuck on screen.
+Future<InventoryItem?> showRunningLowSheet(BuildContext context) {
+  return showModalBottomSheet<InventoryItem>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
@@ -120,12 +121,12 @@ class _RunningLowSheetState extends ConsumerState<_RunningLowSheet> {
   }
 }
 
-class _RunningLowTile extends ConsumerWidget {
+class _RunningLowTile extends StatelessWidget {
   final InventoryItem item;
   const _RunningLowTile({required this.item});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final qty = item.quantity % 1 == 0
         ? item.quantity.toInt().toString()
         : item.quantity.toString();
@@ -138,10 +139,8 @@ class _RunningLowTile extends ConsumerWidget {
       title: Text(item.name),
       subtitle: Text('$qty ${item.unit}  ·  ${item.location.label}'),
       trailing: const Icon(Icons.add_shopping_cart),
-      onTap: () async {
-        await sendItemToShopping(context, ref, item);
-        if (context.mounted) Navigator.of(context).pop();
-      },
+      // Just return the picked item; the Home screen adds it once we're closed.
+      onTap: () => Navigator.of(context).pop(item),
     );
   }
 }

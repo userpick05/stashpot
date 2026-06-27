@@ -3,6 +3,17 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.1.1
+
+### Fixed
+- The "Added … to shopping list" snackbar from the Home **Running low?** flow
+  no longer lingers/sticks on screen. The sheet now closes *before* the snackbar
+  is shown (showing it first, then popping the sheet, left it stuck).
+
+### Changed
+- Bumped Android `versionCode` to 2 so this installs over v1.1.0 (sideloaded
+  updates require an increasing version code).
+
 ## v1.1.0
 
 ### Added
