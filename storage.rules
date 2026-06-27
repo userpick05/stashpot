@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// Stashpot Storage rules. Photos live under households/{id}/images/{file}.
+// Any signed-in user can read/write (paths use unguessable UUID filenames).
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /households/{householdId}/images/{file} {
+      allow read: if request.auth != null;
+      // Writes must be images and under ~10 MB.
+      allow write: if request.auth != null
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null;
+    }
+  }
+}

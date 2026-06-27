@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// Stashpot security rules.
+// Data model:
+//   /users/{uid}                      — one per account; holds householdId
+//   /households/{hid}                 — name, memberUids[], createdBy, stores[]
+//   /households/{hid}/items/{id}      — inventory
+//   /households/{hid}/shopping/{id}   — shopping list
+//   /households/{hid}/catalog/{id}    — previously-added items (reorder)
+//
+// Principle: you can only touch your own user doc and the data of households
+// you belong to. The household *document* is gettable by any signed-in user so
+// an invitee can look it up by its (unguessable, ~120-bit) invite-code id to
+// join; everything sensitive (the item/shopping/catalog lists) is members-only.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Each person can read/write only their own user document.
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /households/{hid} {
+      function isMember() {
+        return isSignedIn() && request.auth.uid in resource.data.memberUids;
+      }
+
+      // A non-member may add ONLY themselves to memberUids (join by invite
+      // code) and change nothing else on the household document.
+      function isJoining() {
+        return isSignedIn()
+          && !(request.auth.uid in resource.data.memberUids)
+          && request.auth.uid in request.resource.data.memberUids
+          && request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids']);
+      }
+
+      allow get: if isSignedIn();          // needed for join-by-invite-code
+      allow list: if false;                // no enumerating households
+      allow create: if isSignedIn()
+        && request.auth.uid in request.resource.data.memberUids
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isMember() || isJoining();
+      allow delete: if false;
+
+      // Membership check for subcollections reads the parent household doc.
+      function isHouseholdMember() {
+        return isSignedIn()
+          && request.auth.uid in
+             get(/databases/$(database)/documents/households/$(hid)).data.memberUids;
+      }
+
+      // Any household subcollection (items, shopping, catalog, recipes, planner,
+      // and anything added later) is members-only. Wildcard so new features
+      // don't require republishing rules.
+      match /{collection}/{docId} {
+        allow read, write: if isHouseholdMember();
+      }
+    }
+
+    // Everything else: denied by default.
+  }
+}

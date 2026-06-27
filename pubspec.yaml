@@ -1,0 +1,57 @@
+name: stashpot
+description: "Home food inventory with barcode scanning and Firebase sync"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Firebase
+  firebase_core: ^3.14.0
+  firebase_auth: ^5.5.4
+  cloud_firestore: ^5.6.9
+  firebase_storage: ^12.4.6
+
+  # Barcode scanning — detect from a captured photo via Google ML Kit
+  # (mobile_scanner's live preview crashes on the Pixel 10 / Android 16).
+  google_mlkit_barcode_scanning: ^0.14.1
+
+  # Camera & image picking for photo food ID
+  camera: ^0.11.1
+  image_picker: ^1.1.2
+
+  # HTTP for Open Food Facts API
+  http: ^1.3.0
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  shared_preferences: ^2.3.5
+  go_router: ^15.1.2
+  permission_handler: ^11.3.1
+  url_launcher: ^6.3.1
+  table_calendar: ^3.1.2
+
+  # OTA self-update: download the APK and hand it to the system installer
+  open_filex: ^4.5.0
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.14
+  riverpod_generator: ^2.6.3
+
+flutter:
+  uses-material-design: true
