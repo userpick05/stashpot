@@ -13,8 +13,46 @@ import 'reorder_screen.dart';
 class ShoppingScreen extends ConsumerWidget {
   const ShoppingScreen({super.key});
 
-  // Turn checked-off shopping items into pantry items, then remove them from
-  // the list. Undo restores both sides.
+  // Ask what to do when a checked item is already in the pantry.
+  // Returns 'add' (merge quantity), 'skip', or null (dismissed → leave it).
+  Future<String?> _askDuplicateChoice(BuildContext context, String name) {
+    return showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('"$name" is already in your pantry',
+                style: Theme.of(ctx).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            const Text('Add its quantity to the existing item, or skip it?'),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, 'skip'),
+                  child: const Text('Skip'),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => Navigator.pop(ctx, 'add'),
+                  label: const Text('Add quantity'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Turn checked-off shopping items into pantry items. For each item already in
+  // the pantry, ask whether to skip it or add its quantity to the existing one.
+  // Undo restores the shopping items and reverses any pantry changes.
   Future<void> _moveCheckedToPantry(
     BuildContext context,
     WidgetRef ref,
@@ -24,44 +62,95 @@ class ShoppingScreen extends ConsumerWidget {
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (uid == null) return;
     final svc = ref.read(firestoreServiceProvider);
-    final createdIds = <String>[];
+    final inventory = ref.read(inventoryProvider).valueOrNull ?? [];
+    final messenger = ScaffoldMessenger.of(context);
+
+    final createdIds = <String>[]; // new pantry items → delete on undo
+    final originalById = <String, InventoryItem>{}; // merged → restore on undo
+    final runningQty = <String, double>{}; // id → qty after merges (stale-safe)
+    final removedShopping = <ShoppingItem>[]; // → restore on undo
+    var addedCount = 0, mergedCount = 0, skippedCount = 0;
+
     for (final s in checked) {
-      final id = const Uuid().v4();
-      createdIds.add(id);
-      await svc.addItem(
-        householdId,
-        InventoryItem(
-          id: id,
-          name: s.name,
-          category: guessCategory(s.name) ?? ItemCategory.other,
-          quantity: s.quantity,
-          unit: 'item',
-          location: ItemLocation.pantry,
-          store: s.store,
-          addedAt: DateTime.now(),
-          addedBy: uid,
-        ),
-      );
+      InventoryItem? existing;
+      for (final i in inventory) {
+        if (i.name.trim().toLowerCase() == s.name.trim().toLowerCase()) {
+          existing = i;
+          break;
+        }
+      }
+
+      if (existing != null) {
+        if (!context.mounted) break;
+        final choice = await _askDuplicateChoice(context, s.name);
+        if (choice == null) continue; // dismissed → leave this item as-is
+        if (choice == 'add') {
+          originalById.putIfAbsent(existing.id, () => existing!);
+          final base = runningQty[existing.id] ?? existing.quantity;
+          final newQty = base + s.quantity;
+          runningQty[existing.id] = newQty;
+          await svc.updateItem(
+              householdId, existing.copyWith(quantity: newQty));
+          mergedCount++;
+        } else {
+          skippedCount++;
+        }
+      } else {
+        final id = const Uuid().v4();
+        createdIds.add(id);
+        await svc.addItem(
+          householdId,
+          InventoryItem(
+            id: id,
+            name: s.name,
+            category: guessCategory(s.name) ?? ItemCategory.other,
+            quantity: s.quantity,
+            unit: 'item',
+            location: kDefaultLocationKey,
+            store: s.store,
+            addedAt: DateTime.now(),
+            addedBy: uid,
+          ),
+        );
+        addedCount++;
+      }
       await svc.deleteShoppingItem(householdId, s.id);
+      removedShopping.add(s);
     }
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+
+    if (removedShopping.isEmpty) return; // nothing processed
+
+    final parts = <String>[];
+    if (addedCount > 0) parts.add('$addedCount added');
+    if (mergedCount > 0) parts.add('$mergedCount merged');
+    if (skippedCount > 0) parts.add('$skippedCount skipped');
+
+    // Show after the current frame so it isn't shown mid sheet-close (which can
+    // leave a snackbar stuck on screen).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      messenger.clearSnackBars();
+      final controller = messenger.showSnackBar(
         SnackBar(
-          content: Text('Moved ${checked.length} item${checked.length == 1 ? '' : 's'} to pantry'),
+          duration: const Duration(seconds: 4),
+          content: Text('Pantry updated — ${parts.join(', ')}'),
           action: SnackBarAction(
             label: 'Undo',
             onPressed: () {
               for (final id in createdIds) {
                 svc.deleteItem(householdId, id);
               }
-              for (final s in checked) {
+              for (final it in originalById.values) {
+                svc.updateItem(householdId, it);
+              }
+              for (final s in removedShopping) {
                 svc.updateShoppingItem(householdId, s);
               }
             },
           ),
         ),
       );
-    }
+      Future.delayed(const Duration(seconds: 4, milliseconds: 300), controller.close);
+    });
   }
 
   static const _noStoreKey = 'Other / no store';

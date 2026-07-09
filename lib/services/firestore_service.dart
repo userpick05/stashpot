@@ -109,6 +109,51 @@ class FirestoreService {
         'stores': FieldValue.arrayRemove([name]),
       });
 
+  // ── Custom locations (shared list per household) ─────────────────────────
+
+  Stream<List<String>> locationsStream(String householdId) => _db
+      .collection('households')
+      .doc(householdId)
+      .snapshots()
+      .map((s) {
+        final list =
+            (s.data()?['locations'] as List?)?.cast<String>() ?? const [];
+        return list..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      });
+
+  Future<void> addLocation(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'locations': FieldValue.arrayUnion([name]),
+      }, SetOptions(merge: true));
+
+  Future<void> removeLocation(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'locations': FieldValue.arrayRemove([name]),
+      }, SetOptions(merge: true));
+
+  // Rename a custom location and move every item that used it to the new name.
+  Future<void> renameLocation(
+      String householdId, String oldName, String newName) async {
+    await removeLocation(householdId, oldName);
+    await addLocation(householdId, newName);
+    final affected = await _db
+        .collection('households')
+        .doc(householdId)
+        .collection('items')
+        .where('location', isEqualTo: oldName)
+        .get();
+    if (affected.docs.isEmpty) return;
+    final batch = _db.batch();
+    for (final d in affected.docs) {
+      batch.update(d.reference, {'location': newName});
+    }
+    await batch.commit();
+  }
+
   // ── Inventory ────────────────────────────────────────────────────────────
 
   Stream<List<InventoryItem>> inventoryStream(String householdId) => _db

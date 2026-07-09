@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.1.1/stashpot-1.1.1.apk",
-  "notes": "Fixes the 'Added to shopping list' confirmation getting stuck on screen after using the Home 'Running low?' quick-add."
+  "version": "1.2.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.2.0/stashpot-1.2.0.apk",
+  "notes": "Custom pantry locations, a one-tap 'remove from pantry & add to shopping', a skip/merge prompt when moving shopped items into a pantry that already has them, and recipe cart icons that show what's already on your list."
 }

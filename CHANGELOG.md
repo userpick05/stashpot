@@ -3,6 +3,23 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.2.0
+
+### Added
+- **Custom pantry locations** — create your own storage locations (e.g. "Garage
+  shelf") right from the item's Location picker, or manage them (rename/delete)
+  in Settings → Pantry locations. They join Fridge/Freezer/Pantry/Other in the
+  picker and in pantry grouping. Existing items keep their current location.
+- **Remove from pantry & add to shopping** — a second action on each pantry
+  item's ⋮ menu that moves it to the shopping list in one step.
+- **Duplicate handling when moving shopped items to the pantry** — if an item is
+  already in the pantry, you're asked per item whether to **skip** it or **add
+  its quantity** to the existing one.
+
+### Changed
+- Recipe ingredients now show a **filled/solid cart icon** once they're on the
+  shopping list, so it's obvious what you've already added.
+
 ## v1.1.1
 
 ### Fixed

@@ -24,6 +24,27 @@ final shoppingProvider = StreamProvider<List<ShoppingItem>>((ref) {
   return ref.watch(firestoreServiceProvider).shoppingStream(householdId);
 });
 
+// Custom, user-created storage locations for the household (beyond the four
+// built-ins). Just the custom names — built-ins are added on top in the UI.
+final customLocationsProvider = StreamProvider<List<String>>((ref) {
+  final householdId = ref.watch(householdIdProvider);
+  if (householdId == null) return Stream.value([]);
+  return ref.watch(firestoreServiceProvider).locationsStream(householdId);
+});
+
+// The full ordered list of location keys to offer/show: built-ins first, then
+// custom locations (alphabetical), de-duplicated.
+final allLocationKeysProvider = Provider<List<String>>((ref) {
+  final custom = ref.watch(customLocationsProvider).valueOrNull ?? const [];
+  final seen = <String>{...kBuiltInLocationKeys};
+  final result = <String>[...kBuiltInLocationKeys];
+  for (final l in custom) {
+    if (l.trim().isEmpty) continue;
+    if (seen.add(l)) result.add(l);
+  }
+  return result;
+});
+
 // Catalog of previously-added items, for the reorder screen.
 final catalogProvider = StreamProvider<List<CatalogItem>>((ref) {
   final householdId = ref.watch(householdIdProvider);

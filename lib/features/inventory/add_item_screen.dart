@@ -31,7 +31,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final _notesCtrl = TextEditingController();
 
   ItemCategory _category = ItemCategory.other;
-  ItemLocation _location = ItemLocation.pantry;
+  String _location = kDefaultLocationKey;
   String _unit = 'item';
   DateTime? _expiryDate;
   String? _barcode;
@@ -69,6 +69,54 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         if (widget.autoStart == 'photo') _identifyByPhoto();
       });
     }
+  }
+
+  // Prompt for a new custom location, save it to the household, and select it.
+  Future<void> _addLocationFlow() async {
+    final ctrl = TextEditingController();
+    final name = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 0, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('New location', style: Theme.of(ctx).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                hintText: 'e.g. Garage shelf',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (v) => Navigator.pop(ctx, v),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(ctx, ctrl.text),
+                child: const Text('Add'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    ctrl.dispose();
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return;
+    final hid = ref.read(householdIdProvider);
+    if (hid != null) {
+      await ref.read(firestoreServiceProvider).addLocation(hid, trimmed);
+    }
+    if (mounted) setState(() => _location = trimmed);
   }
 
   Future<void> _attachPhoto() async {
@@ -535,18 +583,51 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Location
-            DropdownButtonFormField<ItemLocation>(
-              value: _location,
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                border: OutlineInputBorder(),
-              ),
-              items: ItemLocation.values
-                  .map((l) => DropdownMenuItem(value: l, child: Text(l.label)))
-                  .toList(),
-              onChanged: (v) => setState(() => _location = v!),
-            ),
+            // Location — built-ins + custom locations, plus "Add location…"
+            Builder(builder: (context) {
+              const addSentinel = '__add_location__';
+              final keys = [...ref.watch(allLocationKeysProvider)];
+              if (!keys.contains(_location)) keys.add(_location);
+              return DropdownButtonFormField<String>(
+                value: _location,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Location',
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  for (final k in keys)
+                    DropdownMenuItem(
+                      value: k,
+                      child: Row(
+                        children: [
+                          Icon(locationIcon(k), size: 18),
+                          const SizedBox(width: 8),
+                          Text(locationLabel(k)),
+                        ],
+                      ),
+                    ),
+                  const DropdownMenuItem(
+                    value: addSentinel,
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, size: 18),
+                        SizedBox(width: 8),
+                        Text('Add location…'),
+                      ],
+                    ),
+                  ),
+                ],
+                onChanged: (v) {
+                  if (v == null) return;
+                  if (v == addSentinel) {
+                    _addLocationFlow();
+                  } else {
+                    setState(() => _location = v);
+                  }
+                },
+              );
+            }),
             const SizedBox(height: 16),
 
             // Store — pick from saved list or type a new one (used to group

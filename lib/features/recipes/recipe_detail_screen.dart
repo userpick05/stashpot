@@ -148,6 +148,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   Widget build(BuildContext context) {
     final pantryNames =
         (ref.watch(inventoryProvider).valueOrNull ?? []).map((i) => i.name).toList();
+    final shoppingNames =
+        (ref.watch(shoppingProvider).valueOrNull ?? []).map((i) => i.name).toList();
     final d = _details;
     final ingredients = d?.ingredients ?? const <RecipeIngredient>[];
     final missing = ingredients
@@ -282,6 +284,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               _IngredientRow(
                 ingredient: ing,
                 inPantry: PantryMatch.hasIngredient(ing.name, pantryNames),
+                onList: PantryMatch.hasIngredient(ing.name, shoppingNames),
                 onAdd: () => _addToShopping([ing.name]),
               ),
             const SizedBox(height: 8),
@@ -318,11 +321,18 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 class _IngredientRow extends StatelessWidget {
   final RecipeIngredient ingredient;
   final bool inPantry;
+  final bool onList;
   final VoidCallback onAdd;
-  const _IngredientRow({required this.ingredient, required this.inPantry, required this.onAdd});
+  const _IngredientRow({
+    required this.ingredient,
+    required this.inPantry,
+    required this.onList,
+    required this.onAdd,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -330,14 +340,21 @@ class _IngredientRow extends StatelessWidget {
           Icon(
             inPantry ? Icons.check_circle : Icons.radio_button_unchecked,
             size: 20,
-            color: inPantry ? Colors.green : Theme.of(context).colorScheme.outline,
+            color: inPantry ? Colors.green : scheme.outline,
           ),
           const SizedBox(width: 8),
           Expanded(child: Text(ingredient.original)),
           if (!inPantry)
+            // Solid, colored cart once it's on the shopping list — lasting
+            // confirmation beyond the transient snackbar. Still tappable to
+            // add another.
             IconButton(
-              icon: const Icon(Icons.add_shopping_cart, size: 20),
-              tooltip: 'Add to shopping list',
+              icon: Icon(
+                onList ? Icons.shopping_cart : Icons.add_shopping_cart,
+                size: 20,
+                color: onList ? scheme.primary : null,
+              ),
+              tooltip: onList ? 'On shopping list — tap to add again' : 'Add to shopping list',
               onPressed: onAdd,
             ),
         ],

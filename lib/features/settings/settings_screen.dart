@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/app_version.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/widgets/invite_code_sheet.dart';
+import 'manage_locations_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -49,6 +50,15 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Invite friends'),
             subtitle: const Text('Share your household invite code'),
             onTap: code == null ? null : () => showInviteCodeSheet(context, code),
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.place_outlined),
+            title: const Text('Pantry locations'),
+            subtitle: const Text('Add or edit your own storage locations'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ManageLocationsScreen()),
+            ),
           ),
 
           ListTile(

@@ -11,6 +11,8 @@ class InventoryItemCard extends StatelessWidget {
   final VoidCallback? onTap;
   // When provided, a "⋮" menu offers sending this item to the shopping list.
   final VoidCallback? onAddToShopping;
+  // Sends to the shopping list AND removes it from the pantry.
+  final VoidCallback? onRemoveToShopping;
 
   const InventoryItemCard({
     super.key,
@@ -19,6 +21,7 @@ class InventoryItemCard extends StatelessWidget {
     this.onDelete,
     this.onTap,
     this.onAddToShopping,
+    this.onRemoveToShopping,
   });
 
   Color _expiryColor(BuildContext context) {
@@ -85,6 +88,7 @@ class InventoryItemCard extends StatelessWidget {
                 tooltip: 'More',
                 onSelected: (v) {
                   if (v == 'shopping') onAddToShopping!.call();
+                  if (v == 'move') onRemoveToShopping?.call();
                   if (v == 'photo' && item.imageUrl != null) {
                     showImageSheet(context, item.imageUrl!);
                   }
@@ -98,6 +102,15 @@ class InventoryItemCard extends StatelessWidget {
                       title: Text('Add to shopping list'),
                     ),
                   ),
+                  if (onRemoveToShopping != null)
+                    const PopupMenuItem(
+                      value: 'move',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.move_up),
+                        title: Text('Remove from pantry & add to shopping list'),
+                      ),
+                    ),
                   if (item.imageUrl != null)
                     const PopupMenuItem(
                       value: 'photo',

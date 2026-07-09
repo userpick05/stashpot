@@ -137,7 +137,7 @@ class _RunningLowTile extends StatelessWidget {
             color: Theme.of(context).colorScheme.onPrimaryContainer),
       ),
       title: Text(item.name),
-      subtitle: Text('$qty ${item.unit}  ·  ${item.location.label}'),
+      subtitle: Text('$qty ${item.unit}  ·  ${locationLabel(item.location)}'),
       trailing: const Icon(Icons.add_shopping_cart),
       // Just return the picked item; the Home screen adds it once we're closed.
       onTap: () => Navigator.of(context).pop(item),

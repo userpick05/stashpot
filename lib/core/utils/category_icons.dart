@@ -17,9 +17,10 @@ IconData categoryIcon(ItemCategory c) => switch (c) {
       ItemCategory.other => Icons.category,
     };
 
-IconData locationIcon(ItemLocation l) => switch (l) {
-      ItemLocation.fridge => Icons.kitchen,
-      ItemLocation.freezer => Icons.ac_unit,
-      ItemLocation.pantry => Icons.shelves,
-      ItemLocation.other => Icons.inventory_2,
+IconData locationIcon(String key) => switch (key) {
+      'fridge' => Icons.kitchen,
+      'freezer' => Icons.ac_unit,
+      'pantry' => Icons.shelves,
+      'other' => Icons.inventory_2,
+      _ => Icons.place, // custom locations
     };

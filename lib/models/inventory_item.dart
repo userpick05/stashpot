@@ -1,6 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum ItemLocation { fridge, freezer, pantry, other }
+/// The four built-in storage locations, stored as these exact string keys
+/// (matches pre-1.2.0 data, which saved the old enum's `.name`). Households can
+/// add their own custom locations on top of these; a custom location's key is
+/// simply its display name.
+const List<String> kBuiltInLocationKeys = ['fridge', 'freezer', 'pantry', 'other'];
+
+const String kDefaultLocationKey = 'pantry';
+
+/// Human label for a location key. Built-ins get a nice label; custom locations
+/// use their name as-is.
+String locationLabel(String key) => switch (key) {
+      'fridge' => 'Fridge',
+      'freezer' => 'Freezer',
+      'pantry' => 'Pantry',
+      'other' => 'Other',
+      _ => key,
+    };
 
 enum ItemCategory {
   fruit,
@@ -34,15 +50,6 @@ const List<ItemCategory> kPickableCategories = [
   ItemCategory.other,
 ];
 
-extension ItemLocationLabel on ItemLocation {
-  String get label => switch (this) {
-        ItemLocation.fridge => 'Fridge',
-        ItemLocation.freezer => 'Freezer',
-        ItemLocation.pantry => 'Pantry',
-        ItemLocation.other => 'Other',
-      };
-}
-
 extension ItemCategoryLabel on ItemCategory {
   String get label => switch (this) {
         ItemCategory.fruit => 'Fruit',
@@ -70,7 +77,7 @@ class InventoryItem {
   final double quantity;
   final String unit;
   final DateTime? expiryDate;
-  final ItemLocation location;
+  final String location; // built-in key or a custom location name
   final String? store; // where it's bought — used to group shopping lists
   final String? notes;
   final DateTime addedAt;
@@ -106,10 +113,9 @@ class InventoryItem {
       quantity: (d['quantity'] as num?)?.toDouble() ?? 1.0,
       unit: d['unit'] as String? ?? 'item',
       expiryDate: (d['expiryDate'] as Timestamp?)?.toDate(),
-      location: ItemLocation.values.firstWhere(
-        (l) => l.name == (d['location'] as String?),
-        orElse: () => ItemLocation.pantry,
-      ),
+      location: (d['location'] as String?)?.trim().isNotEmpty == true
+          ? (d['location'] as String).trim()
+          : kDefaultLocationKey,
       store: d['store'] as String?,
       notes: d['notes'] as String?,
       addedAt: (d['addedAt'] as Timestamp).toDate(),
@@ -125,13 +131,29 @@ class InventoryItem {
         'quantity': quantity,
         'unit': unit,
         if (expiryDate != null) 'expiryDate': Timestamp.fromDate(expiryDate!),
-        'location': location.name,
+        'location': location,
         if (store != null) 'store': store,
         if (notes != null) 'notes': notes,
         'addedAt': Timestamp.fromDate(addedAt),
         'addedBy': addedBy,
         'updatedAt': FieldValue.serverTimestamp(),
       };
+
+  InventoryItem copyWith({double? quantity, String? location}) => InventoryItem(
+        id: id,
+        name: name,
+        barcode: barcode,
+        imageUrl: imageUrl,
+        category: category,
+        quantity: quantity ?? this.quantity,
+        unit: unit,
+        expiryDate: expiryDate,
+        location: location ?? this.location,
+        store: store,
+        notes: notes,
+        addedAt: addedAt,
+        addedBy: addedBy,
+      );
 
   // Days until expiry: negative = already expired
   int? get daysUntilExpiry {

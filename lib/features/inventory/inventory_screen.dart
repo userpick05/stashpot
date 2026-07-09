@@ -32,23 +32,26 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     if (q.isEmpty) return items;
     return items.where((i) {
       return i.name.toLowerCase().contains(q) ||
-          i.location.label.toLowerCase().contains(q) ||
+          locationLabel(i.location).toLowerCase().contains(q) ||
           i.category.label.toLowerCase().contains(q);
     }).toList();
   }
 
-  // Ordered, non-empty sections for the chosen grouping.
+  // Ordered, non-empty sections for the chosen grouping. [locationKeys] is the
+  // ordered set of locations to show when grouping by location (built-ins +
+  // custom + any orphan keys still present on items).
   List<({String label, IconData icon, List<InventoryItem> items})> _sections(
     List<InventoryItem> items,
     InventoryGroupBy groupBy,
+    List<String> locationKeys,
   ) {
     final result = <({String label, IconData icon, List<InventoryItem> items})>[];
     if (groupBy == InventoryGroupBy.location) {
-      for (final loc in [ItemLocation.fridge, ItemLocation.freezer, ItemLocation.pantry, ItemLocation.other]) {
-        final group = items.where((i) => i.location == loc).toList()
+      for (final key in locationKeys) {
+        final group = items.where((i) => i.location == key).toList()
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         if (group.isNotEmpty) {
-          result.add((label: loc.label, icon: locationIcon(loc), items: group));
+          result.add((label: locationLabel(key), icon: locationIcon(key), items: group));
         }
       }
     } else {
@@ -111,7 +114,17 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           }
 
           final items = _filter(allItems);
-          final sections = _sections(items, groupBy);
+          // Location keys to show: the standard ordered set, plus any orphan
+          // location still present on an item (e.g. a since-deleted custom one).
+          final locationKeys = [
+            ...ref.watch(allLocationKeysProvider),
+            ...{
+              for (final i in allItems)
+                if (!ref.watch(allLocationKeysProvider).contains(i.location))
+                  i.location
+            },
+          ];
+          final sections = _sections(items, groupBy, locationKeys);
           final children = <Widget>[];
 
           // Only show the expiry banner when not actively searching.
@@ -189,9 +202,16 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   item: item,
                   secondaryLabel: groupBy == InventoryGroupBy.location
                       ? item.category.label
-                      : item.location.label,
+                      : locationLabel(item.location),
                   onTap: () => context.push('/inventory/edit', extra: item),
                   onAddToShopping: () => sendItemToShopping(context, ref, item),
+                  onRemoveToShopping: () async {
+                    final hid = ref.read(householdIdProvider);
+                    await sendItemToShopping(context, ref, item);
+                    if (hid != null) {
+                      await ref.read(firestoreServiceProvider).deleteItem(hid, item.id);
+                    }
+                  },
                 ),
               ));
             }
