@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/providers/auth_providers.dart';
@@ -10,7 +11,6 @@ import '../../core/providers/scanning_providers.dart';
 import '../../core/utils/category_guess.dart';
 import '../../core/utils/category_icons.dart';
 import '../../models/inventory_item.dart';
-import '../scanning/barcode_scanner_screen.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   /// When non-null, the screen edits this existing item instead of adding.
@@ -281,12 +281,43 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       return;
     }
     if (!mounted) return;
-    // Live-preview scanner (mobile_scanner). Returns the decoded barcode, or
-    // null if the user backs out / chooses to enter the item manually.
-    final code = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
-    );
-    if (code == null || code.isEmpty || !mounted) return;
+    // The live camera preview NPEs inside the camera engine on some devices
+    // (Pixel 10 / Android 16), so capture a full-resolution photo and decode
+    // THAT with ML Kit (via mobile_scanner's analyzeImage) — this never starts
+    // the camera preview, so it can't hit that crash. No maxWidth: downscaling
+    // blurs the bars below the detector's threshold.
+    final photo = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (photo == null || !mounted) return;
+
+    setState(() => _looking = true);
+    String? code;
+    final scanner = MobileScannerController();
+    try {
+      final capture = await scanner.analyzeImage(photo.path);
+      if (capture != null) {
+        for (final b in capture.barcodes) {
+          if (b.rawValue != null && b.rawValue!.isNotEmpty) {
+            code = b.rawValue;
+            break;
+          }
+        }
+      }
+    } catch (_) {
+      code = null;
+    } finally {
+      await scanner.dispose();
+    }
+    if (!mounted) return;
+    if (code == null || code.isEmpty) {
+      setState(() => _looking = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              "Couldn't read the barcode — fill the frame, hold steady in good light, or enter it manually"),
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _barcode = code;

@@ -3,6 +3,15 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.3.1
+
+### Fixed
+- **Barcode scanning works on all devices again.** The live camera preview
+  crashed inside the camera engine on some phones (Pixel 10 / Android 16). The
+  scanner now snaps one full-resolution photo and decodes that instead, which
+  never starts the crashing preview. "Enter manually" (which uses the same
+  Open Food Facts lookup) remains as a fallback.
+
 ## v1.3.0
 
 ### Added
