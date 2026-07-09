@@ -1,5 +1,5 @@
 /// Bump this when finalizing a session's changes (semver, 1.x.x).
-const String kAppVersion = '1.2.0';
+const String kAppVersion = '1.3.0';
 
 /// Where the app looks for OTA updates. This points at a small JSON file
 /// committed to the repo's `main` branch, so it always reflects the latest

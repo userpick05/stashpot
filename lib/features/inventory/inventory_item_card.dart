@@ -13,6 +13,8 @@ class InventoryItemCard extends StatelessWidget {
   final VoidCallback? onAddToShopping;
   // Sends to the shopping list AND removes it from the pantry.
   final VoidCallback? onRemoveToShopping;
+  // Tapping the quantity pill opens a quick quantity editor.
+  final VoidCallback? onTapQuantity;
 
   const InventoryItemCard({
     super.key,
@@ -22,6 +24,7 @@ class InventoryItemCard extends StatelessWidget {
     this.onTap,
     this.onAddToShopping,
     this.onRemoveToShopping,
+    this.onTapQuantity,
   });
 
   Color _expiryColor(BuildContext context) {
@@ -42,8 +45,11 @@ class InventoryItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final hasExpiry = item.expiryDate != null;
     final qty = item.quantity % 1 == 0 ? item.quantity.toInt().toString() : item.quantity.toString();
+    // Match the shopping list's "×N" pill; show the unit when it's not a plain count.
+    final pillText = item.unit == 'item' ? '×$qty' : '$qty ${item.unit}';
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -57,7 +63,47 @@ class InventoryItemCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$qty ${item.unit}  ·  $secondaryLabel'),
+            Padding(
+              padding: const EdgeInsets.only(top: 2, bottom: 2),
+              child: Row(
+                children: [
+                  // Tappable "×N" quantity pill (same look as the shopping list).
+                  InkWell(
+                    onTap: onTapQuantity,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: scheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(pillText,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: scheme.onSecondaryContainer,
+                                fontSize: 13,
+                              )),
+                          if (onTapQuantity != null) ...[
+                            const SizedBox(width: 4),
+                            Icon(Icons.edit,
+                                size: 12, color: scheme.onSecondaryContainer),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(secondaryLabel,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: scheme.onSurfaceVariant)),
+                  ),
+                ],
+              ),
+            ),
             if (hasExpiry)
               Row(
                 children: [

@@ -3,6 +3,19 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.3.0
+
+### Added
+- **Tap-to-edit quantities** — pantry quantities now show as a "×N" pill (the
+  same style as the shopping list); tap it for a quick +/- editor instead of
+  opening the whole item.
+
+### Changed
+- **Barcode scanning is back to a live camera preview** (mobile_scanner) —
+  point at a barcode and it reads instantly, instead of the unreliable
+  take-a-photo approach. Includes an "Enter manually" fallback and a friendly
+  message if the camera can't start.
+
 ## v1.2.0
 
 ### Added

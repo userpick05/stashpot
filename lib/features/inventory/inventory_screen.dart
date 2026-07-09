@@ -8,6 +8,7 @@ import '../../core/utils/shopping_actions.dart';
 import '../../core/widgets/swipe_to_delete.dart';
 import '../../models/inventory_item.dart';
 import 'inventory_item_card.dart';
+import 'quantity_edit_sheet.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -204,6 +205,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       ? item.category.label
                       : locationLabel(item.location),
                   onTap: () => context.push('/inventory/edit', extra: item),
+                  onTapQuantity: () => showQuantityEditSheet(context, ref, item),
                   onAddToShopping: () => sendItemToShopping(context, ref, item),
                   onRemoveToShopping: () async {
                     final hid = ref.read(householdIdProvider);

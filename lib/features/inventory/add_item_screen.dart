@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
@@ -11,6 +10,7 @@ import '../../core/providers/scanning_providers.dart';
 import '../../core/utils/category_guess.dart';
 import '../../core/utils/category_icons.dart';
 import '../../models/inventory_item.dart';
+import '../scanning/barcode_scanner_screen.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   /// When non-null, the screen edits this existing item instead of adding.
@@ -280,39 +280,24 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       }
       return;
     }
-    // Take a photo of the barcode, then detect it with ML Kit (the live-preview
-    // scanner crashes on this device; the photo path is reliable).
-    final photo = await ImagePicker().pickImage(source: ImageSource.camera, maxWidth: 1600);
-    if (photo == null || !mounted) return;
-
-    setState(() => _looking = true);
-    String? barcode;
-    try {
-      final scanner = BarcodeScanner();
-      final result = await scanner.processImage(InputImage.fromFilePath(photo.path));
-      await scanner.close();
-      if (result.isNotEmpty) {
-        barcode = result.first.rawValue ?? result.first.displayValue;
-      }
-    } catch (_) {
-      barcode = null;
-    }
     if (!mounted) return;
-    if (barcode == null || barcode.isEmpty) {
-      setState(() => _looking = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Couldn't read a barcode — get it clear and centered, or enter the item manually")),
-      );
-      return;
-    }
-    setState(() => _barcode = barcode);
+    // Live-preview scanner (mobile_scanner). Returns the decoded barcode, or
+    // null if the user backs out / chooses to enter the item manually.
+    final code = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (code == null || code.isEmpty || !mounted) return;
+
+    setState(() {
+      _barcode = code;
+      _looking = true;
+    });
     try {
-      final product = await ref.read(openFoodFactsServiceProvider).lookup(barcode);
+      final product = await ref.read(openFoodFactsServiceProvider).lookup(code);
       if (!mounted) return;
       if (product == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No product found for $barcode — enter details manually')),
+          SnackBar(content: Text('No product found for $code — enter details manually')),
         );
         return;
       }
@@ -321,7 +306,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         _category = product.category;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Found: ${product.displayName ?? barcode}')),
+        SnackBar(content: Text('Found: ${product.displayName ?? code}')),
       );
     } catch (e) {
       if (mounted) {
