@@ -53,7 +53,7 @@ final catalogProvider = StreamProvider<List<CatalogItem>>((ref) {
 });
 
 // How the pantry list is organized into sections.
-enum InventoryGroupBy { location, category }
+enum InventoryGroupBy { location, category, store }
 
 final inventoryGroupByProvider =
     StateProvider<InventoryGroupBy>((_) => InventoryGroupBy.location);

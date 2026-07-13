@@ -34,7 +34,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     return items.where((i) {
       return i.name.toLowerCase().contains(q) ||
           locationLabel(i.location).toLowerCase().contains(q) ||
-          i.category.label.toLowerCase().contains(q);
+          i.category.label.toLowerCase().contains(q) ||
+          (i.store?.toLowerCase().contains(q) ?? false);
     }).toList();
   }
 
@@ -54,6 +55,27 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         if (group.isNotEmpty) {
           result.add((label: locationLabel(key), icon: locationIcon(key), items: group));
         }
+      }
+    } else if (groupBy == InventoryGroupBy.store) {
+      // Group by the store each item is bought at; no-store items go last.
+      const noStore = 'Other / no store';
+      final byStore = <String, List<InventoryItem>>{};
+      for (final i in items) {
+        final key = (i.store != null && i.store!.trim().isNotEmpty)
+            ? i.store!.trim()
+            : noStore;
+        byStore.putIfAbsent(key, () => []).add(i);
+      }
+      final keys = byStore.keys.toList()
+        ..sort((a, b) {
+          if (a == noStore) return 1;
+          if (b == noStore) return -1;
+          return a.toLowerCase().compareTo(b.toLowerCase());
+        });
+      for (final key in keys) {
+        final group = byStore[key]!
+          ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        result.add((label: key, icon: Icons.storefront, items: group));
       }
     } else {
       final order = [...kPickableCategories, ItemCategory.produce];
@@ -86,6 +108,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             itemBuilder: (_) => const [
               PopupMenuItem(value: InventoryGroupBy.location, child: Text('Group by location')),
               PopupMenuItem(value: InventoryGroupBy.category, child: Text('Group by category')),
+              PopupMenuItem(value: InventoryGroupBy.store, child: Text('Group by store')),
             ],
           ),
           IconButton(

@@ -1,5 +1,5 @@
 {
-  "version": "1.3.1",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.3.1/stashpot-1.3.1.apk",
-  "notes": "Fixes barcode scanning — it now snaps one clear photo and reads the barcode from that, instead of a live camera preview that crashed on some phones."
+  "version": "1.4.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.4.0/stashpot-1.4.0.apk",
+  "notes": "You can now group the pantry by store — check what you already have before heading to a particular shop."
 }

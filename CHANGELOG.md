@@ -3,6 +3,14 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.4.0
+
+### Added
+- **Group the pantry by store** — a new option in the Pantry "Group by" menu.
+  Splits your pantry into sections by the store each item is bought at (with an
+  "Other / no store" catch-all), so you can check what you've got before a
+  particular shopping trip. Pantry search now matches store names too.
+
 ## v1.3.1
 
 ### Fixed
