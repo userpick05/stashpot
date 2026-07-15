@@ -1,5 +1,5 @@
 {
-  "version": "1.4.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.4.0/stashpot-1.4.0.apk",
-  "notes": "You can now group the pantry by store — check what you already have before heading to a particular shop."
+  "version": "1.5.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.5.0/stashpot-1.5.0.apk",
+  "notes": "Two sizes of the same item stay separate (their note/size now carries into the pantry), and you can take a photo to add items to the shopping list too."
 }

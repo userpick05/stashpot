@@ -3,6 +3,20 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.5.0
+
+### Fixed
+- **Same-name items with different sizes stay separate.** When moving a checked
+  item from the shopping list to the pantry, its note (where a size like "1 gal"
+  or "24-pack" lives) is now carried over, the pantry shows that note, and the
+  duplicate check compares name **and** note — so two sizes of the same product
+  no longer get merged into one.
+
+### Added
+- **Take a photo to add to the shopping list.** The shopping-list add sheet now
+  has the same "snap a photo → identify → prefill" option as the pantry (it even
+  drops the detected size/variety into the note).
+
 ## v1.4.0
 
 ### Added

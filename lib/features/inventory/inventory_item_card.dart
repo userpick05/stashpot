@@ -47,6 +47,7 @@ class InventoryItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final hasExpiry = item.expiryDate != null;
+    final hasNote = (item.notes ?? '').trim().isNotEmpty;
     final qty = item.quantity % 1 == 0 ? item.quantity.toInt().toString() : item.quantity.toString();
     // Match the shopping list's "×N" pill; show the unit when it's not a plain count.
     final pillText = item.unit == 'item' ? '×$qty' : '$qty ${item.unit}';
@@ -104,6 +105,29 @@ class InventoryItemCard extends StatelessWidget {
                 ],
               ),
             ),
+            if (hasNote)
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Row(
+                  children: [
+                    Icon(Icons.sticky_note_2_outlined,
+                        size: 12, color: scheme.outline),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        item.notes!.trim(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             if (hasExpiry)
               Row(
                 children: [
@@ -181,7 +205,7 @@ class InventoryItemCard extends StatelessWidget {
                         onPressed: onDelete,
                       )
                     : null),
-        isThreeLine: hasExpiry,
+        isThreeLine: hasExpiry || hasNote,
       ),
     );
   }

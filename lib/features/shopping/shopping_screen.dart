@@ -72,9 +72,14 @@ class ShoppingScreen extends ConsumerWidget {
     var addedCount = 0, mergedCount = 0, skippedCount = 0;
 
     for (final s in checked) {
+      // Same name AND same note counts as the same item — so two products with
+      // the same name but different sizes (kept in the note, e.g. "1 gal" vs
+      // "24-pack") stay separate instead of being merged.
+      final sNote = (s.note ?? '').trim().toLowerCase();
       InventoryItem? existing;
       for (final i in inventory) {
-        if (i.name.trim().toLowerCase() == s.name.trim().toLowerCase()) {
+        if (i.name.trim().toLowerCase() == s.name.trim().toLowerCase() &&
+            (i.notes ?? '').trim().toLowerCase() == sNote) {
           existing = i;
           break;
         }
@@ -108,6 +113,7 @@ class ShoppingScreen extends ConsumerWidget {
             unit: 'item',
             location: kDefaultLocationKey,
             store: s.store,
+            notes: s.note, // carry the note (e.g. size) into the pantry
             addedAt: DateTime.now(),
             addedBy: uid,
           ),

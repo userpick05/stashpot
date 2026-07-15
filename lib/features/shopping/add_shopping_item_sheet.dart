@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
+import '../../core/providers/scanning_providers.dart';
 import '../../models/shopping_item.dart';
 
 /// Bottom sheet for adding or editing a shopping-list item.
@@ -22,8 +25,62 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
   final _noteCtrl = TextEditingController();
   int _quantity = 1;
   bool _saving = false;
+  bool _identifying = false;
 
   bool get _isEditing => widget.existing != null;
+
+  // Snap a photo and let Gemini identify the item, prefilling the fields — the
+  // same flow the pantry add screen uses.
+  Future<void> _identifyByPhoto() async {
+    final status = await Permission.camera.request();
+    if (!status.isGranted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Camera permission is needed to take a photo')),
+        );
+      }
+      return;
+    }
+    final photo = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1024,
+      imageQuality: 85,
+    );
+    if (photo == null || !mounted) return;
+
+    setState(() => _identifying = true);
+    try {
+      final bytes = await photo.readAsBytes();
+      final result = await ref.read(geminiServiceProvider).identifyFood(bytes);
+      if (!mounted) return;
+      if (result == null || result.name == 'Unknown' || result.confidence == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't identify the item — enter it manually")),
+        );
+        return;
+      }
+      setState(() {
+        _nameCtrl.text = result.name;
+        if (result.details != null) _noteCtrl.text = result.details!;
+        if (result.store != null) _storeCtrl.text = result.store!;
+      });
+      final pct = (result.confidence * 100).round();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Identified: ${result.name} ($pct% sure)')),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Photo ID failed: $e. You can still add it manually.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _identifying = false);
+    }
+  }
 
   @override
   void initState() {
@@ -133,6 +190,20 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
             ),
             onSubmitted: (_) => _add(),
           ),
+          if (!_isEditing) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _identifying ? null : _identifyByPhoto,
+              icon: _identifying
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.camera_alt),
+              label: Text(_identifying ? 'Identifying…' : 'Take a photo to identify'),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
