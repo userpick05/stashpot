@@ -6,9 +6,9 @@ import '../providers/auth_providers.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 
-/// Adds a pantry item to the shopping list, carrying its name, quantity and
-/// store. Shows a snackbar with Undo. Shared by the pantry-item action and the
-/// Home "Running low?" flow so both behave identically.
+/// Adds a pantry item to the shopping list, carrying its name, quantity, store
+/// and note (e.g. size). Shows a snackbar with Undo. Shared by the pantry-item
+/// action and the Home "Running low?" flow so both behave identically.
 ///
 Future<void> sendItemToShopping(
   BuildContext context,
@@ -27,6 +27,7 @@ Future<void> sendItemToShopping(
     name: item.name,
     store: item.store,
     quantity: item.quantity,
+    note: item.notes, // carry the note (e.g. size) over to the shopping list
     checked: false,
     addedAt: DateTime.now(),
     addedBy: uid,

@@ -1,7 +1,7 @@
 name: stashpot
 description: "Home food inventory with barcode scanning and Firebase sync"
 publish_to: 'none'
-version: 1.5.0+7
+version: 1.5.1+8
 
 environment:
   sdk: ^3.12.2

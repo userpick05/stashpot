@@ -32,17 +32,46 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
   // Snap a photo and let Gemini identify the item, prefilling the fields — the
   // same flow the pantry add screen uses.
   Future<void> _identifyByPhoto() async {
-    final status = await Permission.camera.request();
-    if (!status.isGranted) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Camera permission is needed to take a photo')),
-        );
+    // Let the user choose camera or gallery — gallery lets her pick a saved
+    // screenshot of something she wants to shop for.
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    // Camera capture needs the runtime permission; gallery uses the system
+    // picker and needs no grant.
+    if (source == ImageSource.camera) {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Camera permission is needed to take a photo')),
+          );
+        }
+        return;
       }
-      return;
     }
+
     final photo = await ImagePicker().pickImage(
-      source: ImageSource.camera,
+      source: source,
       maxWidth: 1024,
       imageQuality: 85,
     );

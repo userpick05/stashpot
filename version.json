@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.5.0/stashpot-1.5.0.apk",
-  "notes": "Two sizes of the same item stay separate (their note/size now carries into the pantry), and you can take a photo to add items to the shopping list too."
+  "version": "1.5.1",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.5.1/stashpot-1.5.1.apk",
+  "notes": "The shopping-list photo option can now pick from your gallery (not just the camera), and notes/sizes no longer disappear when you move a pantry item to the shopping list."
 }

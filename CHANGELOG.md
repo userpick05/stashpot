@@ -3,6 +3,17 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.5.1
+
+### Fixed
+- **Shopping-list photo can now use the gallery.** The "take a photo to identify"
+  option on the shopping list now offers **camera *or* gallery** (like the
+  pantry) — so you can add an item from a saved screenshot of something you want
+  to shop for.
+- **Notes no longer drop going pantry → shopping.** Adding a pantry item to the
+  shopping list now carries its note (e.g. size/quantity) over, matching the
+  shopping → pantry direction.
+
 ## v1.5.0
 
 ### Fixed
