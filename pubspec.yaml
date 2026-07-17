@@ -1,7 +1,7 @@
 name: stashpot
 description: "Home food inventory with barcode scanning and Firebase sync"
 publish_to: 'none'
-version: 1.5.2+9
+version: 1.5.3+10
 
 environment:
   sdk: ^3.12.2
@@ -51,6 +51,17 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.14
   riverpod_generator: ^2.6.3
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
+
+# App launcher icon (the StashPot grocery-bag logo). Regenerate with:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: false
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#F7F8F0"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  min_sdk_android: 21

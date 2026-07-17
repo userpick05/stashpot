@@ -3,6 +3,12 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.5.3
+
+### Changed
+- **New app icon** — the StashPot grocery-bag logo now shows on your home screen
+  (replacing the generic Flutter icon), including an Android adaptive icon.
+
 ## v1.5.2
 
 ### Added
