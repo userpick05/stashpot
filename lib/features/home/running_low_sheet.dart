@@ -5,12 +5,22 @@ import '../../core/providers/inventory_providers.dart';
 import '../../core/utils/category_icons.dart';
 import '../../models/inventory_item.dart';
 
-/// Quick "running low?" flow: search the pantry and tap an item. Returns the
-/// chosen item (or null if dismissed). The caller adds it to the shopping list
-/// AFTER this sheet has fully closed — showing the snackbar while the sheet is
-/// still animating away leaves it stuck on screen.
-Future<InventoryItem?> showRunningLowSheet(BuildContext context) {
-  return showModalBottomSheet<InventoryItem>(
+/// What the "Running low?" sheet was closed with: either an existing pantry
+/// item, or a free-text name for something that isn't in the pantry yet.
+class RunningLowPick {
+  final InventoryItem? item;
+  final String? newName;
+  const RunningLowPick.item(InventoryItem this.item) : newName = null;
+  const RunningLowPick.newName(String this.newName) : item = null;
+}
+
+/// Quick "running low?" flow: search the pantry and tap an item, or — if
+/// nothing matches — add what you typed straight to the shopping list.
+/// Returns the pick (or null if dismissed). The caller adds it to the
+/// shopping list AFTER this sheet has fully closed — showing the snackbar
+/// while the sheet is still animating away leaves it stuck on screen.
+Future<RunningLowPick?> showRunningLowSheet(BuildContext context) {
+  return showModalBottomSheet<RunningLowPick>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
@@ -94,11 +104,26 @@ class _RunningLowSheetState extends ConsumerState<_RunningLowSheet> {
               if (filtered.isEmpty)
                 Expanded(
                   child: Center(
-                    child: Text(
-                      items.isEmpty
-                          ? 'Your pantry is empty'
-                          : 'No items match "${_searchCtrl.text}"',
-                      style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          items.isEmpty
+                              ? 'Your pantry is empty'
+                              : 'No items match "${_searchCtrl.text}"',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.outline),
+                        ),
+                        if (q.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            icon: const Icon(Icons.add_shopping_cart),
+                            label: Text('Add "${_searchCtrl.text.trim()}" to shopping list'),
+                            onPressed: () => Navigator.of(context)
+                                .pop(RunningLowPick.newName(_searchCtrl.text.trim())),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 )
@@ -140,7 +165,7 @@ class _RunningLowTile extends StatelessWidget {
       subtitle: Text('$qty ${item.unit}  ·  ${locationLabel(item.location)}'),
       trailing: const Icon(Icons.add_shopping_cart),
       // Just return the picked item; the Home screen adds it once we're closed.
-      onTap: () => Navigator.of(context).pop(item),
+      onTap: () => Navigator.of(context).pop(RunningLowPick.item(item)),
     );
   }
 }

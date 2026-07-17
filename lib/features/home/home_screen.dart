@@ -33,13 +33,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (info != null && mounted) showUpdateSheet(context, info);
   }
 
-  // Open the "running low?" picker, then add the chosen item to the shopping
-  // list AFTER the sheet has fully closed (so the snackbar isn't shown mid
-  // route-transition, which would leave it stuck on screen).
+  // Open the "running low?" picker, then add the chosen item (or free-text
+  // name, if nothing in the pantry matched) to the shopping list AFTER the
+  // sheet has fully closed (so the snackbar isn't shown mid route-transition,
+  // which would leave it stuck on screen). Checks for a shopping-list
+  // duplicate first and asks whether to skip or add anyway.
   Future<void> _openRunningLow() async {
-    final item = await showRunningLowSheet(context);
-    if (item != null && mounted) {
-      await sendItemToShopping(context, ref, item);
+    final pick = await showRunningLowSheet(context);
+    if (pick == null || !mounted) return;
+    if (pick.item != null) {
+      await sendItemToShopping(context, ref, pick.item!, confirmIfDuplicate: true);
+    } else if (pick.newName != null) {
+      await addNameToShopping(context, ref, pick.newName!, confirmIfDuplicate: true);
     }
   }
 

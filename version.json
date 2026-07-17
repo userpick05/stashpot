@@ -1,5 +1,5 @@
 {
-  "version": "1.5.1",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.5.1/stashpot-1.5.1.apk",
-  "notes": "The shopping-list photo option can now pick from your gallery (not just the camera), and notes/sizes no longer disappear when you move a pantry item to the shopping list."
+  "version": "1.5.2",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.5.2/stashpot-1.5.2.apk",
+  "notes": "Running low search now lets you add items that aren't in your pantry yet, and warns you before adding a duplicate to the shopping list."
 }

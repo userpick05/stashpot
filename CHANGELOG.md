@@ -3,6 +3,15 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.5.2
+
+### Added
+- **"Running low?" now handles items not yet in your pantry.** Search for
+  something that doesn't match any pantry item and an "Add to shopping list"
+  button appears so you can add it fresh.
+- **Duplicate check on Running low adds.** If the item you're adding is
+  already on the shopping list, you're asked to skip it or add it anyway.
+
 ## v1.5.1
 
 ### Fixed
