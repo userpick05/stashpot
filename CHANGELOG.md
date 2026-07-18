@@ -3,6 +3,16 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.6.0
+
+### Added
+- **Move part of a pantry item to the shopping list.** When you use a pantry
+  item's "⋮" menu → "Remove from pantry & add to shopping list", you now get a
+  "How many to move?" stepper. Move only some of it (e.g. 2 of your 4 dozen
+  eggs) and the rest stays in the pantry; move the full amount and it behaves
+  exactly like before. Undo restores both the pantry item and removes the
+  shopping-list entry.
+
 ## v1.5.3
 
 ### Changed

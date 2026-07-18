@@ -115,6 +115,76 @@ Future<void> sendItemToShopping(
   });
 }
 
+/// Moves [moveQty] of a pantry [item] to the shopping list. If [moveQty] is at
+/// or above the item's quantity, the pantry item is removed entirely (the old
+/// "remove & add to shopping" behaviour); otherwise the pantry item stays and
+/// its quantity is reduced by [moveQty]. Carries the store and note over, and
+/// shows a snackbar whose Undo reverses BOTH sides — it deletes the new
+/// shopping item and restores the pantry item to exactly how it was.
+Future<void> moveItemToShopping(
+  BuildContext context,
+  WidgetRef ref,
+  InventoryItem item,
+  double moveQty,
+) async {
+  if (moveQty <= 0) return;
+  final householdId = ref.read(householdIdProvider);
+  final uid = ref.read(authStateProvider).valueOrNull?.uid;
+  if (householdId == null || uid == null) return;
+
+  final svc = ref.read(firestoreServiceProvider);
+  final messenger = ScaffoldMessenger.of(context);
+
+  final movingAll = moveQty >= item.quantity;
+  final movedQty = movingAll ? item.quantity : moveQty;
+
+  final shoppingItem = ShoppingItem(
+    id: const Uuid().v4(),
+    name: item.name,
+    store: item.store,
+    quantity: movedQty,
+    note: item.notes,
+    checked: false,
+    addedAt: DateTime.now(),
+    addedBy: uid,
+  );
+  await svc.addShoppingItem(householdId, shoppingItem);
+
+  if (movingAll) {
+    await svc.deleteItem(householdId, item.id);
+  } else {
+    await svc
+        .updateItem(householdId, item.copyWith(quantity: item.quantity - moveQty));
+  }
+
+  final label = shoppingItem.quantityLabel;
+  final msg = movingAll
+      ? 'Moved "${item.name}" to shopping list'
+      : 'Moved $label of "${item.name}" to shopping list';
+
+  // Restoring the pantry item to its original state works the same whether we
+  // deleted it (recreates the doc) or reduced it (overwrites the reduced doc),
+  // because addItem does a set() on the item's own id with its original data.
+  Future<void> undo() async {
+    await svc.deleteShoppingItem(householdId, shoppingItem.id);
+    await svc.addItem(householdId, item);
+  }
+
+  // Shown on the next frame with a backstop close, for the same reason as
+  // sendItemToShopping — a snackbar shown mid rebuild can otherwise stick.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    messenger.hideCurrentSnackBar();
+    final controller = messenger.showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 4),
+        content: Text(msg),
+        action: SnackBarAction(label: 'Undo', onPressed: undo),
+      ),
+    );
+    Future.delayed(const Duration(seconds: 4, milliseconds: 300), controller.close);
+  });
+}
+
 /// Adds a free-text item (not yet in the pantry) straight to the shopping
 /// list — used by the Home "Running low?" search when nothing matches.
 /// Same duplicate-check + snackbar-with-Undo behavior as [sendItemToShopping].

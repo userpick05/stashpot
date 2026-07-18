@@ -8,6 +8,7 @@ import '../../core/utils/shopping_actions.dart';
 import '../../core/widgets/swipe_to_delete.dart';
 import '../../models/inventory_item.dart';
 import 'inventory_item_card.dart';
+import 'move_to_shopping_sheet.dart';
 import 'quantity_edit_sheet.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
@@ -231,11 +232,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   onTapQuantity: () => showQuantityEditSheet(context, ref, item),
                   onAddToShopping: () => sendItemToShopping(context, ref, item),
                   onRemoveToShopping: () async {
-                    final hid = ref.read(householdIdProvider);
-                    await sendItemToShopping(context, ref, item);
-                    if (hid != null) {
-                      await ref.read(firestoreServiceProvider).deleteItem(hid, item.id);
-                    }
+                    final moveQty = await showMoveToShoppingSheet(context, item);
+                    if (moveQty == null || !context.mounted) return;
+                    await moveItemToShopping(context, ref, item, moveQty);
                   },
                 ),
               ));

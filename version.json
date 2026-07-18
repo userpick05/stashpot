@@ -1,5 +1,5 @@
 {
-  "version": "1.5.3",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.5.3/stashpot-1.5.3.apk",
-  "notes": "New app icon — the StashPot grocery-bag logo now shows on your home screen."
+  "version": "1.6.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.6.0/stashpot-1.6.0.apk",
+  "notes": "Move part of a pantry item to the shopping list -- a 'How many to move?' stepper lets you send just some (e.g. 2 of 4 dozen eggs) and leave the rest in the pantry."
 }
