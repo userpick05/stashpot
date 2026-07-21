@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.6.0/stashpot-1.6.0.apk",
-  "notes": "Move part of a pantry item to the shopping list -- a 'How many to move?' stepper lets you send just some (e.g. 2 of 4 dozen eggs) and leave the rest in the pantry."
+  "version": "1.7.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.7.0/stashpot-1.7.0.apk",
+  "notes": "Meal planner upgrades -- Move/swap any planned meal to a different day (swaps if the day already has that meal type), plus a Meal Roulette that auto-fills the next N days with a random mix of Breakfast/Lunch/Dinner drawn from meals you've planned before (only fills empty slots; preview and re-roll before adding)."
 }

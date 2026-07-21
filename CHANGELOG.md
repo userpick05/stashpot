@@ -3,6 +3,19 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.7.0
+
+### Added
+- **Move / swap meals on the planner.** Every planned meal now has a "move to
+  another day" button. Pick a new day and the meal moves there; if that day
+  already has a meal of the same type (e.g. Dinner), the two swap places instead
+  of one overwriting the other.
+- **Meal roulette (auto-fill).** A dice button on the planner auto-fills the next
+  N days with a random assortment drawn from meals you've planned before. Pick how
+  many days and which meals to fill (Breakfast / Lunch / Dinner, any combination).
+  It only fills EMPTY slots so it never clobbers a meal you set on purpose, and you
+  preview the picks and can re-roll before adding them to the plan.
+
 ## v1.6.0
 
 ### Added

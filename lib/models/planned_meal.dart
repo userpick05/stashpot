@@ -28,6 +28,24 @@ class PlannedMeal {
     return i < 0 ? mealOrder.length : i;
   }
 
+  /// Copy with a changed date (and optionally title/type). Nullable fields
+  /// (recipeId/notes) are preserved as-is — used for move/swap on the planner.
+  PlannedMeal copyWith({
+    DateTime? date,
+    String? title,
+    String? mealType,
+  }) =>
+      PlannedMeal(
+        id: id,
+        date: date ?? this.date,
+        title: title ?? this.title,
+        mealType: mealType ?? this.mealType,
+        recipeId: recipeId,
+        notes: notes,
+        addedAt: addedAt,
+        addedBy: addedBy,
+      );
+
   factory PlannedMeal.fromFirestore(DocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
     return PlannedMeal(

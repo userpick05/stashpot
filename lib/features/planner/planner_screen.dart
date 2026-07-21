@@ -9,6 +9,8 @@ import '../../core/widgets/swipe_to_delete.dart';
 import '../../models/planned_meal.dart';
 import '../recipes/recipe_detail_screen.dart';
 import 'add_meal_sheet.dart';
+import 'meal_roulette_sheet.dart';
+import 'move_meal_sheet.dart';
 
 /// Color for each meal type's calendar dot + legend.
 Color mealTypeColor(String type) => switch (type) {
@@ -57,6 +59,21 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     );
   }
 
+  /// Show a snackbar safely on this device: on the next frame (not mid
+  /// route-change/rebuild) with an explicit backstop timer, so it can't skip
+  /// the callback that arms auto-dismiss and stick forever (see shopping_actions).
+  void _showSnack(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      messenger.hideCurrentSnackBar();
+      final controller = messenger.showSnackBar(
+        SnackBar(duration: const Duration(seconds: 4), content: Text(message)),
+      );
+      Future.delayed(
+          const Duration(seconds: 4, milliseconds: 300), controller.close);
+    });
+  }
+
   void _editMeal(PlannedMeal meal) {
     showModalBottomSheet(
       context: context,
@@ -64,6 +81,57 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       showDragHandle: true,
       builder: (_) => AddMealSheet(date: meal.date, existing: meal),
     );
+  }
+
+  /// Move a meal to another day. If the destination already has a meal of the
+  /// same type, the two swap places instead of one overwriting the other.
+  Future<void> _moveMeal(PlannedMeal meal) async {
+    final picked = await showModalBottomSheet<DateTime>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => MoveMealSheet(meal: meal),
+    );
+    if (picked == null || !mounted) return;
+    final target = DateTime(picked.year, picked.month, picked.day);
+    final origin = DateTime(meal.date.year, meal.date.month, meal.date.day);
+    if (isSameDay(target, origin)) return; // no change
+
+    final hid = ref.read(householdIdProvider);
+    if (hid == null) return;
+    final fs = ref.read(firestoreServiceProvider);
+    final all = ref.read(plannerProvider).valueOrNull ?? [];
+
+    // An existing meal of the same type on the target day gets swapped back.
+    final occupant = all
+        .where((m) =>
+            m.id != meal.id &&
+            m.mealType == meal.mealType &&
+            isSameDay(m.date, target))
+        .toList();
+
+    await fs.savePlannedMeal(hid, meal.copyWith(date: target));
+    if (occupant.isNotEmpty) {
+      await fs.savePlannedMeal(hid, occupant.first.copyWith(date: origin));
+    }
+
+    if (!mounted) return;
+    setState(() => _selectedDay = target); // follow the meal to its new day
+    _showSnack(occupant.isNotEmpty
+        ? 'Swapped "${meal.title}" with "${occupant.first.title}"'
+        : 'Moved "${meal.title}" to ${_dayLabel(target)}');
+  }
+
+  Future<void> _openRoulette() async {
+    final added = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const MealRouletteSheet(),
+    );
+    if (added != null && added > 0 && mounted) {
+      _showSnack('Added $added ${added == 1 ? 'meal' : 'meals'} to the planner');
+    }
   }
 
   @override
@@ -76,7 +144,16 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     final selectedMeals = forDay(_selectedDay);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Meal planner')),
+      appBar: AppBar(
+        title: const Text('Meal planner'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.casino),
+            tooltip: 'Meal roulette (auto-fill)',
+            onPressed: _openRoulette,
+          ),
+        ],
+      ),
       body: planner.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -233,15 +310,24 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          // Tap the row to edit; tap the recipe button to open it.
+                          // Tap the row to edit; the buttons move / open recipe.
                           onTap: () => _editMeal(m),
-                          trailing: m.recipeId != null
-                              ? IconButton(
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.event_repeat),
+                                tooltip: 'Move to another day',
+                                onPressed: () => _moveMeal(m),
+                              ),
+                              if (m.recipeId != null)
+                                IconButton(
                                   icon: const Icon(Icons.menu_book),
                                   tooltip: 'Open recipe',
                                   onPressed: () => _openRecipe(m.recipeId!),
-                                )
-                              : const Icon(Icons.edit, size: 18),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
