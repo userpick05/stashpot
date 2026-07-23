@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/auth_providers.dart';
+import '../../core/utils/labels.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 
 /// Quick quantity editor — tap a pantry item's quantity pill to bump it up/down
@@ -72,6 +74,7 @@ class _QuantityEditSheetState extends ConsumerState<_QuantityEditSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -80,7 +83,7 @@ class _QuantityEditSheetState extends ConsumerState<_QuantityEditSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Quantity', style: Theme.of(context).textTheme.titleLarge),
+          Text(l.qtySheetTitle, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 2),
           Text(widget.item.name, style: TextStyle(color: scheme.outline)),
           const SizedBox(height: 20),
@@ -102,7 +105,10 @@ class _QuantityEditSheetState extends ConsumerState<_QuantityEditSheet> {
                   style: Theme.of(context).textTheme.headlineSmall,
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
-                    suffixText: widget.item.unit == 'item' ? null : widget.item.unit,
+                    // 'item' is the stored key for a plain count — no suffix.
+                    suffixText: widget.item.unit == 'item'
+                        ? null
+                        : unitLabelOf(l, widget.item.unit),
                   ),
                   onChanged: (v) {
                     final d = double.tryParse(v);
@@ -122,7 +128,7 @@ class _QuantityEditSheetState extends ConsumerState<_QuantityEditSheet> {
             width: double.infinity,
             child: FilledButton(
               onPressed: _saving ? null : _save,
-              child: Text(_saving ? 'Saving…' : 'Save'),
+              child: Text(_saving ? l.commonSaving : l.commonSave),
             ),
           ),
         ],

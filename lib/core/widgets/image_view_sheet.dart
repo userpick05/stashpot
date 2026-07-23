@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Shows a saved photo full-width in a bottom sheet (tap the photo icon to open).
 void showImageSheet(BuildContext context, String url) {
   showModalBottomSheet<void>(
@@ -20,9 +22,10 @@ void showImageSheet(BuildContext context, String url) {
                       height: 240,
                       child: Center(child: CircularProgressIndicator()),
                     ),
-              errorBuilder: (c, e, s) => const SizedBox(
+              errorBuilder: (c, e, s) => SizedBox(
                 height: 160,
-                child: Center(child: Text('Could not load image')),
+                child: Center(
+                    child: Text(AppLocalizations.of(c).imageLoadFailed)),
               ),
             ),
           ),

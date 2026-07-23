@@ -1,13 +1,16 @@
 name: stashpot
 description: "Home food inventory with barcode scanning and Firebase sync"
 publish_to: 'none'
-version: 1.7.0+12
+version: 1.8.0+13
 
 environment:
   sdk: ^3.12.2
 
 dependencies:
   flutter:
+    sdk: flutter
+  # Localization (English + Traditional Chinese)
+  flutter_localizations:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
@@ -55,6 +58,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true # builds AppLocalizations from lib/l10n/*.arb
 
 # App launcher icon (the StashPot grocery-bag logo). Regenerate with:
 #   dart run flutter_launcher_icons

@@ -3,6 +3,27 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.8.0
+
+### Added
+- **Traditional Chinese (繁體中文).** The whole app is now translated — 332 strings
+  across every screen. It follows your phone's language automatically, and there's
+  a new **Settings → Language** picker (System default / English / 繁體中文).
+- **Chinese product scanning.** Photo identification now answers in your language,
+  so photographing Chinese packaging gives you a Chinese item name (with Taiwan
+  store hints instead of US ones). Barcode lookups ask for Chinese product names.
+- **Barcode misses no longer dead-end.** When a barcode isn't in the product
+  database — common for local and imported products — the app offers to identify
+  it from a photo instead.
+- Item categories are now auto-guessed from Chinese names too, so items moved from
+  the shopping list land in the right category instead of "Other".
+
+### Notes
+- Nothing stored changed: categories, locations, units and meal types keep their
+  existing values, so all existing pantry and planner data works untouched and
+  English is unaffected.
+- Recipe *content* from the recipe search remains English.
+
 ## v1.7.0
 
 ### Added

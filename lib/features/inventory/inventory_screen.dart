@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/utils/category_icons.dart';
+import '../../core/utils/labels.dart';
 import '../../core/utils/shopping_actions.dart';
 import '../../core/widgets/swipe_to_delete.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 import 'inventory_item_card.dart';
 import 'move_to_shopping_sheet.dart';
@@ -29,13 +31,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   // Filter by name, location label, or category label (case-insensitive).
-  List<InventoryItem> _filter(List<InventoryItem> items) {
+  // Matches the LOCALIZED labels, so searching "冰箱" works in Chinese and
+  // "Fridge" works in English.
+  List<InventoryItem> _filter(List<InventoryItem> items, AppLocalizations l) {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return items;
     return items.where((i) {
       return i.name.toLowerCase().contains(q) ||
-          locationLabel(i.location).toLowerCase().contains(q) ||
-          i.category.label.toLowerCase().contains(q) ||
+          locationLabelOf(l, i.location).toLowerCase().contains(q) ||
+          categoryLabelOf(l, i.category).toLowerCase().contains(q) ||
           (i.store?.toLowerCase().contains(q) ?? false);
     }).toList();
   }
@@ -43,23 +47,30 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   // Ordered, non-empty sections for the chosen grouping. [locationKeys] is the
   // ordered set of locations to show when grouping by location (built-ins +
   // custom + any orphan keys still present on items).
-  List<({String label, IconData icon, List<InventoryItem> items})> _sections(
+  List<({String id, String label, IconData icon, List<InventoryItem> items})> _sections(
     List<InventoryItem> items,
     InventoryGroupBy groupBy,
     List<String> locationKeys,
+    AppLocalizations l,
   ) {
-    final result = <({String label, IconData icon, List<InventoryItem> items})>[];
+    final result = <({String id, String label, IconData icon, List<InventoryItem> items})>[];
     if (groupBy == InventoryGroupBy.location) {
       for (final key in locationKeys) {
         final group = items.where((i) => i.location == key).toList()
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         if (group.isNotEmpty) {
-          result.add((label: locationLabel(key), icon: locationIcon(key), items: group));
+          result.add((
+            id: 'loc-$key',
+            label: locationLabelOf(l, key),
+            icon: locationIcon(key),
+            items: group
+          ));
         }
       }
     } else if (groupBy == InventoryGroupBy.store) {
       // Group by the store each item is bought at; no-store items go last.
-      const noStore = 'Other / no store';
+      // This bucket label is display-only — nothing is stored under it.
+      final noStore = l.noStoreGroup;
       final byStore = <String, List<InventoryItem>>{};
       for (final i in items) {
         final key = (i.store != null && i.store!.trim().isNotEmpty)
@@ -76,7 +87,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       for (final key in keys) {
         final group = byStore[key]!
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-        result.add((label: key, icon: Icons.storefront, items: group));
+        result.add((
+          id: 'store-$key',
+          label: key,
+          icon: Icons.storefront,
+          items: group
+        ));
       }
     } else {
       final order = [...kPickableCategories, ItemCategory.produce];
@@ -84,7 +100,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         final group = items.where((i) => i.category == cat).toList()
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         if (group.isNotEmpty) {
-          result.add((label: cat.label, icon: categoryIcon(cat), items: group));
+          result.add((
+            id: 'cat-${cat.name}',
+            label: categoryLabelOf(l, cat),
+            icon: categoryIcon(cat),
+            items: group
+          ));
         }
       }
     }
@@ -93,35 +114,38 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final inventory = ref.watch(inventoryProvider);
     final expiring = ref.watch(expiringItemsProvider);
     final groupBy = ref.watch(inventoryGroupByProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pantry'),
+        title: Text(l.navPantry),
         actions: [
           PopupMenuButton<InventoryGroupBy>(
             icon: const Icon(Icons.sort),
-            tooltip: 'Group by',
+            tooltip: l.pantryGroupByTooltip,
             initialValue: groupBy,
             onSelected: (v) => ref.read(inventoryGroupByProvider.notifier).state = v,
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: InventoryGroupBy.location, child: Text('Group by location')),
-              PopupMenuItem(value: InventoryGroupBy.category, child: Text('Group by category')),
-              PopupMenuItem(value: InventoryGroupBy.store, child: Text('Group by store')),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                  value: InventoryGroupBy.location, child: Text(l.pantryGroupByLocation)),
+              PopupMenuItem(
+                  value: InventoryGroupBy.category, child: Text(l.pantryGroupByCategory)),
+              PopupMenuItem(value: InventoryGroupBy.store, child: Text(l.pantryGroupByStore)),
             ],
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
+            tooltip: l.settingsSignOut,
             onPressed: () => ref.read(authServiceProvider).signOut(),
           ),
         ],
       ),
       body: inventory.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(l.commonError(e.toString()))),
         data: (allItems) {
           if (allItems.isEmpty) {
             return Center(
@@ -130,15 +154,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 children: [
                   Icon(Icons.kitchen_outlined, size: 80, color: Theme.of(context).colorScheme.outline),
                   const SizedBox(height: 16),
-                  Text('Your pantry is empty', style: Theme.of(context).textTheme.titleMedium),
+                  Text(l.pantryEmptyTitle, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  const Text('Tap + to add your first item'),
+                  Text(l.pantryEmptySubtitle),
                 ],
               ),
             );
           }
 
-          final items = _filter(allItems);
+          final items = _filter(allItems, l);
           // Location keys to show: the standard ordered set, plus any orphan
           // location still present on an item (e.g. a since-deleted custom one).
           final locationKeys = [
@@ -149,7 +173,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   i.location
             },
           ];
-          final sections = _sections(items, groupBy, locationKeys);
+          final sections = _sections(items, groupBy, locationKeys, l);
           final children = <Widget>[];
 
           // Only show the expiry banner when not actively searching.
@@ -169,7 +193,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${expiring.length} item${expiring.length == 1 ? '' : 's'} expiring soon or expired',
+                      l.pantryExpiringBanner(expiring.length),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -186,7 +210,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 children: [
                   Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.outline),
                   const SizedBox(height: 12),
-                  Text('No items match "${_searchCtrl.text}"',
+                  Text(l.pantryNoMatches(_searchCtrl.text),
                       style: Theme.of(context).textTheme.titleMedium),
                 ],
               ),
@@ -195,7 +219,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
           for (final section in sections) {
             children.add(Padding(
-              key: ValueKey('hdr-${section.label}'),
+              key: ValueKey('hdr-${section.id}'),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
               child: Row(
                 children: [
@@ -226,8 +250,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 child: InventoryItemCard(
                   item: item,
                   secondaryLabel: groupBy == InventoryGroupBy.location
-                      ? item.category.label
-                      : locationLabel(item.location),
+                      ? categoryLabelOf(l, item.category)
+                      : locationLabelOf(l, item.location),
                   onTap: () => context.push('/inventory/edit', extra: item),
                   onTapQuantity: () => showQuantityEditSheet(context, ref, item),
                   onAddToShopping: () => sendItemToShopping(context, ref, item),
@@ -251,7 +275,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   onChanged: (v) => setState(() => _query = v),
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
-                    hintText: 'Search pantry…',
+                    hintText: l.pantrySearchHint,
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(
@@ -277,7 +301,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/inventory/add'),
         icon: const Icon(Icons.add),
-        label: const Text('Add item'),
+        label: Text(l.pantryAddItemFab),
       ),
     );
   }

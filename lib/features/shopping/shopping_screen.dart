@@ -5,6 +5,7 @@ import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/utils/category_guess.dart';
 import '../../core/widgets/swipe_to_delete.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 import 'add_shopping_item_sheet.dart';
@@ -19,34 +20,37 @@ class ShoppingScreen extends ConsumerWidget {
     return showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('"$name" is already in your pantry',
-                style: Theme.of(ctx).textTheme.titleMedium),
-            const SizedBox(height: 6),
-            const Text('Add its quantity to the existing item, or skip it?'),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, 'skip'),
-                  child: const Text('Skip'),
-                ),
-                const Spacer(),
-                FilledButton.icon(
-                  icon: const Icon(Icons.add),
-                  onPressed: () => Navigator.pop(ctx, 'add'),
-                  label: const Text('Add quantity'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      builder: (ctx) {
+        final l = AppLocalizations.of(ctx);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.shoppingDupPantryTitle(name),
+                  style: Theme.of(ctx).textTheme.titleMedium),
+              const SizedBox(height: 6),
+              Text(l.shoppingDupPantryBody),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, 'skip'),
+                    child: Text(l.commonSkip),
+                  ),
+                  const Spacer(),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.add),
+                    onPressed: () => Navigator.pop(ctx, 'add'),
+                    label: Text(l.shoppingAddQuantity),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -64,6 +68,7 @@ class ShoppingScreen extends ConsumerWidget {
     final svc = ref.read(firestoreServiceProvider);
     final inventory = ref.read(inventoryProvider).valueOrNull ?? [];
     final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
 
     final createdIds = <String>[]; // new pantry items → delete on undo
     final originalById = <String, InventoryItem>{}; // merged → restore on undo
@@ -127,9 +132,9 @@ class ShoppingScreen extends ConsumerWidget {
     if (removedShopping.isEmpty) return; // nothing processed
 
     final parts = <String>[];
-    if (addedCount > 0) parts.add('$addedCount added');
-    if (mergedCount > 0) parts.add('$mergedCount merged');
-    if (skippedCount > 0) parts.add('$skippedCount skipped');
+    if (addedCount > 0) parts.add(l.shoppingSummaryAdded(addedCount));
+    if (mergedCount > 0) parts.add(l.shoppingSummaryMerged(mergedCount));
+    if (skippedCount > 0) parts.add(l.shoppingSummarySkipped(skippedCount));
 
     // Show after the current frame so it isn't shown mid sheet-close (which can
     // leave a snackbar stuck on screen).
@@ -138,9 +143,10 @@ class ShoppingScreen extends ConsumerWidget {
       final controller = messenger.showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 4),
-          content: Text('Pantry updated — ${parts.join(', ')}'),
+          content: Text(l.shoppingPantryUpdated(
+              parts.join(l.shoppingSummarySeparator))),
           action: SnackBarAction(
-            label: 'Undo',
+            label: l.commonUndo,
             onPressed: () {
               for (final id in createdIds) {
                 svc.deleteItem(householdId, id);
@@ -159,6 +165,8 @@ class ShoppingScreen extends ConsumerWidget {
     });
   }
 
+  // Internal sentinel for the "no store" bucket — never shown as-is and never
+  // stored; the header text goes through l.noStoreGroup.
   static const _noStoreKey = 'Other / no store';
 
   Map<String, List<ShoppingItem>> _groupByStore(List<ShoppingItem> items) {
@@ -189,16 +197,17 @@ class ShoppingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final shopping = ref.watch(shoppingProvider);
     final householdId = ref.watch(householdIdProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Shopping list'),
+        title: Text(l.navShopping),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
-            tooltip: 'Reorder previous items',
+            tooltip: l.shoppingReorderTooltip,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ReorderScreen()),
             ),
@@ -209,7 +218,7 @@ class ShoppingScreen extends ConsumerWidget {
               if (checked.isEmpty) return const SizedBox.shrink();
               return IconButton(
                 icon: const Icon(Icons.move_to_inbox),
-                tooltip: 'Move checked to pantry',
+                tooltip: l.shoppingMoveToPantryTooltip,
                 onPressed: householdId == null
                     ? null
                     : () => _moveCheckedToPantry(context, ref, householdId, checked),
@@ -223,7 +232,7 @@ class ShoppingScreen extends ConsumerWidget {
               if (checked.isEmpty) return const SizedBox.shrink();
               return IconButton(
                 icon: const Icon(Icons.delete_sweep),
-                tooltip: 'Clear checked items',
+                tooltip: l.shoppingClearCheckedTooltip,
                 // Clear immediately with an Undo snackbar (no confirm dialog —
                 // AlertDialogs black-screen via Impeller on some devices).
                 onPressed: householdId == null
@@ -235,9 +244,9 @@ class ShoppingScreen extends ConsumerWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  'Cleared ${checked.length} checked item${checked.length == 1 ? '' : 's'}'),
+                                  l.shoppingClearedCount(checked.length)),
                               action: SnackBarAction(
-                                label: 'Undo',
+                                label: l.commonUndo,
                                 onPressed: () {
                                   for (final i in checked) {
                                     svc.addShoppingItem(householdId, i);
@@ -256,7 +265,7 @@ class ShoppingScreen extends ConsumerWidget {
       ),
       body: shopping.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(l.commonError('$e'))),
         data: (items) {
           if (items.isEmpty) {
             return Center(
@@ -266,10 +275,10 @@ class ShoppingScreen extends ConsumerWidget {
                   Icon(Icons.shopping_cart_outlined,
                       size: 80, color: Theme.of(context).colorScheme.outline),
                   const SizedBox(height: 16),
-                  Text('Your shopping list is empty',
+                  Text(l.shoppingEmptyTitle,
                       style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  const Text('Tap + to add something to buy'),
+                  Text(l.shoppingEmptyHint),
                 ],
               ),
             );
@@ -290,7 +299,7 @@ class ShoppingScreen extends ConsumerWidget {
                           size: 18, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 6),
                       Text(
-                        store,
+                        store == _noStoreKey ? l.noStoreGroup : store,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -319,7 +328,7 @@ class ShoppingScreen extends ConsumerWidget {
                   builder: (_) => const AddShoppingItemSheet(),
                 ),
         icon: const Icon(Icons.add),
-        label: const Text('Add'),
+        label: Text(l.commonAdd),
       ),
     );
   }

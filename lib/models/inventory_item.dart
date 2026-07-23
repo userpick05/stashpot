@@ -8,15 +8,9 @@ const List<String> kBuiltInLocationKeys = ['fridge', 'freezer', 'pantry', 'other
 
 const String kDefaultLocationKey = 'pantry';
 
-/// Human label for a location key. Built-ins get a nice label; custom locations
-/// use their name as-is.
-String locationLabel(String key) => switch (key) {
-      'fridge' => 'Fridge',
-      'freezer' => 'Freezer',
-      'pantry' => 'Pantry',
-      'other' => 'Other',
-      _ => key,
-    };
+// Display labels for these keys live in lib/core/utils/labels.dart
+// (`locationLabelOf`) so they can be localized — the keys above are what's
+// stored in Firestore and must never be translated.
 
 enum ItemCategory {
   fruit,
@@ -50,23 +44,9 @@ const List<ItemCategory> kPickableCategories = [
   ItemCategory.other,
 ];
 
-extension ItemCategoryLabel on ItemCategory {
-  String get label => switch (this) {
-        ItemCategory.fruit => 'Fruit',
-        ItemCategory.vegetable => 'Vegetables',
-        ItemCategory.meat => 'Meat & Fish',
-        ItemCategory.dairy => 'Dairy & Eggs',
-        ItemCategory.bakery => 'Bakery',
-        ItemCategory.pantry => 'Dry Goods',
-        ItemCategory.frozen => 'Frozen',
-        ItemCategory.beverages => 'Beverages',
-        ItemCategory.snacks => 'Snacks',
-        ItemCategory.household => 'Household',
-        ItemCategory.personalCare => 'Personal Care',
-        ItemCategory.produce => 'Produce',
-        ItemCategory.other => 'Other',
-      };
-}
+// Category display labels live in lib/core/utils/labels.dart
+// (`categoryLabelOf`) so they can be localized. The enum's `.name` is what's
+// stored in Firestore and must never be translated.
 
 class InventoryItem {
   final String id;

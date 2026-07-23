@@ -6,6 +6,7 @@ import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/recipe_providers.dart';
 import '../../core/utils/pantry_match.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_details.dart';
 import '../../models/shopping_item.dart';
@@ -87,7 +88,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     if (mounted) {
       setState(() => _saved = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved "${recipe.name}"')),
+        SnackBar(
+            content: Text(AppLocalizations.of(context).recipeSaved(recipe.name))),
       );
     }
   }
@@ -102,6 +104,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     // (showing it on a screen we're about to pop leaves it stuck).
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    final l = AppLocalizations.of(context);
     await svc.deleteRecipe(hid, recipe.id);
     if (!mounted) return;
     navigator.pop();
@@ -109,9 +112,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: Text('Removed ${recipe.name}'),
+          content: Text(l.recipeRemoved(recipe.name)),
           action: SnackBarAction(
-            label: 'Undo',
+            label: l.commonUndo,
             onPressed: () => svc.saveRecipe(hid, recipe),
           ),
         ),
@@ -122,6 +125,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final hid = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (hid == null || uid == null || names.isEmpty) return;
+    final l = AppLocalizations.of(context);
     final svc = ref.read(firestoreServiceProvider);
     for (final n in names) {
       await svc.addShoppingItem(
@@ -130,7 +134,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           id: const Uuid().v4(),
           name: n,
           quantity: 1,
-          note: 'for ${recipe.name}',
+          note: l.recipeShoppingNote(recipe.name),
           checked: false,
           addedAt: DateTime.now(),
           addedBy: uid,
@@ -139,13 +143,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added ${names.length} item(s) to your shopping list')),
+        SnackBar(content: Text(l.recipeAddedToShopping(names.length))),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final pantryNames =
         (ref.watch(inventoryProvider).valueOrNull ?? []).map((i) => i.name).toList();
     final shoppingNames =
@@ -164,13 +169,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           if (recipe.sourceUrl != null || d?.sourceUrl != null)
             IconButton(
               icon: const Icon(Icons.open_in_new),
-              tooltip: 'Open original in browser',
+              tooltip: l.recipeOpenOriginalTooltip,
               onPressed: _open,
             ),
           if (_saved && recipe.isManual)
             IconButton(
               icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
+              tooltip: l.recipeEditTooltip,
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => AddRecipeManualScreen(existing: recipe),
@@ -178,9 +183,15 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               ),
             ),
           if (_saved)
-            IconButton(icon: const Icon(Icons.delete_outline), tooltip: 'Delete', onPressed: _delete)
+            IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l.commonDelete,
+                onPressed: _delete)
           else
-            IconButton(icon: const Icon(Icons.bookmark_add), tooltip: 'Save', onPressed: _save),
+            IconButton(
+                icon: const Icon(Icons.bookmark_add),
+                tooltip: l.commonSave,
+                onPressed: _save),
         ],
       ),
       body: ListView(
@@ -207,7 +218,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               if (d?.readyInMinutes != null) ...[
                 const Icon(Icons.schedule, size: 18),
                 const SizedBox(width: 4),
-                Text('${d!.readyInMinutes} min'),
+                Text(l.recipeMinutes(d!.readyInMinutes!)),
               ],
             ],
           ),
@@ -236,8 +247,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _error != null
-                        ? "Couldn't load this recipe — check your connection and retry."
-                        : "Couldn't read a recipe from this page. Some sites don't share their recipe data — open it in your browser to view it.",
+                        ? l.recipeLoadFailed
+                        : l.recipeNoStructuredData,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
@@ -249,12 +260,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                         FilledButton.icon(
                             onPressed: _load,
                             icon: const Icon(Icons.refresh),
-                            label: const Text('Retry')),
+                            label: Text(l.commonRetry)),
                       if ((recipe.sourceUrl ?? d?.sourceUrl) != null)
                         OutlinedButton.icon(
                             onPressed: _open,
                             icon: const Icon(Icons.open_in_new),
-                            label: const Text('Open in browser')),
+                            label: Text(l.recipeOpenInBrowser)),
                     ],
                   ),
                 ],
@@ -264,9 +275,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             // Ingredients + cross-check
             Row(
               children: [
-                Text('Ingredients', style: Theme.of(context).textTheme.titleMedium),
+                Text(l.recipeIngredients,
+                    style: Theme.of(context).textTheme.titleMedium),
                 const Spacer(),
-                Text('Have $haveCount/${ingredients.length}',
+                Text(l.recipeHaveCount(haveCount, ingredients.length),
                     style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
@@ -276,7 +288,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: FilledButton.tonalIcon(
                   icon: const Icon(Icons.add_shopping_cart),
-                  label: Text('Add ${missing.length} missing to shopping list'),
+                  label: Text(l.recipeAddMissing(missing.length)),
                   onPressed: () => _addToShopping(missing.map((i) => i.name).toList()),
                 ),
               ),
@@ -290,12 +302,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             const SizedBox(height: 8),
             OutlinedButton.icon(
               icon: const Icon(Icons.playlist_add),
-              label: const Text('Add ALL ingredients to shopping list'),
+              label: Text(l.recipeAddAllIngredients),
               onPressed: () => _addToShopping(ingredients.map((i) => i.name).toList()),
             ),
             const SizedBox(height: 20),
             if (d != null && d.steps.isNotEmpty) ...[
-              Text('Instructions', style: Theme.of(context).textTheme.titleMedium),
+              Text(l.recipeInstructions,
+                  style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               for (var i = 0; i < d.steps.length; i++)
                 Padding(
@@ -332,6 +345,7 @@ class _IngredientRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -354,7 +368,9 @@ class _IngredientRow extends StatelessWidget {
                 size: 20,
                 color: onList ? scheme.primary : null,
               ),
-              tooltip: onList ? 'On shopping list — tap to add again' : 'Add to shopping list',
+              tooltip: onList
+                  ? l.recipeOnListTooltip
+                  : l.recipeAddToShoppingTooltip,
               onPressed: onAdd,
             ),
         ],
@@ -369,12 +385,15 @@ class _NutritionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
+    // Display labels only — the Spoonacular field names used to look these up
+    // (in recipe_details.dart) stay English.
     final stats = <(String, String?)>[
-      ('Calories', nutrition.calories),
-      ('Protein', nutrition.protein),
-      ('Carbs', nutrition.carbs),
-      ('Fat', nutrition.fat),
+      (l.recipeCalories, nutrition.calories),
+      (l.recipeProtein, nutrition.protein),
+      (l.recipeCarbs, nutrition.carbs),
+      (l.recipeFat, nutrition.fat),
     ].where((s) => s.$2 != null).toList();
     if (stats.isEmpty) return const SizedBox.shrink();
 
@@ -389,7 +408,7 @@ class _NutritionRow extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 8, bottom: 8),
-            child: Text('Nutrition (per serving)',
+            child: Text(l.recipeNutritionTitle,
                 style: Theme.of(context).textTheme.bodySmall),
           ),
           Row(

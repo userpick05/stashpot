@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../providers/auth_providers.dart';
 import '../providers/inventory_providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 
@@ -27,33 +28,36 @@ Future<bool> _confirmIfDuplicate(
   final choice = await showModalBottomSheet<String>(
     context: context,
     showDragHandle: true,
-    builder: (ctx) => Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('"$name" is already on your shopping list',
-              style: Theme.of(ctx).textTheme.titleMedium),
-          const SizedBox(height: 6),
-          const Text('Skip it, or add it anyway?'),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, 'skip'),
-                child: const Text('Skip'),
-              ),
-              const Spacer(),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, 'add'),
-                child: const Text('Add anyway'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
+    builder: (ctx) {
+      final l = AppLocalizations.of(ctx);
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.shoppingDupListTitle(name),
+                style: Theme.of(ctx).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(l.shoppingDupListBody),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, 'skip'),
+                  child: Text(l.commonSkip),
+                ),
+                const Spacer(),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, 'add'),
+                  child: Text(l.shoppingAddAnyway),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
   );
   return choice == 'add';
 }
@@ -81,6 +85,7 @@ Future<void> sendItemToShopping(
   final svc = ref.read(firestoreServiceProvider);
   if (!context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
+  final l = AppLocalizations.of(context);
 
   final shoppingItem = ShoppingItem(
     id: const Uuid().v4(),
@@ -104,9 +109,9 @@ Future<void> sendItemToShopping(
     final controller = messenger.showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 4),
-        content: Text('Added "${item.name}" to shopping list'),
+        content: Text(l.shoppingAddedToList(item.name)),
         action: SnackBarAction(
-          label: 'Undo',
+          label: l.commonUndo,
           onPressed: () => svc.deleteShoppingItem(householdId, shoppingItem.id),
         ),
       ),
@@ -134,6 +139,7 @@ Future<void> moveItemToShopping(
 
   final svc = ref.read(firestoreServiceProvider);
   final messenger = ScaffoldMessenger.of(context);
+  final l = AppLocalizations.of(context);
 
   final movingAll = moveQty >= item.quantity;
   final movedQty = movingAll ? item.quantity : moveQty;
@@ -159,8 +165,8 @@ Future<void> moveItemToShopping(
 
   final label = shoppingItem.quantityLabel;
   final msg = movingAll
-      ? 'Moved "${item.name}" to shopping list'
-      : 'Moved $label of "${item.name}" to shopping list';
+      ? l.shoppingMovedToList(item.name)
+      : l.shoppingMovedQtyToList(label, item.name);
 
   // Restoring the pantry item to its original state works the same whether we
   // deleted it (recreates the doc) or reduced it (overwrites the reduced doc),
@@ -178,7 +184,7 @@ Future<void> moveItemToShopping(
       SnackBar(
         duration: const Duration(seconds: 4),
         content: Text(msg),
-        action: SnackBarAction(label: 'Undo', onPressed: undo),
+        action: SnackBarAction(label: l.commonUndo, onPressed: undo),
       ),
     );
     Future.delayed(const Duration(seconds: 4, milliseconds: 300), controller.close);
@@ -207,6 +213,7 @@ Future<void> addNameToShopping(
   final svc = ref.read(firestoreServiceProvider);
   if (!context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
+  final l = AppLocalizations.of(context);
 
   final shoppingItem = ShoppingItem(
     id: const Uuid().v4(),
@@ -222,9 +229,9 @@ Future<void> addNameToShopping(
     final controller = messenger.showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 4),
-        content: Text('Added "$trimmed" to shopping list'),
+        content: Text(l.shoppingAddedToList(trimmed)),
         action: SnackBarAction(
-          label: 'Undo',
+          label: l.commonUndo,
           onPressed: () => svc.deleteShoppingItem(householdId, shoppingItem.id),
         ),
       ),

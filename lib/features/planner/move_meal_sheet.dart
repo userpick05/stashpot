@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/labels.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/planned_meal.dart';
 
 /// Bottom sheet that lets you pick a new day for a planned meal. Returns the
@@ -22,6 +24,7 @@ class _MoveMealSheetState extends State<MoveMealSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
@@ -31,13 +34,15 @@ class _MoveMealSheetState extends State<MoveMealSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
             Text(
-              'Move "${widget.meal.title}" to...',
+              l.mealMoveTitle(widget.meal.title),
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
-              'If that day already has a ${widget.meal.mealType} planned, the two swap places.',
+              // The stored English key is only ever displayed through
+              // mealTypeLabelOf — never interpolated raw.
+              l.mealMoveSwapHint(mealTypeLabelOf(l, widget.meal.mealType)),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -52,7 +57,7 @@ class _MoveMealSheetState extends State<MoveMealSheet> {
             FilledButton.icon(
               onPressed: () => Navigator.pop(context, _selected),
               icon: const Icon(Icons.event_available),
-              label: const Text('Move here'),
+              label: Text(l.mealMoveConfirm),
             ),
             ],
           ),
