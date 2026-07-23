@@ -880,6 +880,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recipeNoStructuredData => '無法從這個頁面讀取食譜內容。有些網站不提供食譜資料 — 請用瀏覽器開啟查看。';
 
   @override
+  String get recipeAiTranslated => '本食譜由 AI 讀取／翻譯 — 份量請對照原文再確認。';
+
+  @override
+  String get recipeReadingPage => '正在讀取食譜…';
+
+  @override
   String get recipeOpenInBrowser => '用瀏覽器開啟';
 
   @override

@@ -903,6 +903,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t read a recipe from this page. Some sites don\'t share their recipe data — open it in your browser to view it.';
 
   @override
+  String get recipeAiTranslated =>
+      'Read by AI from the page — check the quantities against the original.';
+
+  @override
+  String get recipeReadingPage => 'Reading the recipe…';
+
+  @override
   String get recipeOpenInBrowser => 'Open in browser';
 
   @override

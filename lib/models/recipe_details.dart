@@ -1,9 +1,20 @@
 /// Full recipe data fetched on demand from Spoonacular.
 class RecipeIngredient {
-  final String name; // clean name, used for pantry match + shopping
+  final String name; // clean name, shown + used for shopping
   final String original; // full line, e.g. "600 grams chicken breast, cubed"
 
-  const RecipeIngredient({required this.name, required this.original});
+  /// The form used for pantry matching. Normally the same as [name], but on a
+  /// translated recipe it holds whichever version PantryMatch can actually read
+  /// — its tokenizer is Latin-only, so a Chinese line matches nothing. Keeping
+  /// the Latin side here lets an English pantry still cross-check a recipe the
+  /// user reads in Chinese.
+  final String matchName;
+
+  const RecipeIngredient({
+    required this.name,
+    required this.original,
+    String? matchName,
+  }) : matchName = matchName ?? name;
 }
 
 /// Per-serving nutrition (free-text values like "240 kcal", "12 g").
@@ -69,6 +80,15 @@ class RecipeDetails {
   final List<String> steps;
   final Nutrition? nutrition;
 
+  /// True when the text was machine-translated on import — translations aren't
+  /// always right, so the UI says so.
+  final bool aiTranslated;
+
+  /// True when the recipe was read out of raw page text by the AI because the
+  /// page published no structured data. A stronger claim than translation: the
+  /// structure itself was inferred, so it warrants its own disclosure.
+  final bool aiExtracted;
+
   const RecipeDetails({
     required this.id,
     required this.title,
@@ -79,7 +99,32 @@ class RecipeDetails {
     this.ingredients = const [],
     this.steps = const [],
     this.nutrition,
+    this.aiTranslated = false,
+    this.aiExtracted = false,
   });
+
+  bool get hasContent => ingredients.isNotEmpty || steps.isNotEmpty;
+
+  RecipeDetails copyWith({
+    String? title,
+    List<RecipeIngredient>? ingredients,
+    List<String>? steps,
+    bool? aiTranslated,
+    bool? aiExtracted,
+  }) =>
+      RecipeDetails(
+        id: id,
+        title: title ?? this.title,
+        image: image,
+        sourceUrl: sourceUrl,
+        servings: servings,
+        readyInMinutes: readyInMinutes,
+        ingredients: ingredients ?? this.ingredients,
+        steps: steps ?? this.steps,
+        nutrition: nutrition,
+        aiTranslated: aiTranslated ?? this.aiTranslated,
+        aiExtracted: aiExtracted ?? this.aiExtracted,
+      );
 
   factory RecipeDetails.fromJson(Map<String, dynamic> j) {
     final ingredients = (j['extendedIngredients'] as List?)

@@ -4,6 +4,7 @@ import '../../services/link_preview_service.dart';
 import '../../services/recipe_import_service.dart';
 import '../../services/spoonacular_service.dart';
 import 'auth_providers.dart';
+import 'scanning_providers.dart';
 
 final spoonacularServiceProvider =
     Provider<SpoonacularService>((_) => SpoonacularService());
@@ -11,8 +12,10 @@ final spoonacularServiceProvider =
 final linkPreviewServiceProvider =
     Provider<LinkPreviewService>((_) => LinkPreviewService());
 
-final recipeImportServiceProvider =
-    Provider<RecipeImportService>((_) => RecipeImportService());
+final recipeImportServiceProvider = Provider<RecipeImportService>(
+  // Shares the Gemini client so imports can translate / read unstructured pages.
+  (ref) => RecipeImportService(gemini: ref.watch(geminiServiceProvider)),
+);
 
 final recipesProvider = StreamProvider<List<Recipe>>((ref) {
   final householdId = ref.watch(householdIdProvider);

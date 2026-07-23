@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -31,28 +33,69 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
   Recipe get recipe => widget.recipe;
 
+  /// PantryMatch only tokenizes Latin script, so a translated recipe carries a
+  /// separate matchName. Check both, since the shopping list may hold either.
+  static bool _inList(RecipeIngredient i, List<String> names) =>
+      PantryMatch.hasIngredient(i.matchName, names) ||
+      (i.matchName != i.name && PantryMatch.hasIngredient(i.name, names));
+
   @override
   void initState() {
     super.initState();
     _saved = recipe.id.isNotEmpty;
+    final hasSource = recipe.spoonacularId != null || recipe.sourceUrl != null;
     if (recipe.ingredients.isNotEmpty || recipe.steps.isNotEmpty) {
-      // Hand-entered recipe — ingredients/steps are stored on the doc.
+      // Hand-entered recipe, or a saved link whose content we already fetched.
       _details = RecipeDetails(
         id: 0,
         title: recipe.name,
         image: recipe.imageUrl,
         servings: recipe.servings,
-        ingredients: recipe.ingredients
-            .map((s) => RecipeIngredient(name: s, original: s))
-            .toList(),
+        ingredients: [
+          for (var i = 0; i < recipe.ingredients.length; i++)
+            RecipeIngredient(
+              name: recipe.ingredients[i],
+              original: recipe.ingredients[i],
+              matchName: i < recipe.matchNames.length
+                  ? recipe.matchNames[i]
+                  : null,
+            )
+        ],
         steps: recipe.steps,
+        aiTranslated: recipe.detailsAi,
       );
-    } else if (recipe.spoonacularId != null || recipe.sourceUrl != null) {
-      _load();
+    }
+    if (_details == null && hasSource) {
+      // Set here, not in _load: the load is deferred a frame (below), and
+      // without this the first build would flash the "couldn't read a recipe"
+      // card before the spinner appears.
+      _loading = true;
+    }
+    if (hasSource) {
+      // Deferred a frame: reading the locale needs Localizations, which isn't
+      // available during initState.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _init();
+      });
     }
   }
 
-  Future<void> _load() async {
+  /// Decides whether the stored content is good enough to show as-is.
+  Future<void> _init() async {
+    final stored = _details;
+    if (stored != null) {
+      final lang = Localizations.localeOf(context).languageCode;
+      // Stored content in the reader's language (or hand-entered, which has no
+      // language stamp) — show it, no network, works offline.
+      if (recipe.detailsLang == null || recipe.detailsLang == lang) return;
+      // Saved in the other language: re-fetch so this reader gets their own.
+      // The stored copy stays on screen meanwhile.
+    }
+    await _load();
+  }
+
+  Future<void> _load({bool force = false}) async {
+    final lang = Localizations.localeOf(context).languageCode;
     setState(() {
       _loading = true;
       _error = null;
@@ -63,16 +106,62 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         // Found via search → pull from Spoonacular by id.
         d = await ref.read(spoonacularServiceProvider).getDetails(recipe.spoonacularId!);
       } else if (recipe.sourceUrl != null) {
-        // Saved as a link → read the recipe straight off the page.
-        d = await ref.read(recipeImportServiceProvider).fetchDetails(recipe.sourceUrl!);
+        // Saved as a link → read the recipe straight off the page, translated
+        // into the app's language if the page is in another one.
+        d = await ref.read(recipeImportServiceProvider).fetchDetails(
+            recipe.sourceUrl!,
+            languageCode: lang,
+            forceRefresh: force);
       }
-      if (mounted) setState(() => _details = d);
+      // Keep whatever we already had if the refetch came back empty — a failed
+      // language refresh shouldn't blank out a recipe that was on screen.
+      if (mounted) setState(() => _details = d ?? _details);
+      if (d != null) unawaited(_storeDetails(d, lang));
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  /// A link recipe is saved as soon as it's pasted, so its content arrives
+  /// later — write it back onto the doc here. Reopening then reads from
+  /// Firestore: instant, offline-capable, and no repeat translation bill.
+  ///
+  /// Link recipes only. Spoonacular details are re-fetched cheaply and carry
+  /// nutrition and cook time the recipe doc has nowhere to put, so caching them
+  /// here would quietly lose them.
+  Future<void> _storeDetails(RecipeDetails d, String lang) async {
+    if (!_saved ||
+        recipe.sourceUrl == null ||
+        recipe.spoonacularId != null ||
+        !d.hasContent ||
+        recipe.detailsLang == lang) {
+      return;
+    }
+    final hid = ref.read(householdIdProvider);
+    if (hid == null) return;
+    try {
+      await ref
+          .read(firestoreServiceProvider)
+          .saveRecipe(hid, _withDetails(recipe, d, lang));
+    } catch (_) {
+      // Purely a cache — a failed write just means we fetch again next time.
+    }
+  }
+
+  Recipe _withDetails(Recipe r, RecipeDetails d, String lang) => r.copyWith(
+        ingredients: d.ingredients.map((i) => i.original).toList(),
+        // Only worth storing when they differ from the displayed lines; that's
+        // exactly the translated case, where PantryMatch needs the Latin side.
+        matchNames: d.ingredients.any((i) => i.matchName != i.name)
+            ? d.ingredients.map((i) => i.matchName).toList()
+            : const [],
+        steps: d.steps,
+        servings: d.servings,
+        detailsLang: lang,
+        detailsAi: d.aiTranslated || d.aiExtracted,
+      );
 
   Future<void> _open() async {
     final url = recipe.sourceUrl ?? _details?.sourceUrl;
@@ -84,7 +173,16 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final hid = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (hid == null || uid == null) return;
-    await ref.read(firestoreServiceProvider).saveRecipe(hid, recipe);
+    var toSave = recipe;
+    final d = _details;
+    if (d != null &&
+        d.hasContent &&
+        recipe.sourceUrl != null &&
+        recipe.spoonacularId == null) {
+      toSave = _withDetails(
+          recipe, d, Localizations.localeOf(context).languageCode);
+    }
+    await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
     if (mounted) {
       setState(() => _saved = true);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -157,14 +255,15 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         (ref.watch(shoppingProvider).valueOrNull ?? []).map((i) => i.name).toList();
     final d = _details;
     final ingredients = d?.ingredients ?? const <RecipeIngredient>[];
-    final missing = ingredients
-        .where((i) => !PantryMatch.hasIngredient(i.name, pantryNames))
-        .toList();
+    final missing =
+        ingredients.where((i) => !_inList(i, pantryNames)).toList();
     final haveCount = ingredients.length - missing.length;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipe.name, overflow: TextOverflow.ellipsis),
+        title: Text(
+            (d?.title.isNotEmpty ?? false) ? d!.title : recipe.name,
+            overflow: TextOverflow.ellipsis),
         actions: [
           if (recipe.sourceUrl != null || d?.sourceUrl != null)
             IconButton(
@@ -230,11 +329,49 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             const SizedBox(height: 16),
           ],
 
+          // Machine translation isn't always right — say so rather than
+          // passing AI text off as what the page actually said.
+          // Only once there's actual AI-produced content on screen — never
+          // hovering above a spinner or a "couldn't read this page" card.
+          if (d != null &&
+              (d.aiTranslated || d.aiExtracted) &&
+              d.hasContent &&
+              !_loading &&
+              _error == null) ...[
+            Row(
+              children: [
+                Icon(Icons.translate,
+                    size: 16, color: Theme.of(context).colorScheme.outline),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    l.recipeAiTranslated,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+
           // ── Body state: always shows exactly one of these ──────────────
           if (_loading)
-            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
-          else if (_error != null || ingredients.isEmpty && (d?.steps.isEmpty ?? true))
-            // Failed to load, OR no structured data (link recipe / empty details).
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 12),
+                  Text(l.recipeReadingPage,
+                      style: Theme.of(context).textTheme.bodySmall),
+                ]),
+              ),
+            )
+          else if (ingredients.isEmpty && (d?.steps.isEmpty ?? true))
+            // Failed to load, OR no structured data (link recipe / empty
+            // details). Only when there's nothing to show — a failed refresh
+            // shouldn't replace a recipe already on screen with an error.
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -258,7 +395,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     children: [
                       if (recipe.spoonacularId != null || recipe.sourceUrl != null)
                         FilledButton.icon(
-                            onPressed: _load,
+                            onPressed: () => _load(force: true),
                             icon: const Icon(Icons.refresh),
                             label: Text(l.commonRetry)),
                       if ((recipe.sourceUrl ?? d?.sourceUrl) != null)
@@ -295,8 +432,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             for (final ing in ingredients)
               _IngredientRow(
                 ingredient: ing,
-                inPantry: PantryMatch.hasIngredient(ing.name, pantryNames),
-                onList: PantryMatch.hasIngredient(ing.name, shoppingNames),
+                inPantry: _inList(ing, pantryNames),
+                onList: _inList(ing, shoppingNames),
                 onAdd: () => _addToShopping([ing.name]),
               ),
             const SizedBox(height: 8),

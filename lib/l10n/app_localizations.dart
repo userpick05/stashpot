@@ -1622,6 +1622,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t read a recipe from this page. Some sites don\'t share their recipe data — open it in your browser to view it.'**
   String get recipeNoStructuredData;
 
+  /// Shown above an imported recipe whose text was machine-translated or read out of the page by AI.
+  ///
+  /// In en, this message translates to:
+  /// **'Read by AI from the page — check the quantities against the original.'**
+  String get recipeAiTranslated;
+
+  /// Under the spinner while a recipe page is fetched and, if needed, translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the recipe…'**
+  String get recipeReadingPage;
+
   /// No description provided for @recipeOpenInBrowser.
   ///
   /// In en, this message translates to:

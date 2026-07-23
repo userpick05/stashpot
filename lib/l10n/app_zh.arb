@@ -254,6 +254,8 @@
   "recipeMinutes": "{count} 分鐘",
   "recipeLoadFailed": "無法載入這道食譜 — 請檢查網路連線後重試。",
   "recipeNoStructuredData": "無法從這個頁面讀取食譜內容。有些網站不提供食譜資料 — 請用瀏覽器開啟查看。",
+  "recipeAiTranslated": "本食譜由 AI 讀取／翻譯 — 份量請對照原文再確認。",
+  "recipeReadingPage": "正在讀取食譜…",
   "recipeOpenInBrowser": "用瀏覽器開啟",
   "recipeIngredients": "食材",
   "recipeHaveCount": "已有 {have}/{total}",

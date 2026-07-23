@@ -3,6 +3,33 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.9.0
+
+### Added
+- **Recipe import now translates.** Paste a recipe link in any language and read it
+  in yours. A Chinese recipe imported with the app in English comes back in English
+  (and vice versa), so the ingredients cross-check against your pantry properly
+  instead of showing "Have 0/N".
+- **Recipes from sites with no structured data.** Many Chinese recipe sites publish
+  no machine-readable recipe data, so importing them used to dead-end at "couldn't
+  read a recipe from this page". The app can now read the page itself.
+- Anything read or translated by AI is labelled as such, since machine translation
+  gets quantities wrong often enough to be worth checking.
+
+### Changed
+- **Saved link recipes now store their text.** Reopening one is instant, works
+  offline, and no longer re-fetches (or re-translates) the page every single time.
+  If a housemate saved it in the other language, it re-reads it in yours.
+- The recipe screen says what it's waiting on instead of showing a bare spinner.
+
+### Fixed
+- Recipe pages that don't declare their character set are no longer read as
+  gibberish — this affected most Chinese recipe sites.
+- Opening a recipe no longer flashes the "couldn't read a recipe" card for a frame
+  before the spinner appears.
+- Retry on a failed recipe import actually retries instead of replaying the same
+  cached failure.
+
 ## v1.8.0
 
 ### Added
