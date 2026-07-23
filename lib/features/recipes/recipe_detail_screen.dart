@@ -86,8 +86,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     if (stored != null) {
       final lang = Localizations.localeOf(context).languageCode;
       // Stored content in the reader's language (or hand-entered, which has no
-      // language stamp) — show it, no network, works offline.
-      if (recipe.detailsLang == null || recipe.detailsLang == lang) return;
+      // language stamp) — show it, no network, works offline. Unless an older
+      // build wrote it, in which case re-read the page.
+      if (recipe.detailsLang == null) return;
+      if (recipe.detailsLang == lang && recipe.detailsV >= kDetailsVersion) {
+        return;
+      }
       // Saved in the other language: re-fetch so this reader gets their own.
       // The stored copy stays on screen meanwhile.
     }
@@ -136,7 +140,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         recipe.sourceUrl == null ||
         recipe.spoonacularId != null ||
         !d.hasContent ||
-        recipe.detailsLang == lang) {
+        (recipe.detailsLang == lang && recipe.detailsV >= kDetailsVersion)) {
       return;
     }
     final hid = ref.read(householdIdProvider);
@@ -160,6 +164,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         steps: d.steps,
         servings: d.servings,
         detailsLang: lang,
+        detailsV: kDetailsVersion,
         detailsAi: d.aiTranslated || d.aiExtracted,
       );
 

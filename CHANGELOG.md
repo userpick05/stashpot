@@ -3,6 +3,19 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.9.1
+
+### Fixed
+- **Imported recipes stayed in the original language.** Sites that publish all
+  their instructions as one run-on string (xiachufang and others) parsed as a
+  single step; the translator then split it into proper steps, and a strict
+  "step counts must match" check threw the whole translation away. The recipe
+  came back fully untranslated with nothing to explain why.
+- Run-on numbered instructions are now split into real steps, so those recipes
+  read as a numbered list instead of one wall of text — translated or not.
+- Recipe text cached by an older build is re-read instead of being trusted
+  forever, so a recipe that came out wrong before fixes itself on next open.
+
 ## v1.9.0
 
 ### Added

@@ -1,5 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Bump whenever a fix changes what we'd store for a recipe, so already-cached
+/// details are re-fetched instead of preserving the old build's mistake.
+/// 2 = run-on instructions split into steps, which unblocked translation.
+const int kDetailsVersion = 2;
+
 /// A saved recipe. Web recipes are stored lightweight (link + rating) and fetch
 /// their ingredients/steps on demand. Hand-entered recipes store their
 /// ingredients/steps/servings directly here.
@@ -28,6 +33,12 @@ class Recipe {
   /// screen re-fetches instead of showing them the wrong language.
   final String? detailsLang;
 
+  /// Which build's parser wrote those cached details. When [kDetailsVersion]
+  /// moves ahead of it, the cache is stale — a recipe stored by a build with a
+  /// translation bug would otherwise stay wrong forever, since it looks like a
+  /// perfectly good same-language hit.
+  final int detailsV;
+
   /// True when those stored details were written or translated by the AI, so
   /// the disclosure survives a save/reopen instead of quietly disappearing.
   final bool detailsAi;
@@ -48,6 +59,7 @@ class Recipe {
     this.matchNames = const [],
     this.servings,
     this.detailsLang,
+    this.detailsV = 0,
     this.detailsAi = false,
     required this.addedAt,
     required this.addedBy,
@@ -60,6 +72,7 @@ class Recipe {
     List<String>? matchNames,
     int? servings,
     String? detailsLang,
+    int? detailsV,
     bool? detailsAi,
   }) =>
       Recipe(
@@ -75,6 +88,7 @@ class Recipe {
         matchNames: matchNames ?? this.matchNames,
         servings: servings ?? this.servings,
         detailsLang: detailsLang ?? this.detailsLang,
+        detailsV: detailsV ?? this.detailsV,
         detailsAi: detailsAi ?? this.detailsAi,
         addedAt: addedAt,
         addedBy: addedBy,
@@ -102,6 +116,7 @@ class Recipe {
       matchNames: (d['matchNames'] as List?)?.cast<String>() ?? const [],
       servings: (d['servings'] as num?)?.toInt(),
       detailsLang: d['detailsLang'] as String?,
+      detailsV: (d['detailsV'] as num?)?.toInt() ?? 0,
       detailsAi: d['detailsAi'] as bool? ?? false,
       addedAt: (d['addedAt'] as Timestamp).toDate(),
       addedBy: d['addedBy'] as String,
@@ -120,6 +135,7 @@ class Recipe {
         if (matchNames.isNotEmpty) 'matchNames': matchNames,
         if (servings != null) 'servings': servings,
         if (detailsLang != null) 'detailsLang': detailsLang,
+        if (detailsV > 0) 'detailsV': detailsV,
         if (detailsAi) 'detailsAi': true,
         'addedAt': Timestamp.fromDate(addedAt),
         'addedBy': addedBy,

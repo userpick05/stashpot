@@ -62,6 +62,37 @@ void main() {
     });
   });
 
+  group('splitNumbered', () {
+    // xiachufang publishes every instruction as one comma-joined string with
+    // the numbers inline. Parsed as a single step, the recipe rendered as one
+    // wall of text — and the resulting 1-vs-12 step count made the translator
+    // discard a perfectly good translation, leaving the whole recipe Chinese.
+    test('splits a run-on numbered instruction string', () {
+      final steps = RecipeImportService.splitNumbered(
+          '0.大合照,1.胡萝卜不好熟，所以先焯水过凉水控干备用,2.热锅温油鸡丁炒制九成熟,3.盛出备用');
+      expect(steps, hasLength(4));
+      expect(steps.first, '0.大合照');
+      expect(steps.last, '3.盛出备用');
+    });
+
+    test('splits an English run-on string too', () {
+      expect(
+          RecipeImportService.splitNumbered(
+              '1. Chop the onion, 2. Fry until golden, 3. Add stock'),
+          hasLength(3));
+    });
+
+    test('leaves ordinary prose alone', () {
+      const prose = 'Preheat the oven to 200C and line a tray with baking paper.';
+      expect(RecipeImportService.splitNumbered(prose), [prose]);
+    });
+
+    test('does not split on decimals or quantities', () {
+      const line = 'Simmer for 1.5 hours, stirring every 20 minutes.';
+      expect(RecipeImportService.splitNumbered(line), [line]);
+    });
+  });
+
   test('ignores samples too short to judge', () {
     expect(RecipeImportService.needsTranslation('Soup', 'en'), isFalse);
     expect(RecipeImportService.needsTranslation('', 'zh'), isFalse);
