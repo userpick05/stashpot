@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/recipe_providers.dart';
 import '../../core/widgets/swipe_to_delete.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
 import 'add_recipe_manual_screen.dart';
 import 'recipe_detail_screen.dart';
@@ -13,6 +14,7 @@ class RecipesScreen extends ConsumerWidget {
   const RecipesScreen({super.key});
 
   Future<void> _addByLink(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final ctrl = TextEditingController();
     // Bottom sheet (not an AlertDialog — those black-screen via Impeller on
     // some devices, e.g. Pixel 10).
@@ -31,23 +33,23 @@ class RecipesScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Add recipe by link',
+            Text(l.recipeAddByLinkTitle,
                 style: Theme.of(ctx).textTheme.titleMedium),
             const SizedBox(height: 16),
             TextField(
               controller: ctrl,
               autofocus: true,
               keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
-                hintText: 'Paste a recipe URL',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: l.recipeAddByLinkHint,
+                border: const OutlineInputBorder(),
               ),
               onSubmitted: (v) => Navigator.pop(ctx, v),
             ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, ctrl.text),
-              child: const Text('Save'),
+              child: Text(l.commonSave),
             ),
           ],
         ),
@@ -58,14 +60,16 @@ class RecipesScreen extends ConsumerWidget {
     if (!u.startsWith('http')) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enter a full link starting with http')),
+          SnackBar(content: Text(l.recipeLinkNeedsHttp)),
         );
       }
       return;
     }
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Saving link…'), duration: Duration(seconds: 1)),
+        SnackBar(
+            content: Text(l.recipeSavingLink),
+            duration: const Duration(seconds: 1)),
       );
     }
     try {
@@ -86,13 +90,15 @@ class RecipesScreen extends ConsumerWidget {
           );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved "${meta.name}"')),
+          SnackBar(content: Text(l.recipeSaved(meta.name))),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not save link: $e'), backgroundColor: Colors.orange),
+          SnackBar(
+              content: Text(l.recipeLinkSaveFailed(e.toString())),
+              backgroundColor: Colors.orange),
         );
       }
     }
@@ -100,34 +106,35 @@ class RecipesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final recipes = ref.watch(recipesProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recipes'),
+        title: Text(l.navRecipes),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_note),
-            tooltip: 'Write a recipe',
+            tooltip: l.recipeWrite,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const AddRecipeManualScreen()),
             ),
           ),
           IconButton(
             icon: const Icon(Icons.add_link),
-            tooltip: 'Add by link',
+            tooltip: l.recipeAddByLinkTooltip,
             onPressed: () => _addByLink(context, ref),
           ),
           IconButton(
             icon: const Icon(Icons.travel_explore),
-            tooltip: 'Find recipes',
+            tooltip: l.findRecipesTitle,
             onPressed: () => context.push('/recipes/find'),
           ),
         ],
       ),
       body: recipes.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(l.commonError(e.toString()))),
         data: (list) {
           if (list.isEmpty) {
             return Center(
@@ -137,10 +144,10 @@ class RecipesScreen extends ConsumerWidget {
                   Icon(Icons.restaurant_menu,
                       size: 80, color: Theme.of(context).colorScheme.outline),
                   const SizedBox(height: 16),
-                  Text('No saved recipes yet',
+                  Text(l.recipeEmptyTitle,
                       style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  const Text('Tap "Find recipes" to search the web'),
+                  Text(l.recipeEmptyHint),
                 ],
               ),
             );
@@ -194,7 +201,7 @@ class RecipesScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/recipes/find'),
         icon: const Icon(Icons.search),
-        label: const Text('Find recipes'),
+        label: Text(l.findRecipesTitle),
       ),
     );
   }

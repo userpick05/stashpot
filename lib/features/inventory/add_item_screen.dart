@@ -10,6 +10,8 @@ import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/scanning_providers.dart';
 import '../../core/utils/category_guess.dart';
 import '../../core/utils/category_icons.dart';
+import '../../core/utils/labels.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
@@ -73,6 +75,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
 
   // Prompt for a new custom location, save it to the household, and select it.
   Future<void> _addLocationFlow() async {
+    final l = AppLocalizations.of(context);
     final ctrl = TextEditingController();
     final name = await showModalBottomSheet<String>(
       context: context,
@@ -85,15 +88,16 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('New location', style: Theme.of(ctx).textTheme.titleMedium),
+            Text(l.addItemNewLocationTitle,
+                style: Theme.of(ctx).textTheme.titleMedium),
             const SizedBox(height: 12),
             TextField(
               controller: ctrl,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                hintText: 'e.g. Garage shelf',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: l.addItemNewLocationHint,
+                border: const OutlineInputBorder(),
               ),
               onSubmitted: (v) => Navigator.pop(ctx, v),
             ),
@@ -102,7 +106,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               alignment: Alignment.centerRight,
               child: FilledButton(
                 onPressed: () => Navigator.pop(ctx, ctrl.text),
-                child: const Text('Add'),
+                child: Text(l.commonAdd),
               ),
             ),
           ],
@@ -120,6 +124,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   }
 
   Future<void> _attachPhoto() async {
+    final l = AppLocalizations.of(context);
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -128,12 +133,12 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Take a photo'),
+              title: Text(l.addItemTakePhoto),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from gallery'),
+              title: Text(l.addItemChooseFromGallery),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -146,7 +151,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       if (!status.isGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Camera permission is needed to take a photo')),
+            SnackBar(content: Text(l.addItemCameraPermissionPhoto)),
           );
         }
         return;
@@ -169,7 +174,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Photo upload failed: $e'),
+            content: Text(l.addItemPhotoUploadFailed(e.toString())),
             backgroundColor: Colors.orange,
           ),
         );
@@ -191,6 +196,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   static const _units = ['item', 'g', 'kg', 'ml', 'L', 'oz', 'lb', 'cup', 'bunch'];
 
   Future<void> _identifyByPhoto() async {
+    final l = AppLocalizations.of(context);
+    // The vision model answers in the app's language.
+    final lang = Localizations.localeOf(context).languageCode;
     // Let the user choose camera or gallery.
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -200,12 +208,12 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Take a photo'),
+              title: Text(l.addItemTakePhoto),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from gallery'),
+              title: Text(l.addItemChooseFromGallery),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -221,7 +229,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       if (!status.isGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Camera permission is needed to take a photo')),
+            SnackBar(content: Text(l.addItemCameraPermissionPhoto)),
           );
         }
         return;
@@ -238,11 +246,13 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     setState(() => _identifying = true);
     try {
       final bytes = await photo.readAsBytes();
-      final result = await ref.read(geminiServiceProvider).identifyFood(bytes);
+      final result = await ref
+          .read(geminiServiceProvider)
+          .identifyFood(bytes, languageCode: lang);
       if (!mounted) return;
       if (result == null || result.name == 'Unknown' || result.confidence == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't identify the food — enter it manually")),
+          SnackBar(content: Text(l.addItemIdentifyFailed)),
         );
         return;
       }
@@ -254,13 +264,13 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       });
       final pct = (result.confidence * 100).round();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Identified: ${result.name} ($pct% sure)')),
+        SnackBar(content: Text(l.addItemIdentified(result.name, pct))),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Photo ID failed: $e. You can still add it manually.'),
+            content: Text(l.addItemPhotoIdError(e.toString())),
             backgroundColor: Colors.orange,
           ),
         );
@@ -270,12 +280,56 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     }
   }
 
+  /// The barcode wasn't in the product database — offer to identify it from a
+  /// photo instead (the vision model reads packaging in any script), rather
+  /// than dead-ending on "not found".
+  Future<void> _offerPhotoFallback(String code) async {
+    if (!mounted) return;
+    final l = AppLocalizations.of(context);
+    final takePhoto = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.addItemBarcodeNotFoundTitle(code),
+                style: Theme.of(ctx).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(l.addItemBarcodeNotFoundBody),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.addItemEnterManually),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  label: Text(l.addItemTakePhotoInstead),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    if (takePhoto == true && mounted) await _identifyByPhoto();
+  }
+
   Future<void> _scanBarcode() async {
+    final l = AppLocalizations.of(context);
+    // Ask Open Food Facts for the name in the app's language when it has one.
+    final lang = Localizations.localeOf(context).languageCode;
     final status = await Permission.camera.request();
     if (!status.isGranted) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Camera permission is needed to scan')),
+          SnackBar(content: Text(l.addItemCameraPermissionScan)),
         );
       }
       return;
@@ -311,10 +365,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     if (code == null || code.isEmpty) {
       setState(() => _looking = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              "Couldn't read the barcode — fill the frame, hold steady in good light, or enter it manually"),
-        ),
+        SnackBar(content: Text(l.addItemBarcodeUnreadable)),
       );
       return;
     }
@@ -324,12 +375,16 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       _looking = true;
     });
     try {
-      final product = await ref.read(openFoodFactsServiceProvider).lookup(code);
+      final product = await ref
+          .read(openFoodFactsServiceProvider)
+          .lookup(code, languageCode: lang);
       if (!mounted) return;
       if (product == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No product found for $code — enter details manually')),
-        );
+        // Open Food Facts has thin coverage outside Western markets, so a miss
+        // is common (especially for Chinese products). Don't dead-end: offer the
+        // photo identifier, which reads the packaging in any script.
+        setState(() => _looking = false);
+        await _offerPhotoFallback(code);
         return;
       }
       setState(() {
@@ -337,13 +392,13 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         _category = product.category;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Found: ${product.displayName ?? code}')),
+        SnackBar(content: Text(l.addItemProductFound(product.displayName ?? code))),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Lookup failed: $e. You can still add it manually.'),
+            content: Text(l.addItemLookupError(e.toString())),
             backgroundColor: Colors.orange,
           ),
         );
@@ -355,27 +410,27 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
 
   // Bottom sheet to pick from the household's saved stores.
   Future<void> _pickStore() async {
+    final l = AppLocalizations.of(context);
     final stores = ref.read(storesProvider).valueOrNull ?? [];
     final picked = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
       builder: (ctx) => SafeArea(
         child: stores.isEmpty
-            ? const Padding(
-                padding: EdgeInsets.all(24),
+            ? Padding(
+                padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No saved stores yet. Type a store name below and you\'ll be '
-                  'asked to add it to the list.',
+                  l.addItemNoSavedStores,
                   textAlign: TextAlign.center,
                 ),
               )
             : ListView(
                 shrinkWrap: true,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: Text('Pick a store',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Text(l.addItemPickStore,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   for (final s in stores)
                     ListTile(
@@ -466,13 +521,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit item' : 'Add item'),
+        title: Text(_isEditing ? l.addItemTitleEdit : l.addItemTitleAdd),
         actions: [
           TextButton(
             onPressed: _loading ? null : _save,
-            child: const Text('Save'),
+            child: Text(l.commonSave),
           ),
         ],
       ),
@@ -492,10 +548,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                     )
                   : const Icon(Icons.qr_code_scanner),
               label: Text(_looking
-                  ? 'Looking up product…'
+                  ? l.addItemLookingUp
                   : _barcode == null
-                      ? 'Scan barcode'
-                      : 'Scanned: $_barcode (rescan)'),
+                      ? l.addItemScanBarcode
+                      : l.addItemScanned(_barcode!)),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
               ),
@@ -512,7 +568,8 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.center_focus_strong),
-              label: Text(_identifying ? 'Identifying…' : 'Identify by photo'),
+              label: Text(
+                  _identifying ? l.addItemIdentifying : l.addItemIdentifyByPhoto),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
               ),
@@ -524,12 +581,12 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               controller: _nameCtrl,
               textCapitalization: TextCapitalization.sentences,
               onChanged: _onNameChanged,
-              decoration: const InputDecoration(
-                labelText: 'Item name *',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.addItemNameLabel,
+                border: const OutlineInputBorder(),
               ),
               validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Enter a name' : null,
+                  v == null || v.trim().isEmpty ? l.addItemNameRequired : null,
             ),
             const SizedBox(height: 16),
 
@@ -541,13 +598,13 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   child: TextFormField(
                     controller: _qtyCtrl,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l.addItemQuantityLabel,
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (v) {
                       final n = double.tryParse(v ?? '');
-                      return n == null || n <= 0 ? 'Invalid' : null;
+                      return n == null || n <= 0 ? l.addItemQuantityInvalid : null;
                     },
                   ),
                 ),
@@ -556,12 +613,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   flex: 3,
                   child: DropdownButtonFormField<String>(
                     value: _unit,
-                    decoration: const InputDecoration(
-                      labelText: 'Unit',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l.addItemUnitLabel,
+                      border: const OutlineInputBorder(),
                     ),
+                    // _units holds the STORED keys; only the label is localized.
                     items: _units
-                        .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                        .map((u) => DropdownMenuItem(
+                            value: u, child: Text(unitLabelOf(l, u))))
                         .toList(),
                     onChanged: (v) => setState(() => _unit = v!),
                   ),
@@ -573,9 +632,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             // Category (food type) — auto-detected, tap to override
             DropdownButtonFormField<ItemCategory>(
               value: _category,
-              decoration: const InputDecoration(
-                labelText: 'Food type',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.addItemFoodTypeLabel,
+                border: const OutlineInputBorder(),
               ),
               items: [
                 for (final c in kPickableCategories.contains(_category)
@@ -587,7 +646,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                       children: [
                         Icon(categoryIcon(c), size: 18),
                         const SizedBox(width: 8),
-                        Text(c.label),
+                        Text(categoryLabelOf(l, c)),
                       ],
                     ),
                   ),
@@ -607,11 +666,12 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               return DropdownButtonFormField<String>(
                 value: _location,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Location',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l.addItemLocationLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 items: [
+                  // The dropdown's values are the STORED location keys.
                   for (final k in keys)
                     DropdownMenuItem(
                       value: k,
@@ -619,17 +679,17 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                         children: [
                           Icon(locationIcon(k), size: 18),
                           const SizedBox(width: 8),
-                          Text(locationLabel(k)),
+                          Text(locationLabelOf(l, k)),
                         ],
                       ),
                     ),
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: addSentinel,
                     child: Row(
                       children: [
-                        Icon(Icons.add, size: 18),
-                        SizedBox(width: 8),
-                        Text('Add location…'),
+                        const Icon(Icons.add, size: 18),
+                        const SizedBox(width: 8),
+                        Text(l.addItemAddLocation),
                       ],
                     ),
                   ),
@@ -652,12 +712,12 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               controller: _storeCtrl,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                labelText: 'Store (optional)',
-                hintText: 'e.g. Costco, Walmart, Trader Joe\'s',
+                labelText: l.addItemStoreLabel,
+                hintText: l.addItemStoreHint,
                 prefixIcon: const Icon(Icons.storefront),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.arrow_drop_down),
-                  tooltip: 'Pick from saved stores',
+                  tooltip: l.addItemPickStoreTooltip,
                   onPressed: _pickStore,
                 ),
                 border: const OutlineInputBorder(),
@@ -670,8 +730,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
               title: Text(_expiryDate == null
-                  ? 'Expiry date (optional)'
-                  : 'Expires: ${_expiryDate!.day}/${_expiryDate!.month}/${_expiryDate!.year}'),
+                  ? l.addItemExpiryLabel
+                  // Date order follows the locale (DateFormat.yMd), not d/m/y.
+                  : l.addItemExpiresOn(_expiryDate!)),
               trailing: _expiryDate != null
                   ? IconButton(
                       icon: const Icon(Icons.clear),
@@ -690,9 +751,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             TextFormField(
               controller: _notesCtrl,
               maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.addItemNotesLabel,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
@@ -710,10 +771,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48)),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(child: Text('Photo attached')),
+                    Expanded(child: Text(l.addItemPhotoAttached)),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      tooltip: 'Remove photo',
+                      tooltip: l.addItemRemovePhoto,
                       onPressed: () => setState(() => _imageUrl = null),
                     ),
                   ],
@@ -726,10 +787,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                       height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.add_a_photo),
               label: Text(_uploadingPhoto
-                  ? 'Uploading…'
+                  ? l.addItemUploading
                   : _imageUrl == null
-                      ? 'Add photo'
-                      : 'Replace photo'),
+                      ? l.addItemAddPhoto
+                      : l.addItemReplacePhoto),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
             const SizedBox(height: 24),
@@ -742,7 +803,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isEditing ? 'Save changes' : 'Add to pantry'),
+                  : Text(_isEditing ? l.addItemSaveChanges : l.addItemAddToPantry),
             ),
           ],
         ),

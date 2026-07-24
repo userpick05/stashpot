@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/utils/labels.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 
 /// Asks how much of a pantry item to move to the shopping list. Returns the
@@ -61,13 +63,15 @@ class _MoveToShoppingSheetState extends State<_MoveToShoppingSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final unit = widget.item.unit == 'item' ? null : widget.item.unit;
+    // 'item' is the stored key for a plain count — it gets no visible unit.
+    final unit =
+        widget.item.unit == 'item' ? null : unitLabelOf(l, widget.item.unit);
     final movingAll = _qty >= _max;
     final canMove = _qty > 0;
-    final moveLabel = movingAll
-        ? 'Move all to shopping list'
-        : 'Move ${_label(_qty)} to shopping list';
+    final moveLabel =
+        movingAll ? l.qtyMoveAll : l.qtyMoveAmount(_label(_qty));
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -76,14 +80,13 @@ class _MoveToShoppingSheetState extends State<_MoveToShoppingSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('How many to move?',
-              style: Theme.of(context).textTheme.titleLarge),
+          Text(l.qtyMoveTitle, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 2),
           Text(widget.item.name, style: TextStyle(color: scheme.outline)),
           const SizedBox(height: 4),
           Text(
-            'You have ${_label(_max)}${unit == null ? '' : ' $unit'}. '
-            'The rest stays in your pantry.',
+            l.qtyMoveAvailable(
+                '${_label(_max)}${unit == null ? '' : ' $unit'}'),
             style: Theme.of(context)
                 .textTheme
                 .bodySmall

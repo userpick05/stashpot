@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/utils/category_icons.dart';
+import '../../core/utils/labels.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 
 /// Manage the household's custom pantry locations (the four built-ins are fixed).
@@ -16,6 +18,7 @@ class ManageLocationsScreen extends ConsumerWidget {
     required String title,
     String initial = '',
   }) {
+    final l = AppLocalizations.of(context);
     final ctrl = TextEditingController(text: initial);
     return showModalBottomSheet<String>(
       context: context,
@@ -34,9 +37,9 @@ class ManageLocationsScreen extends ConsumerWidget {
               controller: ctrl,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                hintText: 'e.g. Garage shelf',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: l.locationsHint,
+                border: const OutlineInputBorder(),
               ),
               onSubmitted: (v) => Navigator.pop(ctx, v),
             ),
@@ -45,7 +48,7 @@ class ManageLocationsScreen extends ConsumerWidget {
               alignment: Alignment.centerRight,
               child: FilledButton(
                 onPressed: () => Navigator.pop(ctx, ctrl.text),
-                child: const Text('Save'),
+                child: Text(l.commonSave),
               ),
             ),
           ],
@@ -56,34 +59,36 @@ class ManageLocationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final custom = ref.watch(customLocationsProvider).valueOrNull ?? const [];
     final hid = ref.watch(householdIdProvider);
     final svc = ref.read(firestoreServiceProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pantry locations')),
+      appBar: AppBar(title: Text(l.settingsPantryLocations)),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text('Built-in', style: TextStyle(fontWeight: FontWeight.bold)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text(l.locationsBuiltIn,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
           for (final k in kBuiltInLocationKeys)
             ListTile(
               leading: Icon(locationIcon(k)),
-              title: Text(locationLabel(k)),
+              title: Text(locationLabelOf(l, k)),
               enabled: false,
             ),
           const Divider(),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text('Your locations',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Text(l.locationsYours,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
           if (custom.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No custom locations yet. Tap + to add one.'),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l.locationsEmpty),
             ),
           for (final loc in custom)
             ListTile(
@@ -94,12 +99,12 @@ class ManageLocationsScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
-                    tooltip: 'Rename',
+                    tooltip: l.commonRename,
                     onPressed: hid == null
                         ? null
                         : () async {
                             final name = await _promptName(context,
-                                title: 'Rename location', initial: loc);
+                                title: l.locationsRename, initial: loc);
                             final trimmed = name?.trim();
                             if (trimmed != null &&
                                 trimmed.isNotEmpty &&
@@ -110,7 +115,7 @@ class ManageLocationsScreen extends ConsumerWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    tooltip: 'Delete',
+                    tooltip: l.commonDelete,
                     onPressed: hid == null
                         ? null
                         : () async {
@@ -118,9 +123,9 @@ class ManageLocationsScreen extends ConsumerWidget {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Removed location "$loc"'),
+                                  content: Text(l.locationsRemoved(loc)),
                                   action: SnackBarAction(
-                                    label: 'Undo',
+                                    label: l.commonUndo,
                                     onPressed: () => svc.addLocation(hid, loc),
                                   ),
                                 ),
@@ -138,14 +143,15 @@ class ManageLocationsScreen extends ConsumerWidget {
         onPressed: hid == null
             ? null
             : () async {
-                final name = await _promptName(context, title: 'New location');
+                final name =
+                    await _promptName(context, title: l.locationsNew);
                 final trimmed = name?.trim();
                 if (trimmed != null && trimmed.isNotEmpty) {
                   await svc.addLocation(hid, trimmed);
                 }
               },
         icon: const Icon(Icons.add),
-        label: const Text('Add location'),
+        label: Text(l.locationsAdd),
       ),
     );
   }

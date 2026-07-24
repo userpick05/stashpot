@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/planner_providers.dart';
@@ -48,11 +50,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  String _greeting() {
+  String _greeting(AppLocalizations l) {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return l.homeGreetingMorning;
+    if (h < 17) return l.homeGreetingAfternoon;
+    return l.homeGreetingEvening;
   }
 
   bool _sameDay(DateTime a, DateTime b) =>
@@ -60,6 +62,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final name = ref.watch(appUserProvider).valueOrNull?.displayName.split(' ').first;
     final pantry = ref.watch(inventoryProvider).valueOrNull ?? [];
@@ -74,14 +77,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             Icon(Icons.kitchen, color: scheme.primary, size: 26),
             const SizedBox(width: 8),
-            Text('Stashpot',
+            Text(l.appTitle,
                 style: TextStyle(fontWeight: FontWeight.bold, color: scheme.primary)),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add),
-            tooltip: 'Invite friends',
+            tooltip: l.settingsInviteFriends,
             onPressed: () {
               final code = ref.read(householdIdProvider);
               if (code != null) showInviteCodeSheet(context, code);
@@ -89,7 +92,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
+            tooltip: l.settingsTitle,
             onPressed: () => context.push('/settings'),
           ),
         ],
@@ -99,7 +102,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             // ── Greeting ──────────────────────────────────────────────
-            Text(name == null ? _greeting() : '${_greeting()}, $name',
+            Text(
+                name == null
+                    ? _greeting(l)
+                    : l.homeGreetingNamed(_greeting(l), name),
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
 
@@ -107,7 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Row(
               children: [
                 _StatTile(
-                  label: 'Pantry',
+                  label: l.navPantry,
                   value: '${pantry.length}',
                   icon: Icons.kitchen,
                   color: scheme.primary,
@@ -115,7 +121,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(width: 10),
                 _StatTile(
-                  label: 'Shopping',
+                  label: l.navShopping,
                   value: '${shopping.length}',
                   icon: Icons.shopping_cart,
                   color: Colors.teal,
@@ -123,7 +129,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(width: 10),
                 _StatTile(
-                  label: 'Expiring',
+                  label: l.homeStatExpiring,
                   value: '${expiring.length}',
                   icon: Icons.warning_amber,
                   color: expiring.isEmpty ? Colors.grey : Colors.orange,
@@ -151,11 +157,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Running low?',
+                            Text(l.homeRunningLow,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: scheme.onSecondaryContainer)),
-                            Text('Find an item and add it to the shopping list',
+                            Text(l.homeRunningLowSubtitle,
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: scheme.onSecondaryContainer)),
@@ -172,10 +178,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
             // ── What's for dinner ─────────────────────────────────────
             _SectionCard(
-              title: "What's for dinner",
+              title: l.homeWhatsForDinner,
               trailing: TextButton(
                 onPressed: () => context.go('/planner'),
-                child: const Text('Planner'),
+                child: Text(l.navPlanner),
               ),
               child: Column(
                 children: [
@@ -198,7 +204,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     DateTime.now().difference(DateTime(DateTime.now().year)).inDays;
                 final pick = recipes[dayOfYear % recipes.length];
                 return _SectionCard(
-                  title: 'Recipe of the day',
+                  title: l.homeRecipeOfTheDay,
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: pick.imageUrl != null
@@ -224,7 +230,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
 
             // ── Quick actions ─────────────────────────────────────────
-            Text('Quick actions',
+            Text(l.homeQuickActions,
                 style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Wrap(
@@ -233,17 +239,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 _QuickAction(
                   icon: Icons.travel_explore,
-                  label: 'Find recipes',
+                  label: l.homeFindRecipes,
                   onTap: () => context.push('/recipes/find'),
                 ),
                 _QuickAction(
                   icon: Icons.calendar_today,
-                  label: 'Plan a meal',
+                  label: l.homePlanAMeal,
                   onTap: () => context.go('/planner'),
                 ),
                 _QuickAction(
                   icon: Icons.shopping_cart,
-                  label: 'Shopping list',
+                  label: l.homeShoppingList,
                   onTap: () => context.go('/shopping'),
                 ),
               ],
@@ -251,7 +257,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: 20),
 
             // ── Add to pantry ─────────────────────────────────────────
-            Text('Add to pantry',
+            Text(l.homeAddToPantry,
                 style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Card(
@@ -263,17 +269,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     _AddAction(
                       icon: Icons.edit_note,
-                      label: 'Add item',
+                      label: l.homeAddItem,
                       onTap: () => context.push('/inventory/add'),
                     ),
                     _AddAction(
                       icon: Icons.qr_code_scanner,
-                      label: 'Scan',
+                      label: l.homeScan,
                       onTap: () => context.push('/inventory/add', extra: 'scan'),
                     ),
                     _AddAction(
                       icon: Icons.camera_alt,
-                      label: 'Photo',
+                      label: l.homePhoto,
                       onTap: () => context.push('/inventory/add', extra: 'photo'),
                     ),
                   ],
@@ -373,23 +379,29 @@ class _DinnerRow extends StatelessWidget {
     required this.isLast,
   });
 
-  String _label() {
+  String _label(AppLocalizations l) {
     final now = DateTime.now();
     final diff = DateTime(day.year, day.month, day.day)
         .difference(DateTime(now.year, now.month, now.day))
         .inDays;
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Tomorrow';
-    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day.weekday - 1];
+    if (diff == 0) return l.homeToday;
+    if (diff == 1) return l.homeTomorrow;
+    // Short weekday name from the active locale rather than a hardcoded
+    // English array. Chinese is served as generic 'zh', so nudge the date
+    // symbols to zh_TW for Traditional forms (falls back to 'zh' if absent).
+    final dateLocale =
+        l.localeName.startsWith('zh') ? 'zh_TW' : l.localeName;
+    return DateFormat.E(dateLocale).format(day);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final dinners = meals
         .where((m) => sameDay(m.date, day) && m.mealType == 'Dinner')
         .map((m) => m.title)
         .toList();
-    final text = dinners.isEmpty ? 'Nothing planned' : dinners.join(', ');
+    final text = dinners.isEmpty ? l.homeNothingPlanned : dinners.join(', ');
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -397,7 +409,7 @@ class _DinnerRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 72,
-            child: Text(_label(),
+            child: Text(_label(l),
                 style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           Expanded(

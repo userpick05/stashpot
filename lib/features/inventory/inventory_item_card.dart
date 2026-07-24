@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/category_icons.dart';
+import '../../core/utils/labels.dart';
 import '../../core/widgets/image_view_sheet.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 
 class InventoryItemCard extends StatelessWidget {
@@ -34,23 +36,25 @@ class InventoryItemCard extends StatelessWidget {
     return Colors.green;
   }
 
-  String _expiryLabel() {
+  String _expiryLabel(AppLocalizations l) {
     final days = item.daysUntilExpiry;
     if (days == null) return '';
-    if (days < 0) return 'Expired ${(-days)} day${(-days) == 1 ? '' : 's'} ago';
-    if (days == 0) return 'Expires today';
-    if (days == 1) return 'Expires tomorrow';
-    return 'Expires in $days days';
+    if (days < 0) return l.pantryExpiredDaysAgo(-days);
+    if (days == 0) return l.pantryExpiresToday;
+    if (days == 1) return l.pantryExpiresTomorrow;
+    return l.pantryExpiresInDays(days);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final hasExpiry = item.expiryDate != null;
     final hasNote = (item.notes ?? '').trim().isNotEmpty;
     final qty = item.quantity % 1 == 0 ? item.quantity.toInt().toString() : item.quantity.toString();
-    // Match the shopping list's "×N" pill; show the unit when it's not a plain count.
-    final pillText = item.unit == 'item' ? '×$qty' : '$qty ${item.unit}';
+    // Match the shopping list's "×N" pill; show the unit when it's not a plain
+    // count. 'item' is the STORED key — only the displayed unit is localized.
+    final pillText = item.unit == 'item' ? '×$qty' : '$qty ${unitLabelOf(l, item.unit)}';
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -141,7 +145,7 @@ class InventoryItemCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _expiryLabel(),
+                    _expiryLabel(l),
                     style: TextStyle(
                       fontSize: 12,
                       color: item.isExpired || item.expiresSoon ? _expiryColor(context) : null,
@@ -155,7 +159,7 @@ class InventoryItemCard extends StatelessWidget {
         trailing: onAddToShopping != null
             ? PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
-                tooltip: 'More',
+                tooltip: l.pantryMoreTooltip,
                 onSelected: (v) {
                   if (v == 'shopping') onAddToShopping!.call();
                   if (v == 'move') onRemoveToShopping?.call();
@@ -164,30 +168,30 @@ class InventoryItemCard extends StatelessWidget {
                   }
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'shopping',
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.add_shopping_cart),
-                      title: Text('Add to shopping list'),
+                      leading: const Icon(Icons.add_shopping_cart),
+                      title: Text(l.pantryAddToShoppingList),
                     ),
                   ),
                   if (onRemoveToShopping != null)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'move',
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.move_up),
-                        title: Text('Remove from pantry & add to shopping list'),
+                        leading: const Icon(Icons.move_up),
+                        title: Text(l.pantryMoveToShoppingList),
                       ),
                     ),
                   if (item.imageUrl != null)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'photo',
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.image_outlined),
-                        title: Text('View photo'),
+                        leading: const Icon(Icons.image_outlined),
+                        title: Text(l.pantryViewPhoto),
                       ),
                     ),
                 ],
@@ -196,7 +200,7 @@ class InventoryItemCard extends StatelessWidget {
                 ? IconButton(
                     icon: Icon(Icons.image_outlined,
                         color: Theme.of(context).colorScheme.primary),
-                    tooltip: 'View photo',
+                    tooltip: l.pantryViewPhoto,
                     onPressed: () => showImageSheet(context, item.imageUrl!),
                   )
                 : (onDelete != null

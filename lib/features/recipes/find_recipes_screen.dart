@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/recipe_providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/recipe_hit.dart';
 import 'recipe_detail_screen.dart';
 import 'star_rating.dart';
@@ -40,7 +41,9 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
       setState(() => _results = r);
       if (r.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No recipes found — try different terms')),
+          SnackBar(
+              content:
+                  Text(AppLocalizations.of(context).findRecipesNoResults)),
         );
       }
     } catch (e) {
@@ -86,7 +89,9 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
     final names = (ref.read(inventoryProvider).valueOrNull ?? []).map((i) => i.name).toList();
     if (names.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your pantry is empty — add some items first')),
+        SnackBar(
+            content:
+                Text(AppLocalizations.of(context).findRecipesPantryEmpty)),
       );
       return;
     }
@@ -94,17 +99,18 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
   }
 
   Future<void> _open(RecipeHit h) async {
+    final l = AppLocalizations.of(context);
     final url = h.sourceUrl;
     if (url == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No web link for this recipe')),
+        SnackBar(content: Text(l.findRecipesNoLink)),
       );
       return;
     }
     final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open the link')),
+        SnackBar(content: Text(l.findRecipesOpenFailed)),
       );
     }
   }
@@ -123,15 +129,19 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
     await ref.read(firestoreServiceProvider).saveRecipe(householdId, h.toRecipe(uid));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved "${h.title}"'), duration: const Duration(seconds: 1)),
+        SnackBar(
+            content:
+                Text(AppLocalizations.of(context).recipeSaved(h.title)),
+            duration: const Duration(seconds: 1)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Find recipes')),
+      appBar: AppBar(title: Text(l.findRecipesTitle)),
       body: Column(
         children: [
           Padding(
@@ -143,17 +153,19 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
                   textInputAction: TextInputAction.search,
                   onSubmitted: (_) => _search(),
                   decoration: InputDecoration(
-                    hintText: 'Search a dish, or paste a recipe link',
+                    hintText: l.findRecipesSearchHint,
                     prefixIcon: const Icon(Icons.search),
                     border: const OutlineInputBorder(),
-                    suffixIcon: TextButton(onPressed: _search, child: const Text('Search')),
+                    suffixIcon: TextButton(
+                        onPressed: _search,
+                        child: Text(l.findRecipesSearchButton)),
                   ),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: _fromPantry,
                   icon: const Icon(Icons.kitchen),
-                  label: const Text('What can I make from my pantry?'),
+                  label: Text(l.findRecipesFromPantry),
                   style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
                 ),
               ],
@@ -165,7 +177,8 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('Lookup failed: $_error', textAlign: TextAlign.center),
+                      child: Text(l.findRecipesLookupFailed(_error!),
+                          textAlign: TextAlign.center),
                     ),
                   )
                 : _results.isEmpty
@@ -173,7 +186,7 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(32),
                           child: Text(
-                            'Search for a dish, or tap "What can I make"\nfor ideas from what you have.',
+                            l.findRecipesEmptyHint,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Theme.of(context).colorScheme.outline),
                           ),
@@ -213,6 +226,7 @@ class _HitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: InkWell(
@@ -246,8 +260,8 @@ class _HitCard extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           hit.missedCount == 0
-                              ? 'You have everything!'
-                              : 'Missing ${hit.missedCount} ingredient(s)',
+                              ? l.findRecipesHaveAll
+                              : l.findRecipesMissingCount(hit.missedCount!),
                           style: TextStyle(
                             fontSize: 12,
                             color: hit.missedCount == 0 ? Colors.green : Colors.orange,
@@ -261,12 +275,12 @@ class _HitCard extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.open_in_new),
-                    tooltip: 'Open in browser',
+                    tooltip: l.recipeOpenInBrowser,
                     onPressed: onOpen,
                   ),
                   IconButton(
                     icon: const Icon(Icons.bookmark_add_outlined),
-                    tooltip: 'Save',
+                    tooltip: l.commonSave,
                     onPressed: onSave,
                   ),
                 ],

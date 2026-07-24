@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/widgets/invite_code_sheet.dart';
+import '../../l10n/app_localizations.dart';
 
 class JoinHouseholdScreen extends ConsumerStatefulWidget {
   const JoinHouseholdScreen({super.key});
@@ -23,10 +24,11 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
   }
 
   Future<void> _create() async {
+    final l = AppLocalizations.of(context);
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a household name')),
+        SnackBar(content: Text(l.authHouseholdNameRequired)),
       );
       return;
     }
@@ -45,7 +47,10 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(l.commonError('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -54,10 +59,11 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
   }
 
   Future<void> _join() async {
+    final l = AppLocalizations.of(context);
     final code = _codeCtrl.text.trim();
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter an invite code')),
+        SnackBar(content: Text(l.authInviteCodeRequired)),
       );
       return;
     }
@@ -68,7 +74,10 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(l.commonError('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -78,6 +87,7 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -89,12 +99,12 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
               children: [
                 const Icon(Icons.home, size: 64, color: Colors.green),
                 const SizedBox(height: 8),
-                Text('Set up your household',
+                Text(l.authSetUpHousehold,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 8),
                 Text(
-                  'Create a new household or join your partner\'s existing one.',
+                  l.authSetUpHouseholdSubtitle,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -107,37 +117,37 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Start a new household',
+                        Text(l.authStartNewHousehold,
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 12),
                         TextField(
                           controller: _nameCtrl,
                           textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Household name (e.g. "The Smiths")',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            labelText: l.authHouseholdNameLabel,
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 12),
                         FilledButton.icon(
                           onPressed: _loading ? null : _create,
                           icon: const Icon(Icons.add_home),
-                          label: const Text('Create household'),
+                          label: Text(l.authCreateHousehold),
                         ),
                       ],
                     ),
                   ),
                 ),
 
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Row(children: [
-                    Expanded(child: Divider()),
+                    const Expanded(child: Divider()),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('or'),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(l.authOr),
                     ),
-                    Expanded(child: Divider()),
+                    const Expanded(child: Divider()),
                   ]),
                 ),
 
@@ -148,25 +158,25 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Join an existing household',
+                        Text(l.authJoinExisting,
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 4),
                         Text(
-                          'Ask the person who set it up to share their invite code.',
+                          l.authJoinExistingSubtitle,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 12),
                         TextField(
                           controller: _codeCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Invite code',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            labelText: l.authInviteCodeLabel,
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 12),
                         FilledButton.tonal(
                           onPressed: _loading ? null : _join,
-                          child: const Text('Join household'),
+                          child: Text(l.authJoinHousehold),
                         ),
                       ],
                     ),

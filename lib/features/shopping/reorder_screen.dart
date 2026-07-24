@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/catalog_item.dart';
 import '../../models/shopping_item.dart';
 
@@ -19,6 +20,8 @@ class _ReorderScreenState extends ConsumerState<ReorderScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
+  // Internal sentinel for the "no store" bucket — never shown as-is and never
+  // stored; the section title goes through l.noStoreGroup.
   static const _noStoreKey = 'Other / no store';
 
   @override
@@ -75,18 +78,22 @@ class _ReorderScreenState extends ConsumerState<ReorderScreen> {
         );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added "${c.name}" to your list'), duration: const Duration(seconds: 1)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).reorderAdded(c.name)),
+          duration: const Duration(seconds: 1),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final catalog = ref.watch(catalogProvider);
     final householdId = ref.watch(householdIdProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reorder')),
+      appBar: AppBar(title: Text(l.reorderTitle)),
       body: Column(
         children: [
           Padding(
@@ -94,7 +101,7 @@ class _ReorderScreenState extends ConsumerState<ReorderScreen> {
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: 'Search items…',
+                hintText: l.reorderSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _query.isEmpty
                     ? null
@@ -114,7 +121,7 @@ class _ReorderScreenState extends ConsumerState<ReorderScreen> {
           Expanded(
             child: catalog.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(child: Text(l.commonError('$e'))),
               data: (all) {
                 final filtered = _query.isEmpty
                     ? all
@@ -123,16 +130,15 @@ class _ReorderScreenState extends ConsumerState<ReorderScreen> {
                         .toList();
 
                 if (all.isEmpty) {
-                  return const _Empty(
+                  return _Empty(
                     icon: Icons.history,
-                    text: 'Nothing to reorder yet.\n'
-                        'Items you add to your list will show up here.',
+                    text: l.reorderEmpty,
                   );
                 }
                 if (filtered.isEmpty) {
                   return _Empty(
                     icon: Icons.search_off,
-                    text: 'No items match "${_searchCtrl.text}".',
+                    text: l.shoppingNoMatches(_searchCtrl.text),
                   );
                 }
 
@@ -144,6 +150,7 @@ class _ReorderScreenState extends ConsumerState<ReorderScreen> {
                     for (final store in keys)
                       _StoreSection(
                         store: store,
+                        storeLabel: store == _noStoreKey ? l.noStoreGroup : store,
                         items: groups[store]!,
                         // Expand sections when searching so matches are visible.
                         initiallyExpanded: _query.isNotEmpty,
@@ -167,7 +174,12 @@ class _ReorderScreenState extends ConsumerState<ReorderScreen> {
 }
 
 class _StoreSection extends StatelessWidget {
+  /// Raw grouping key (may be the internal "no store" sentinel) — used for the
+  /// storage key only.
   final String store;
+
+  /// What the user actually sees for this section.
+  final String storeLabel;
   final List<CatalogItem> items;
   final bool initiallyExpanded;
   final Future<void> Function(CatalogItem) onAdd;
@@ -175,6 +187,7 @@ class _StoreSection extends StatelessWidget {
 
   const _StoreSection({
     required this.store,
+    required this.storeLabel,
     required this.items,
     required this.initiallyExpanded,
     required this.onAdd,
@@ -183,13 +196,14 @@ class _StoreSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return ExpansionTile(
       // Re-key so expansion state follows search changes.
       key: PageStorageKey('$store-$initiallyExpanded-${items.length}'),
       initiallyExpanded: initiallyExpanded,
       leading: Icon(Icons.storefront, color: Theme.of(context).colorScheme.primary),
-      title: Text(store, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text('${items.length} item${items.length == 1 ? '' : 's'}'),
+      title: Text(storeLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(l.reorderItemCount(items.length)),
       children: [
         for (final c in items)
           ListTile(
@@ -202,12 +216,12 @@ class _StoreSection extends StatelessWidget {
                 if (onDelete != null)
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    tooltip: 'Forget this item',
+                    tooltip: l.reorderForgetItem,
                     onPressed: () => onDelete!(c),
                   ),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(l.commonAdd),
                   onPressed: () => onAdd(c),
                 ),
               ],

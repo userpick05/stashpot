@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Shows the household invite code in a bottom sheet (not an AlertDialog —
 /// dialogs black-screen via Impeller on some devices, e.g. Pixel 10).
 void showInviteCodeSheet(BuildContext context, String code) {
+  final l = AppLocalizations.of(context);
   showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
@@ -14,12 +17,10 @@ void showInviteCodeSheet(BuildContext context, String code) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Invite your partner',
+            Text(l.inviteTitle,
                 style: Theme.of(ctx).textTheme.titleLarge),
             const SizedBox(height: 12),
-            const Text('Share this code so they can join your pantry. They '
-                'register their own account, then enter it under "Join an '
-                'existing household".'),
+            Text(l.inviteBody),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
@@ -37,12 +38,12 @@ void showInviteCodeSheet(BuildContext context, String code) {
             const SizedBox(height: 16),
             FilledButton.icon(
               icon: const Icon(Icons.copy),
-              label: const Text('Copy code'),
+              label: Text(l.inviteCopyCode),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: code));
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invite code copied')),
+                  SnackBar(content: Text(l.inviteCopied)),
                 );
               },
             ),

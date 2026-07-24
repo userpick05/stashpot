@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Swipe a row left to delete. Instead of vanishing, the row is replaced
 /// in-place by an "Undo" strip for a few seconds. If undone, nothing happens;
 /// otherwise the delete is committed. Leaving the screen also commits it.
@@ -61,6 +63,7 @@ class _SwipeToDeleteState extends State<SwipeToDelete> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
 
     if (_pending) {
@@ -77,13 +80,13 @@ class _SwipeToDeleteState extends State<SwipeToDelete> {
             Icon(Icons.delete_outline, color: scheme.outline),
             const SizedBox(width: 8),
             Expanded(
-              child: Text('Removed ${widget.label}',
+              child: Text(l.swipeRemoved(widget.label),
                   maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: scheme.onSurfaceVariant)),
             ),
             TextButton.icon(
               icon: const Icon(Icons.undo),
-              label: const Text('Undo'),
+              label: Text(l.commonUndo),
               onPressed: _undo,
             ),
           ],

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,6 +8,7 @@ import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/recipe_providers.dart';
 import '../../core/utils/pantry_match.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_details.dart';
 import '../../models/shopping_item.dart';
@@ -30,28 +33,73 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
   Recipe get recipe => widget.recipe;
 
+  /// PantryMatch only tokenizes Latin script, so a translated recipe carries a
+  /// separate matchName. Check both, since the shopping list may hold either.
+  static bool _inList(RecipeIngredient i, List<String> names) =>
+      PantryMatch.hasIngredient(i.matchName, names) ||
+      (i.matchName != i.name && PantryMatch.hasIngredient(i.name, names));
+
   @override
   void initState() {
     super.initState();
     _saved = recipe.id.isNotEmpty;
+    final hasSource = recipe.spoonacularId != null || recipe.sourceUrl != null;
     if (recipe.ingredients.isNotEmpty || recipe.steps.isNotEmpty) {
-      // Hand-entered recipe — ingredients/steps are stored on the doc.
+      // Hand-entered recipe, or a saved link whose content we already fetched.
       _details = RecipeDetails(
         id: 0,
         title: recipe.name,
         image: recipe.imageUrl,
         servings: recipe.servings,
-        ingredients: recipe.ingredients
-            .map((s) => RecipeIngredient(name: s, original: s))
-            .toList(),
+        ingredients: [
+          for (var i = 0; i < recipe.ingredients.length; i++)
+            RecipeIngredient(
+              name: recipe.ingredients[i],
+              original: recipe.ingredients[i],
+              matchName: i < recipe.matchNames.length
+                  ? recipe.matchNames[i]
+                  : null,
+            )
+        ],
         steps: recipe.steps,
+        aiTranslated: recipe.detailsAi,
       );
-    } else if (recipe.spoonacularId != null || recipe.sourceUrl != null) {
-      _load();
+    }
+    if (_details == null && hasSource) {
+      // Set here, not in _load: the load is deferred a frame (below), and
+      // without this the first build would flash the "couldn't read a recipe"
+      // card before the spinner appears.
+      _loading = true;
+    }
+    if (hasSource) {
+      // Deferred a frame: reading the locale needs Localizations, which isn't
+      // available during initState.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _init();
+      });
     }
   }
 
-  Future<void> _load() async {
+  /// Decides whether the stored content is good enough to show as-is.
+  Future<void> _init() async {
+    final stored = _details;
+    if (stored != null) {
+      final lang = Localizations.localeOf(context).languageCode;
+      // Stored content in the reader's language (or hand-entered, which has no
+      // language stamp) — show it, no network, works offline. Unless an older
+      // build wrote it, in which case re-read the page.
+      if (recipe.detailsLang == null) return;
+      if (recipe.detailsLang == lang && recipe.detailsV >= kDetailsVersion) {
+        return;
+      }
+      // Saved in the other language: re-fetch so this reader gets their own.
+      // The stored copy stays on screen meanwhile.
+    }
+    await _load();
+  }
+
+  Future<void> _load({bool force = false}) async {
+    final lang = Localizations.localeOf(context).languageCode;
     setState(() {
       _loading = true;
       _error = null;
@@ -62,16 +110,63 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         // Found via search → pull from Spoonacular by id.
         d = await ref.read(spoonacularServiceProvider).getDetails(recipe.spoonacularId!);
       } else if (recipe.sourceUrl != null) {
-        // Saved as a link → read the recipe straight off the page.
-        d = await ref.read(recipeImportServiceProvider).fetchDetails(recipe.sourceUrl!);
+        // Saved as a link → read the recipe straight off the page, translated
+        // into the app's language if the page is in another one.
+        d = await ref.read(recipeImportServiceProvider).fetchDetails(
+            recipe.sourceUrl!,
+            languageCode: lang,
+            forceRefresh: force);
       }
-      if (mounted) setState(() => _details = d);
+      // Keep whatever we already had if the refetch came back empty — a failed
+      // language refresh shouldn't blank out a recipe that was on screen.
+      if (mounted) setState(() => _details = d ?? _details);
+      if (d != null) unawaited(_storeDetails(d, lang));
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  /// A link recipe is saved as soon as it's pasted, so its content arrives
+  /// later — write it back onto the doc here. Reopening then reads from
+  /// Firestore: instant, offline-capable, and no repeat translation bill.
+  ///
+  /// Link recipes only. Spoonacular details are re-fetched cheaply and carry
+  /// nutrition and cook time the recipe doc has nowhere to put, so caching them
+  /// here would quietly lose them.
+  Future<void> _storeDetails(RecipeDetails d, String lang) async {
+    if (!_saved ||
+        recipe.sourceUrl == null ||
+        recipe.spoonacularId != null ||
+        !d.hasContent ||
+        (recipe.detailsLang == lang && recipe.detailsV >= kDetailsVersion)) {
+      return;
+    }
+    final hid = ref.read(householdIdProvider);
+    if (hid == null) return;
+    try {
+      await ref
+          .read(firestoreServiceProvider)
+          .saveRecipe(hid, _withDetails(recipe, d, lang));
+    } catch (_) {
+      // Purely a cache — a failed write just means we fetch again next time.
+    }
+  }
+
+  Recipe _withDetails(Recipe r, RecipeDetails d, String lang) => r.copyWith(
+        ingredients: d.ingredients.map((i) => i.original).toList(),
+        // Only worth storing when they differ from the displayed lines; that's
+        // exactly the translated case, where PantryMatch needs the Latin side.
+        matchNames: d.ingredients.any((i) => i.matchName != i.name)
+            ? d.ingredients.map((i) => i.matchName).toList()
+            : const [],
+        steps: d.steps,
+        servings: d.servings,
+        detailsLang: lang,
+        detailsV: kDetailsVersion,
+        detailsAi: d.aiTranslated || d.aiExtracted,
+      );
 
   Future<void> _open() async {
     final url = recipe.sourceUrl ?? _details?.sourceUrl;
@@ -83,11 +178,21 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final hid = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (hid == null || uid == null) return;
-    await ref.read(firestoreServiceProvider).saveRecipe(hid, recipe);
+    var toSave = recipe;
+    final d = _details;
+    if (d != null &&
+        d.hasContent &&
+        recipe.sourceUrl != null &&
+        recipe.spoonacularId == null) {
+      toSave = _withDetails(
+          recipe, d, Localizations.localeOf(context).languageCode);
+    }
+    await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
     if (mounted) {
       setState(() => _saved = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved "${recipe.name}"')),
+        SnackBar(
+            content: Text(AppLocalizations.of(context).recipeSaved(recipe.name))),
       );
     }
   }
@@ -102,6 +207,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     // (showing it on a screen we're about to pop leaves it stuck).
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    final l = AppLocalizations.of(context);
     await svc.deleteRecipe(hid, recipe.id);
     if (!mounted) return;
     navigator.pop();
@@ -109,9 +215,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: Text('Removed ${recipe.name}'),
+          content: Text(l.recipeRemoved(recipe.name)),
           action: SnackBarAction(
-            label: 'Undo',
+            label: l.commonUndo,
             onPressed: () => svc.saveRecipe(hid, recipe),
           ),
         ),
@@ -122,6 +228,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final hid = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (hid == null || uid == null || names.isEmpty) return;
+    final l = AppLocalizations.of(context);
     final svc = ref.read(firestoreServiceProvider);
     for (final n in names) {
       await svc.addShoppingItem(
@@ -130,7 +237,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           id: const Uuid().v4(),
           name: n,
           quantity: 1,
-          note: 'for ${recipe.name}',
+          note: l.recipeShoppingNote(recipe.name),
           checked: false,
           addedAt: DateTime.now(),
           addedBy: uid,
@@ -139,38 +246,40 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added ${names.length} item(s) to your shopping list')),
+        SnackBar(content: Text(l.recipeAddedToShopping(names.length))),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final pantryNames =
         (ref.watch(inventoryProvider).valueOrNull ?? []).map((i) => i.name).toList();
     final shoppingNames =
         (ref.watch(shoppingProvider).valueOrNull ?? []).map((i) => i.name).toList();
     final d = _details;
     final ingredients = d?.ingredients ?? const <RecipeIngredient>[];
-    final missing = ingredients
-        .where((i) => !PantryMatch.hasIngredient(i.name, pantryNames))
-        .toList();
+    final missing =
+        ingredients.where((i) => !_inList(i, pantryNames)).toList();
     final haveCount = ingredients.length - missing.length;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipe.name, overflow: TextOverflow.ellipsis),
+        title: Text(
+            (d?.title.isNotEmpty ?? false) ? d!.title : recipe.name,
+            overflow: TextOverflow.ellipsis),
         actions: [
           if (recipe.sourceUrl != null || d?.sourceUrl != null)
             IconButton(
               icon: const Icon(Icons.open_in_new),
-              tooltip: 'Open original in browser',
+              tooltip: l.recipeOpenOriginalTooltip,
               onPressed: _open,
             ),
           if (_saved && recipe.isManual)
             IconButton(
               icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
+              tooltip: l.recipeEditTooltip,
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => AddRecipeManualScreen(existing: recipe),
@@ -178,9 +287,15 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               ),
             ),
           if (_saved)
-            IconButton(icon: const Icon(Icons.delete_outline), tooltip: 'Delete', onPressed: _delete)
+            IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l.commonDelete,
+                onPressed: _delete)
           else
-            IconButton(icon: const Icon(Icons.bookmark_add), tooltip: 'Save', onPressed: _save),
+            IconButton(
+                icon: const Icon(Icons.bookmark_add),
+                tooltip: l.commonSave,
+                onPressed: _save),
         ],
       ),
       body: ListView(
@@ -207,7 +322,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               if (d?.readyInMinutes != null) ...[
                 const Icon(Icons.schedule, size: 18),
                 const SizedBox(width: 4),
-                Text('${d!.readyInMinutes} min'),
+                Text(l.recipeMinutes(d!.readyInMinutes!)),
               ],
             ],
           ),
@@ -219,11 +334,49 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             const SizedBox(height: 16),
           ],
 
+          // Machine translation isn't always right — say so rather than
+          // passing AI text off as what the page actually said.
+          // Only once there's actual AI-produced content on screen — never
+          // hovering above a spinner or a "couldn't read this page" card.
+          if (d != null &&
+              (d.aiTranslated || d.aiExtracted) &&
+              d.hasContent &&
+              !_loading &&
+              _error == null) ...[
+            Row(
+              children: [
+                Icon(Icons.translate,
+                    size: 16, color: Theme.of(context).colorScheme.outline),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    l.recipeAiTranslated,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+
           // ── Body state: always shows exactly one of these ──────────────
           if (_loading)
-            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
-          else if (_error != null || ingredients.isEmpty && (d?.steps.isEmpty ?? true))
-            // Failed to load, OR no structured data (link recipe / empty details).
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 12),
+                  Text(l.recipeReadingPage,
+                      style: Theme.of(context).textTheme.bodySmall),
+                ]),
+              ),
+            )
+          else if (ingredients.isEmpty && (d?.steps.isEmpty ?? true))
+            // Failed to load, OR no structured data (link recipe / empty
+            // details). Only when there's nothing to show — a failed refresh
+            // shouldn't replace a recipe already on screen with an error.
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -236,8 +389,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _error != null
-                        ? "Couldn't load this recipe — check your connection and retry."
-                        : "Couldn't read a recipe from this page. Some sites don't share their recipe data — open it in your browser to view it.",
+                        ? l.recipeLoadFailed
+                        : l.recipeNoStructuredData,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
@@ -247,14 +400,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     children: [
                       if (recipe.spoonacularId != null || recipe.sourceUrl != null)
                         FilledButton.icon(
-                            onPressed: _load,
+                            onPressed: () => _load(force: true),
                             icon: const Icon(Icons.refresh),
-                            label: const Text('Retry')),
+                            label: Text(l.commonRetry)),
                       if ((recipe.sourceUrl ?? d?.sourceUrl) != null)
                         OutlinedButton.icon(
                             onPressed: _open,
                             icon: const Icon(Icons.open_in_new),
-                            label: const Text('Open in browser')),
+                            label: Text(l.recipeOpenInBrowser)),
                     ],
                   ),
                 ],
@@ -264,9 +417,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             // Ingredients + cross-check
             Row(
               children: [
-                Text('Ingredients', style: Theme.of(context).textTheme.titleMedium),
+                Text(l.recipeIngredients,
+                    style: Theme.of(context).textTheme.titleMedium),
                 const Spacer(),
-                Text('Have $haveCount/${ingredients.length}',
+                Text(l.recipeHaveCount(haveCount, ingredients.length),
                     style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
@@ -276,26 +430,27 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: FilledButton.tonalIcon(
                   icon: const Icon(Icons.add_shopping_cart),
-                  label: Text('Add ${missing.length} missing to shopping list'),
+                  label: Text(l.recipeAddMissing(missing.length)),
                   onPressed: () => _addToShopping(missing.map((i) => i.name).toList()),
                 ),
               ),
             for (final ing in ingredients)
               _IngredientRow(
                 ingredient: ing,
-                inPantry: PantryMatch.hasIngredient(ing.name, pantryNames),
-                onList: PantryMatch.hasIngredient(ing.name, shoppingNames),
+                inPantry: _inList(ing, pantryNames),
+                onList: _inList(ing, shoppingNames),
                 onAdd: () => _addToShopping([ing.name]),
               ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               icon: const Icon(Icons.playlist_add),
-              label: const Text('Add ALL ingredients to shopping list'),
+              label: Text(l.recipeAddAllIngredients),
               onPressed: () => _addToShopping(ingredients.map((i) => i.name).toList()),
             ),
             const SizedBox(height: 20),
             if (d != null && d.steps.isNotEmpty) ...[
-              Text('Instructions', style: Theme.of(context).textTheme.titleMedium),
+              Text(l.recipeInstructions,
+                  style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               for (var i = 0; i < d.steps.length; i++)
                 Padding(
@@ -332,6 +487,7 @@ class _IngredientRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -354,7 +510,9 @@ class _IngredientRow extends StatelessWidget {
                 size: 20,
                 color: onList ? scheme.primary : null,
               ),
-              tooltip: onList ? 'On shopping list — tap to add again' : 'Add to shopping list',
+              tooltip: onList
+                  ? l.recipeOnListTooltip
+                  : l.recipeAddToShoppingTooltip,
               onPressed: onAdd,
             ),
         ],
@@ -369,12 +527,15 @@ class _NutritionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
+    // Display labels only — the Spoonacular field names used to look these up
+    // (in recipe_details.dart) stay English.
     final stats = <(String, String?)>[
-      ('Calories', nutrition.calories),
-      ('Protein', nutrition.protein),
-      ('Carbs', nutrition.carbs),
-      ('Fat', nutrition.fat),
+      (l.recipeCalories, nutrition.calories),
+      (l.recipeProtein, nutrition.protein),
+      (l.recipeCarbs, nutrition.carbs),
+      (l.recipeFat, nutrition.fat),
     ].where((s) => s.$2 != null).toList();
     if (stats.isEmpty) return const SizedBox.shrink();
 
@@ -389,7 +550,7 @@ class _NutritionRow extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 8, bottom: 8),
-            child: Text('Nutrition (per serving)',
+            child: Text(l.recipeNutritionTitle,
                 style: Theme.of(context).textTheme.bodySmall),
           ),
           Row(

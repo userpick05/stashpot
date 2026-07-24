@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/auth_providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
 
 /// Write your own recipe (name, ingredients, steps). Stored directly on the
@@ -45,10 +46,11 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
   }
 
   Future<void> _save() async {
+    final l = AppLocalizations.of(context);
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Give the recipe a name')),
+        SnackBar(content: Text(l.recipeManualNeedName)),
       );
       return;
     }
@@ -76,7 +78,9 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
     } catch (err) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(err.toString()), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text(l.commonError(err.toString())),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -86,11 +90,13 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit recipe' : 'Write a recipe'),
+        title: Text(_isEditing ? l.recipeManualEditTitle : l.recipeWrite),
         actions: [
-          TextButton(onPressed: _saving ? null : _save, child: const Text('Save')),
+          TextButton(
+              onPressed: _saving ? null : _save, child: Text(l.commonSave)),
         ],
       ),
       body: ListView(
@@ -99,18 +105,18 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
           TextField(
             controller: _nameCtrl,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              labelText: 'Recipe name *',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l.recipeManualNameLabel,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _servingsCtrl,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Servings (optional)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l.recipeManualServingsLabel,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
@@ -118,10 +124,10 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
             controller: _ingredientsCtrl,
             minLines: 4,
             maxLines: null,
-            decoration: const InputDecoration(
-              labelText: 'Ingredients (one per line)',
+            decoration: InputDecoration(
+              labelText: l.recipeManualIngredientsLabel,
               alignLabelWithHint: true,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
@@ -129,10 +135,10 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
             controller: _stepsCtrl,
             minLines: 4,
             maxLines: null,
-            decoration: const InputDecoration(
-              labelText: 'Steps (one per line)',
+            decoration: InputDecoration(
+              labelText: l.recipeManualStepsLabel,
               alignLabelWithHint: true,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 24),
@@ -141,7 +147,7 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
             child: _saving
                 ? const SizedBox(
                     height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Save recipe'),
+                : Text(l.recipeManualSave),
           ),
         ],
       ),

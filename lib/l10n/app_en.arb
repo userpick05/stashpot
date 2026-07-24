@@ -1,0 +1,752 @@
+{
+  "@@locale": "en",
+  "appTitle": "Stashpot",
+  "appTagline": "Your home pantry, always in sync",
+  "navHome": "Home",
+  "navPantry": "Pantry",
+  "navShopping": "Shopping",
+  "navRecipes": "Recipes",
+  "navPlanner": "Planner",
+  "commonSave": "Save",
+  "commonSaving": "Saving…",
+  "commonAdd": "Add",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonRename": "Rename",
+  "commonUndo": "Undo",
+  "commonSkip": "Skip",
+  "commonClose": "Close",
+  "commonLater": "Later",
+  "commonRetry": "Retry",
+  "commonDone": "Done",
+  "commonError": "Error: {message}",
+  "@commonError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryFruit": "Fruit",
+  "categoryVegetable": "Vegetables",
+  "categoryMeat": "Meat & Fish",
+  "categoryDairy": "Dairy & Eggs",
+  "categoryBakery": "Bakery",
+  "categoryPantry": "Dry Goods",
+  "categoryFrozen": "Frozen",
+  "categoryBeverages": "Beverages",
+  "categorySnacks": "Snacks",
+  "categoryHousehold": "Household",
+  "categoryPersonalCare": "Personal Care",
+  "categoryProduce": "Produce",
+  "categoryOther": "Other",
+  "locationFridge": "Fridge",
+  "locationFreezer": "Freezer",
+  "locationPantry": "Pantry",
+  "locationOther": "Other",
+  "mealBreakfast": "Breakfast",
+  "mealLunch": "Lunch",
+  "mealDinner": "Dinner",
+  "mealSnack": "Snack",
+  "unitItem": "item",
+  "unitG": "g",
+  "unitKg": "kg",
+  "unitMl": "ml",
+  "unitL": "L",
+  "unitOz": "oz",
+  "unitLb": "lb",
+  "unitCup": "cup",
+  "unitBunch": "bunch",
+  "noStoreGroup": "Other / no store",
+  "settingsTitle": "Settings",
+  "settingsVersion": "Version {version}",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsInviteFriends": "Invite friends",
+  "settingsInviteSubtitle": "Share your household invite code",
+  "settingsPantryLocations": "Pantry locations",
+  "settingsPantryLocationsSubtitle": "Add or edit your own storage locations",
+  "settingsSignOut": "Sign out",
+  "settingsLanguage": "Language",
+  "settingsLanguageSubtitle": "Choose the app language",
+  "languageSystem": "System default",
+  "languageEnglish": "English",
+  "languageChineseTraditional": "繁體中文",
+  "addItemBarcodeNotFoundTitle": "No product found for {code}",
+  "@addItemBarcodeNotFoundTitle": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemBarcodeNotFoundBody": "Local and imported products often aren't in the barcode database. You can identify it from a photo of the packaging instead.",
+  "addItemTakePhotoInstead": "Take a photo instead",
+  "addItemEnterManually": "Enter manually",
+  "homeGreetingMorning": "Good morning",
+  "homeGreetingAfternoon": "Good afternoon",
+  "homeGreetingEvening": "Good evening",
+  "homeGreetingNamed": "{greeting}, {name}",
+  "@homeGreetingNamed": {
+    "placeholders": {
+      "greeting": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeStatExpiring": "Expiring",
+  "homeRunningLow": "Running low?",
+  "homeRunningLowSubtitle": "Find an item and add it to the shopping list",
+  "homeWhatsForDinner": "What's for dinner",
+  "homeRecipeOfTheDay": "Recipe of the day",
+  "homeToday": "Today",
+  "homeTomorrow": "Tomorrow",
+  "homeNothingPlanned": "Nothing planned",
+  "homeQuickActions": "Quick actions",
+  "homeFindRecipes": "Find recipes",
+  "homePlanAMeal": "Plan a meal",
+  "homeShoppingList": "Shopping list",
+  "homeAddToPantry": "Add to pantry",
+  "homeAddItem": "Add item",
+  "homeScan": "Scan",
+  "homePhoto": "Photo",
+  "locationsBuiltIn": "Built-in",
+  "locationsYours": "Your locations",
+  "locationsEmpty": "No custom locations yet. Tap + to add one.",
+  "locationsAdd": "Add location",
+  "locationsNew": "New location",
+  "locationsRename": "Rename location",
+  "locationsHint": "e.g. Garage shelf",
+  "locationsRemoved": "Removed location \"{name}\"",
+  "@locationsRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "authEmail": "Email",
+  "authPassword": "Password",
+  "authEmailInvalid": "Enter a valid email",
+  "authPasswordTooShort": "Password must be 6+ characters",
+  "authPasswordMin": "Minimum 6 characters",
+  "authSignIn": "Sign in",
+  "authNoAccountRegister": "Don't have an account? Register",
+  "authCreateAccount": "Create account",
+  "authYourName": "Your name",
+  "authNameRequired": "Enter your name",
+  "authHaveAccountSignIn": "Already have an account? Sign in",
+  "authHouseholdNameRequired": "Enter a household name",
+  "authInviteCodeRequired": "Enter an invite code",
+  "authSetUpHousehold": "Set up your household",
+  "authSetUpHouseholdSubtitle": "Create a new household or join your partner's existing one.",
+  "authStartNewHousehold": "Start a new household",
+  "authHouseholdNameLabel": "Household name (e.g. \"The Smiths\")",
+  "authCreateHousehold": "Create household",
+  "authOr": "or",
+  "authJoinExisting": "Join an existing household",
+  "authJoinExistingSubtitle": "Ask the person who set it up to share their invite code.",
+  "authInviteCodeLabel": "Invite code",
+  "authJoinHousehold": "Join household",
+  "inviteTitle": "Invite your partner",
+  "inviteBody": "Share this code so they can join your pantry. They register their own account, then enter it under \"Join an existing household\".",
+  "inviteCopyCode": "Copy code",
+  "inviteCopied": "Invite code copied",
+  "swipeRemoved": "Removed {label}",
+  "@swipeRemoved": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailable": "Update available",
+  "updateStarting": "Starting download…",
+  "updateDownloadingPercent": "Downloading… {percent}%",
+  "@updateDownloadingPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNow": "Update now",
+  "pantryGroupByTooltip": "Group by",
+  "pantryGroupByLocation": "Group by location",
+  "pantryGroupByCategory": "Group by category",
+  "pantryGroupByStore": "Group by store",
+  "pantryEmptyTitle": "Your pantry is empty",
+  "pantryEmptySubtitle": "Tap + to add your first item",
+  "pantryExpiringBanner": "{count, plural, one{{count} item expiring soon or expired} other{{count} items expiring soon or expired}}",
+  "@pantryExpiringBanner": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pantryNoMatches": "No items match \"{query}\"",
+  "@pantryNoMatches": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "pantrySearchHint": "Search pantry…",
+  "pantryAddItemFab": "Add item",
+  "pantryExpiresToday": "Expires today",
+  "pantryExpiresTomorrow": "Expires tomorrow",
+  "pantryExpiresInDays": "{days, plural, one{Expires in {days} day} other{Expires in {days} days}}",
+  "@pantryExpiresInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "pantryExpiredDaysAgo": "{days, plural, one{Expired {days} day ago} other{Expired {days} days ago}}",
+  "@pantryExpiredDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "pantryMoreTooltip": "More",
+  "pantryAddToShoppingList": "Add to shopping list",
+  "pantryMoveToShoppingList": "Remove from pantry & add to shopping list",
+  "pantryViewPhoto": "View photo",
+  "addItemTitleAdd": "Add item",
+  "addItemTitleEdit": "Edit item",
+  "addItemNewLocationTitle": "New location",
+  "addItemNewLocationHint": "e.g. Garage shelf",
+  "addItemTakePhoto": "Take a photo",
+  "addItemChooseFromGallery": "Choose from gallery",
+  "addItemCameraPermissionPhoto": "Camera permission is needed to take a photo",
+  "addItemCameraPermissionScan": "Camera permission is needed to scan",
+  "addItemPhotoUploadFailed": "Photo upload failed: {error}",
+  "@addItemPhotoUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemIdentifyFailed": "Couldn't identify the food — enter it manually",
+  "addItemIdentified": "Identified: {name} ({percent}% sure)",
+  "@addItemIdentified": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "addItemPhotoIdError": "Photo ID failed: {error}. You can still add it manually.",
+  "@addItemPhotoIdError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemBarcodeUnreadable": "Couldn't read the barcode — fill the frame, hold steady in good light, or enter it manually",
+  "addItemNoProductFound": "No product found for {code} — enter details manually",
+  "@addItemNoProductFound": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemProductFound": "Found: {name}",
+  "@addItemProductFound": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemLookupError": "Lookup failed: {error}. You can still add it manually.",
+  "@addItemLookupError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemNoSavedStores": "No saved stores yet. Type a store name below and you'll be asked to add it to the list.",
+  "addItemPickStore": "Pick a store",
+  "addItemPickStoreTooltip": "Pick from saved stores",
+  "addItemLookingUp": "Looking up product…",
+  "addItemScanBarcode": "Scan barcode",
+  "addItemScanned": "Scanned: {code} (rescan)",
+  "@addItemScanned": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemIdentifying": "Identifying…",
+  "addItemIdentifyByPhoto": "Identify by photo",
+  "addItemNameLabel": "Item name *",
+  "addItemNameRequired": "Enter a name",
+  "addItemQuantityLabel": "Quantity",
+  "addItemQuantityInvalid": "Invalid",
+  "addItemUnitLabel": "Unit",
+  "addItemFoodTypeLabel": "Food type",
+  "addItemLocationLabel": "Location",
+  "addItemAddLocation": "Add location…",
+  "addItemStoreLabel": "Store (optional)",
+  "addItemStoreHint": "e.g. Costco, Walmart, Trader Joe's",
+  "addItemExpiryLabel": "Expiry date (optional)",
+  "addItemExpiresOn": "Expires: {date}",
+  "@addItemExpiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMd"
+      }
+    }
+  },
+  "addItemNotesLabel": "Notes (optional)",
+  "addItemPhotoAttached": "Photo attached",
+  "addItemRemovePhoto": "Remove photo",
+  "addItemUploading": "Uploading…",
+  "addItemAddPhoto": "Add photo",
+  "addItemReplacePhoto": "Replace photo",
+  "addItemSaveChanges": "Save changes",
+  "addItemAddToPantry": "Add to pantry",
+  "qtySheetTitle": "Quantity",
+  "qtyMoveTitle": "How many to move?",
+  "qtyMoveAvailable": "You have {amount}. The rest stays in your pantry.",
+  "@qtyMoveAvailable": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "qtyMoveAll": "Move all to shopping list",
+  "qtyMoveAmount": "Move {amount} to shopping list",
+  "@qtyMoveAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerToday": "Today",
+  "plannerTomorrow": "Tomorrow",
+  "plannerYesterday": "Yesterday",
+  "plannerFormatMonth": "Month",
+  "plannerFormatTwoWeeks": "2 weeks",
+  "plannerFormatWeek": "Week",
+  "plannerAddMeal": "Add meal",
+  "plannerNothingPlanned": "Nothing planned for this day",
+  "plannerMoveTooltip": "Move to another day",
+  "plannerOpenRecipeTooltip": "Open recipe",
+  "plannerRecipeGone": "That recipe is no longer saved",
+  "plannerSwapped": "Swapped \"{a}\" with \"{b}\"",
+  "@plannerSwapped": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMoved": "Moved \"{title}\" to {day}",
+  "@plannerMoved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerAddedMeals": "{count, plural, =1{Added 1 meal to the planner} other{Added {count} meals to the planner}}",
+  "@plannerAddedMeals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealPlanTitle": "Plan a meal",
+  "mealEditTitle": "Edit meal",
+  "mealFieldLabel": "Meal",
+  "mealFieldHint": "e.g. Tacos",
+  "mealChooseSavedRecipe": "Choose a saved recipe",
+  "mealPickRecipe": "Pick a recipe",
+  "mealNoSavedRecipes": "No saved recipes yet — add some in the Recipes tab",
+  "mealEnterOrPick": "Enter a meal or pick a recipe",
+  "mealNotesLabel": "Notes (optional)",
+  "mealNotesHint": "e.g. double the recipe, use leftovers",
+  "mealSaveChanges": "Save changes",
+  "mealAddToPlan": "Add to plan",
+  "mealMoveTitle": "Move \"{title}\" to…",
+  "@mealMoveTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "mealMoveSwapHint": "If that day already has a {mealType} planned, the two swap places.",
+  "@mealMoveSwapHint": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "mealMoveConfirm": "Move here",
+  "rouletteTitle": "Meal roulette",
+  "rouletteTooltip": "Meal roulette (auto-fill)",
+  "rouletteSubtitle": "Auto-fill empty days with a random pick from meals you have planned before.",
+  "rouletteFillNext": "Fill the next",
+  "rouletteDayUnit": "{count, plural, =1{day} other{days}}",
+  "@rouletteDayUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rouletteWhichMeals": "Fill which meals?",
+  "rouletteTypeJoiner": " or ",
+  "rouletteNoHistory": "No {types} meals in your planner yet — plan a few first so the roulette has something to draw from.",
+  "@rouletteNoHistory": {
+    "placeholders": {
+      "types": {
+        "type": "String"
+      }
+    }
+  },
+  "rouletteNothingToFill": "Those days are already planned for the meals you picked — nothing to fill.",
+  "rouletteToAdd": "{count, plural, =1{1 to add} other{{count} to add}}",
+  "@rouletteToAdd": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rouletteRoll": "Roll",
+  "rouletteReRoll": "Re-roll",
+  "rouletteAddToPlanner": "Add to planner",
+  "recipeAddByLinkTitle": "Add recipe by link",
+  "recipeAddByLinkHint": "Paste a recipe URL",
+  "recipeAddByLinkTooltip": "Add by link",
+  "recipeLinkNeedsHttp": "Enter a full link starting with http",
+  "recipeSavingLink": "Saving link…",
+  "recipeSaved": "Saved \"{name}\"",
+  "@recipeSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recipeLinkSaveFailed": "Could not save link: {message}",
+  "@recipeLinkSaveFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "recipeWrite": "Write a recipe",
+  "recipeEmptyTitle": "No saved recipes yet",
+  "recipeEmptyHint": "Tap \"Find recipes\" to search the web",
+  "recipeRemoved": "Removed {name}",
+  "@recipeRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recipeShoppingNote": "for {name}",
+  "@recipeShoppingNote": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recipeAddedToShopping": "{count, plural, =1{Added 1 item to your shopping list} other{Added {count} items to your shopping list}}",
+  "@recipeAddedToShopping": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeOpenOriginalTooltip": "Open original in browser",
+  "recipeEditTooltip": "Edit",
+  "recipeMinutes": "{count} min",
+  "@recipeMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeLoadFailed": "Couldn't load this recipe — check your connection and retry.",
+  "recipeNoStructuredData": "Couldn't read a recipe from this page. Some sites don't share their recipe data — open it in your browser to view it.",
+  "recipeAiTranslated": "Read by AI from the page — check the quantities against the original.",
+  "@recipeAiTranslated": {
+    "description": "Shown above an imported recipe whose text was machine-translated or read out of the page by AI."
+  },
+  "recipeReadingPage": "Reading the recipe…",
+  "@recipeReadingPage": {
+    "description": "Under the spinner while a recipe page is fetched and, if needed, translated."
+  },
+  "recipeOpenInBrowser": "Open in browser",
+  "recipeIngredients": "Ingredients",
+  "recipeHaveCount": "Have {have}/{total}",
+  "@recipeHaveCount": {
+    "placeholders": {
+      "have": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeAddMissing": "{count, plural, =1{Add 1 missing to shopping list} other{Add {count} missing to shopping list}}",
+  "@recipeAddMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeAddAllIngredients": "Add ALL ingredients to shopping list",
+  "recipeInstructions": "Instructions",
+  "recipeOnListTooltip": "On shopping list — tap to add again",
+  "recipeAddToShoppingTooltip": "Add to shopping list",
+  "recipeNutritionTitle": "Nutrition (per serving)",
+  "recipeCalories": "Calories",
+  "recipeProtein": "Protein",
+  "recipeCarbs": "Carbs",
+  "recipeFat": "Fat",
+  "recipeManualEditTitle": "Edit recipe",
+  "recipeManualNeedName": "Give the recipe a name",
+  "recipeManualNameLabel": "Recipe name *",
+  "recipeManualServingsLabel": "Servings (optional)",
+  "recipeManualIngredientsLabel": "Ingredients (one per line)",
+  "recipeManualStepsLabel": "Steps (one per line)",
+  "recipeManualSave": "Save recipe",
+  "findRecipesTitle": "Find recipes",
+  "findRecipesSearchHint": "Search a dish, or paste a recipe link",
+  "findRecipesSearchButton": "Search",
+  "findRecipesFromPantry": "What can I make from my pantry?",
+  "findRecipesNoResults": "No recipes found — try different terms",
+  "findRecipesPantryEmpty": "Your pantry is empty — add some items first",
+  "findRecipesNoLink": "No web link for this recipe",
+  "findRecipesOpenFailed": "Could not open the link",
+  "findRecipesLookupFailed": "Lookup failed: {message}",
+  "@findRecipesLookupFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "findRecipesEmptyHint": "Search for a dish, or tap \"What can I make\"\nfor ideas from what you have.",
+  "findRecipesHaveAll": "You have everything!",
+  "findRecipesMissingCount": "{count, plural, =1{Missing 1 ingredient} other{Missing {count} ingredients}}",
+  "@findRecipesMissingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingReorderTooltip": "Reorder previous items",
+  "shoppingMoveToPantryTooltip": "Move checked to pantry",
+  "shoppingClearCheckedTooltip": "Clear checked items",
+  "shoppingClearedCount": "{count, plural, =1{Cleared 1 checked item} other{Cleared {count} checked items}}",
+  "@shoppingClearedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingEmptyTitle": "Your shopping list is empty",
+  "shoppingEmptyHint": "Tap + to add something to buy",
+  "shoppingDupPantryTitle": "\"{name}\" is already in your pantry",
+  "@shoppingDupPantryTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingDupPantryBody": "Add its quantity to the existing item, or skip it?",
+  "shoppingAddQuantity": "Add quantity",
+  "shoppingPantryUpdated": "Pantry updated — {summary}",
+  "@shoppingPantryUpdated": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingSummaryAdded": "{count} added",
+  "@shoppingSummaryAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingSummaryMerged": "{count} merged",
+  "@shoppingSummaryMerged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingSummarySkipped": "{count} skipped",
+  "@shoppingSummarySkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingSummarySeparator": ", ",
+  "shoppingAddTitle": "Add to shopping list",
+  "shoppingEditTitle": "Edit item",
+  "shoppingItemLabel": "Item *",
+  "shoppingTakePhoto": "Take a photo",
+  "shoppingChooseFromGallery": "Choose from gallery",
+  "shoppingCameraPermissionNeeded": "Camera permission is needed to take a photo",
+  "shoppingIdentifying": "Identifying…",
+  "shoppingTakePhotoToIdentify": "Take a photo to identify",
+  "shoppingCouldNotIdentify": "Couldn't identify the item — enter it manually",
+  "shoppingIdentified": "Identified: {name} ({percent}% sure)",
+  "@shoppingIdentified": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingPhotoIdFailed": "Photo ID failed: {message}. You can still add it manually.",
+  "@shoppingPhotoIdFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingStoreOptional": "Store (optional)",
+  "shoppingPickFromSavedStores": "Pick from saved stores",
+  "shoppingQuantity": "Quantity",
+  "shoppingNoteOptional": "Note (optional) e.g. \"the big box\"",
+  "shoppingNoMatches": "No items match \"{query}\"",
+  "@shoppingNoMatches": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingDupListTitle": "\"{name}\" is already on your shopping list",
+  "@shoppingDupListTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingDupListBody": "Skip it, or add it anyway?",
+  "shoppingAddAnyway": "Add anyway",
+  "shoppingAddedToList": "Added \"{name}\" to shopping list",
+  "@shoppingAddedToList": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingMovedToList": "Moved \"{name}\" to shopping list",
+  "@shoppingMovedToList": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingMovedQtyToList": "Moved {quantity} of \"{name}\" to shopping list",
+  "@shoppingMovedQtyToList": {
+    "placeholders": {
+      "quantity": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reorderTitle": "Reorder",
+  "reorderSearchHint": "Search items…",
+  "reorderEmpty": "Nothing to reorder yet.\nItems you add to your list will show up here.",
+  "reorderItemCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@reorderItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reorderForgetItem": "Forget this item",
+  "reorderAdded": "Added \"{name}\" to your list",
+  "@reorderAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "runningLowTitle": "Running low?",
+  "runningLowSearchHint": "Find an item to add to the list…",
+  "runningLowPantryEmpty": "Your pantry is empty",
+  "runningLowAddToList": "Add \"{name}\" to shopping list",
+  "@runningLowAddToList": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "imageLoadFailed": "Could not load image",
+  "plannerTitle": "Meal planner"
+}

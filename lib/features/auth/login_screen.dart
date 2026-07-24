@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/providers/auth_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -36,7 +37,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).commonError('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -46,6 +50,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -59,34 +64,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Icon(Icons.kitchen, size: 72, color: Colors.green),
                   const SizedBox(height: 8),
-                  Text('Stashpot',
+                  Text(l.appTitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
                           )),
                   const SizedBox(height: 8),
-                  Text('Your home pantry, always in sync',
+                  Text(l.appTagline,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium),
                   const SizedBox(height: 40),
                   TextFormField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l.authEmail,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (v) =>
-                        v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                        v == null || !v.contains('@') ? l.authEmailInvalid : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passCtrl,
                     obscureText: _obscure,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: l.authPassword,
                       prefixIcon: const Icon(Icons.lock_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -95,7 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     validator: (v) =>
-                        v == null || v.length < 6 ? 'Password must be 6+ characters' : null,
+                        v == null || v.length < 6 ? l.authPasswordTooShort : null,
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
@@ -106,12 +111,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Sign in'),
+                        : Text(l.authSignIn),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => context.push('/register'),
-                    child: const Text("Don't have an account? Register"),
+                    child: Text(l.authNoAccountRegister),
                   ),
                 ],
               ),

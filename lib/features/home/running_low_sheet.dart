@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/inventory_providers.dart';
 import '../../core/utils/category_icons.dart';
+import '../../core/utils/labels.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 
 /// What the "Running low?" sheet was closed with: either an existing pantry
@@ -47,6 +49,7 @@ class _RunningLowSheetState extends ConsumerState<_RunningLowSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final items = ref.watch(inventoryProvider).valueOrNull ?? [];
     final q = _query.trim().toLowerCase();
     final filtered = q.isEmpty
@@ -71,7 +74,7 @@ class _RunningLowSheetState extends ConsumerState<_RunningLowSheet> {
                     Icon(Icons.remove_shopping_cart,
                         color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 10),
-                    Text('Running low?',
+                    Text(l.runningLowTitle,
                         style: Theme.of(context).textTheme.titleLarge),
                   ],
                 ),
@@ -83,7 +86,7 @@ class _RunningLowSheetState extends ConsumerState<_RunningLowSheet> {
                   autofocus: true,
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
-                    hintText: 'Find an item to add to the list…',
+                    hintText: l.runningLowSearchHint,
                     prefixIcon: const Icon(Icons.search),
                     isDense: true,
                     border: OutlineInputBorder(
@@ -109,8 +112,8 @@ class _RunningLowSheetState extends ConsumerState<_RunningLowSheet> {
                       children: [
                         Text(
                           items.isEmpty
-                              ? 'Your pantry is empty'
-                              : 'No items match "${_searchCtrl.text}"',
+                              ? l.runningLowPantryEmpty
+                              : l.shoppingNoMatches(_searchCtrl.text),
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.outline),
                         ),
@@ -118,7 +121,8 @@ class _RunningLowSheetState extends ConsumerState<_RunningLowSheet> {
                           const SizedBox(height: 16),
                           FilledButton.icon(
                             icon: const Icon(Icons.add_shopping_cart),
-                            label: Text('Add "${_searchCtrl.text.trim()}" to shopping list'),
+                            label: Text(
+                                l.runningLowAddToList(_searchCtrl.text.trim())),
                             onPressed: () => Navigator.of(context)
                                 .pop(RunningLowPick.newName(_searchCtrl.text.trim())),
                           ),
@@ -152,6 +156,7 @@ class _RunningLowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final qty = item.quantity % 1 == 0
         ? item.quantity.toInt().toString()
         : item.quantity.toString();
@@ -162,7 +167,8 @@ class _RunningLowTile extends StatelessWidget {
             color: Theme.of(context).colorScheme.onPrimaryContainer),
       ),
       title: Text(item.name),
-      subtitle: Text('$qty ${item.unit}  ·  ${locationLabel(item.location)}'),
+      subtitle: Text('$qty ${unitLabelOf(l, item.unit)}'
+          '  ·  ${locationLabelOf(l, item.location)}'),
       trailing: const Icon(Icons.add_shopping_cart),
       // Just return the picked item; the Home screen adds it once we're closed.
       onTap: () => Navigator.of(context).pop(RunningLowPick.item(item)),

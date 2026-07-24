@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/planner_providers.dart';
+import '../../core/utils/labels.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/planned_meal.dart';
 import 'planner_screen.dart' show mealTypeColor;
 
@@ -128,16 +130,20 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   String _dayLabel(DateTime day) {
+    final l = AppLocalizations.of(context);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final diff = DateTime(day.year, day.month, day.day).difference(today).inDays;
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Tomorrow';
-    return DateFormat('EEE, MMM d').format(day);
+    if (diff == 0) return l.plannerToday;
+    if (diff == 1) return l.plannerTomorrow;
+    return DateFormat.MMMEd(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(day);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final preview = _preview;
     return SafeArea(
       child: Padding(
@@ -156,13 +162,13 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                 children: [
                   const Icon(Icons.casino),
                   const SizedBox(width: 8),
-                  Text('Meal roulette',
+                  Text(l.rouletteTitle,
                       style: Theme.of(context).textTheme.titleMedium),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
-                'Auto-fill empty days with a random pick from meals you have planned before.',
+                l.rouletteSubtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline),
               ),
@@ -171,7 +177,7 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
               // How many days
               Row(
                 children: [
-                  const Text('Fill the next'),
+                  Text(l.rouletteFillNext),
                   const Spacer(),
                   IconButton.outlined(
                     onPressed: _days > 1
@@ -197,20 +203,21 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                     icon: const Icon(Icons.add),
                   ),
                   const SizedBox(width: 6),
-                  Text(_days == 1 ? 'day' : 'days'),
+                  Text(l.rouletteDayUnit(_days)),
                 ],
               ),
               const SizedBox(height: 12),
 
               // Which meals
-              const Text('Fill which meals?'),
+              Text(l.rouletteWhichMeals),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 8,
                 children: [
+                  // `type` stays the stored English key — label only.
                   for (final type in _offered)
                     FilterChip(
-                      label: Text(type),
+                      label: Text(mealTypeLabelOf(l, type)),
                       selected: _types.contains(type),
                       onSelected: (on) => setState(() {
                         if (on) {
@@ -232,7 +239,9 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
-                      'No ${_emptyTypes.join(' or ')} meals in your planner yet — plan a few first so the roulette has something to draw from.',
+                      l.rouletteNoHistory(_emptyTypes
+                          .map((t) => mealTypeLabelOf(l, t))
+                          .join(l.rouletteTypeJoiner)),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.error),
                     ),
@@ -243,7 +252,7 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      'Those days are already planned for the meals you picked — nothing to fill.',
+                      l.rouletteNothingToFill,
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.outline),
                     ),
@@ -251,7 +260,7 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                 if (preview.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('${preview.length} to add',
+                    child: Text(l.rouletteToAdd(preview.length),
                         style: Theme.of(context).textTheme.labelLarge),
                   ),
                   for (final p in preview)
@@ -266,7 +275,8 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                             size: 14, color: mealTypeColor(p.type)),
                       ),
                       title: Text(p.source.title),
-                      subtitle: Text('${_dayLabel(p.day)} · ${p.type}'),
+                      subtitle: Text(
+                          '${_dayLabel(p.day)} · ${mealTypeLabelOf(l, p.type)}'),
                     ),
                 ],
                 const SizedBox(height: 8),
@@ -277,7 +287,7 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                 FilledButton.icon(
                   onPressed: _types.isEmpty ? null : _roll,
                   icon: const Icon(Icons.casino),
-                  label: const Text('Roll'),
+                  label: Text(l.rouletteRoll),
                 )
               else
                 Row(
@@ -286,7 +296,7 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                       child: OutlinedButton.icon(
                         onPressed: _saving ? null : _roll,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Re-roll'),
+                        label: Text(l.rouletteReRoll),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -300,7 +310,7 @@ class _MealRouletteSheetState extends ConsumerState<MealRouletteSheet> {
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(Icons.playlist_add_check),
-                        label: const Text('Add to planner'),
+                        label: Text(l.rouletteAddToPlanner),
                       ),
                     ),
                   ],

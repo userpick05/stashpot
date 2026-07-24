@@ -5,7 +5,9 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/planner_providers.dart';
 import '../../core/providers/recipe_providers.dart';
+import '../../core/utils/labels.dart';
 import '../../core/widgets/swipe_to_delete.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/planned_meal.dart';
 import '../recipes/recipe_detail_screen.dart';
 import 'add_meal_sheet.dart';
@@ -33,14 +35,18 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   CalendarFormat _format = CalendarFormat.month;
 
   String _dayLabel(DateTime day) {
+    final l = AppLocalizations.of(context);
     final now = DateTime.now();
     final d = DateTime(day.year, day.month, day.day);
     final today = DateTime(now.year, now.month, now.day);
     final diff = d.difference(today).inDays;
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Tomorrow';
-    if (diff == -1) return 'Yesterday';
-    return DateFormat('EEEE, MMM d').format(day);
+    if (diff == 0) return l.plannerToday;
+    if (diff == 1) return l.plannerTomorrow;
+    if (diff == -1) return l.plannerYesterday;
+    // Locale-aware "Wednesday, 23 July" / "7月23日星期三".
+    return DateFormat.MMMMEEEEd(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(day);
   }
 
   Future<void> _openRecipe(String recipeId) async {
@@ -50,7 +56,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     final match = recipes.where((r) => r.id == recipeId).toList();
     if (match.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('That recipe is no longer saved')),
+        SnackBar(content: Text(AppLocalizations.of(context).plannerRecipeGone)),
       );
       return;
     }
@@ -116,10 +122,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     }
 
     if (!mounted) return;
+    final l = AppLocalizations.of(context);
     setState(() => _selectedDay = target); // follow the meal to its new day
     _showSnack(occupant.isNotEmpty
-        ? 'Swapped "${meal.title}" with "${occupant.first.title}"'
-        : 'Moved "${meal.title}" to ${_dayLabel(target)}');
+        ? l.plannerSwapped(meal.title, occupant.first.title)
+        : l.plannerMoved(meal.title, _dayLabel(target)));
   }
 
   Future<void> _openRoulette() async {
@@ -130,12 +137,14 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       builder: (_) => const MealRouletteSheet(),
     );
     if (added != null && added > 0 && mounted) {
-      _showSnack('Added $added ${added == 1 ? 'meal' : 'meals'} to the planner');
+      _showSnack(AppLocalizations.of(context).plannerAddedMeals(added));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
     final planner = ref.watch(plannerProvider);
     final meals = planner.valueOrNull ?? [];
     List<PlannedMeal> forDay(DateTime day) =>
@@ -145,11 +154,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meal planner'),
+        title: Text(l.plannerTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.casino),
-            tooltip: 'Meal roulette (auto-fill)',
+            tooltip: l.rouletteTooltip,
             onPressed: _openRoulette,
           ),
         ],
@@ -166,10 +175,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                     lastDay: DateTime.utc(2032, 12, 31),
                     focusedDay: _focusedDay,
                     calendarFormat: _format,
-                    availableCalendarFormats: const {
-                      CalendarFormat.month: 'Month',
-                      CalendarFormat.twoWeeks: '2 weeks',
-                      CalendarFormat.week: 'Week',
+                    locale: localeTag,
+                    availableCalendarFormats: {
+                      CalendarFormat.month: l.plannerFormatMonth,
+                      CalendarFormat.twoWeeks: l.plannerFormatTwoWeeks,
+                      CalendarFormat.week: l.plannerFormatWeek,
                     },
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     eventLoader: forDay,
@@ -241,7 +251,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                                   color: mealTypeColor(t), shape: BoxShape.circle),
                             ),
                             const SizedBox(width: 4),
-                            Text(t, style: Theme.of(context).textTheme.bodySmall),
+                            Text(mealTypeLabelOf(l, t),
+                                style: Theme.of(context).textTheme.bodySmall),
                           ],
                         ),
                     ],
@@ -268,7 +279,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                           builder: (_) => AddMealSheet(date: _selectedDay),
                         ),
                         icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add meal'),
+                        label: Text(l.plannerAddMeal),
                       ),
                     ],
                   ),
@@ -277,7 +288,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                 if (selectedMeals.isEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                    child: Text('Nothing planned for this day',
+                    child: Text(l.plannerNothingPlanned,
                         style: TextStyle(color: Theme.of(context).colorScheme.outline)),
                   )
                 else
@@ -304,9 +315,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                           ),
                           title: Text(m.title),
                           subtitle: Text(
+                            // Display only — m.mealType stays the stored
+                            // English key ('Breakfast'/'Lunch'/…).
                             m.notes != null && m.notes!.isNotEmpty
-                                ? '${m.mealType} · ${m.notes}'
-                                : m.mealType,
+                                ? '${mealTypeLabelOf(l, m.mealType)} · ${m.notes}'
+                                : mealTypeLabelOf(l, m.mealType),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -317,13 +330,13 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.event_repeat),
-                                tooltip: 'Move to another day',
+                                tooltip: l.plannerMoveTooltip,
                                 onPressed: () => _moveMeal(m),
                               ),
                               if (m.recipeId != null)
                                 IconButton(
                                   icon: const Icon(Icons.menu_book),
-                                  tooltip: 'Open recipe',
+                                  tooltip: l.plannerOpenRecipeTooltip,
                                   onPressed: () => _openRecipe(m.recipeId!),
                                 ),
                             ],

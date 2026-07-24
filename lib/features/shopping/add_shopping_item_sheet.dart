@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/scanning_providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/shopping_item.dart';
 
 /// Bottom sheet for adding or editing a shopping-list item.
@@ -32,6 +33,9 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
   // Snap a photo and let Gemini identify the item, prefilling the fields — the
   // same flow the pantry add screen uses.
   Future<void> _identifyByPhoto() async {
+    final l = AppLocalizations.of(context);
+    // Captured before any await — the vision model answers in this language.
+    final lang = Localizations.localeOf(context).languageCode;
     // Let the user choose camera or gallery — gallery lets her pick a saved
     // screenshot of something she wants to shop for.
     final source = await showModalBottomSheet<ImageSource>(
@@ -42,12 +46,12 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Take a photo'),
+              title: Text(l.shoppingTakePhoto),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from gallery'),
+              title: Text(l.shoppingChooseFromGallery),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -63,7 +67,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
       if (!status.isGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Camera permission is needed to take a photo')),
+            SnackBar(content: Text(l.shoppingCameraPermissionNeeded)),
           );
         }
         return;
@@ -80,11 +84,15 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
     setState(() => _identifying = true);
     try {
       final bytes = await photo.readAsBytes();
-      final result = await ref.read(geminiServiceProvider).identifyFood(bytes);
+      // The vision model answers in the app's language, so a Chinese user
+      // photographing Chinese packaging gets a Chinese item name.
+      final result = await ref
+          .read(geminiServiceProvider)
+          .identifyFood(bytes, languageCode: lang);
       if (!mounted) return;
       if (result == null || result.name == 'Unknown' || result.confidence == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't identify the item — enter it manually")),
+          SnackBar(content: Text(l.shoppingCouldNotIdentify)),
         );
         return;
       }
@@ -95,13 +103,13 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
       });
       final pct = (result.confidence * 100).round();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Identified: ${result.name} ($pct% sure)')),
+        SnackBar(content: Text(l.shoppingIdentified(result.name, pct))),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Photo ID failed: $e. You can still add it manually.'),
+            content: Text(l.shoppingPhotoIdFailed('$e')),
             backgroundColor: Colors.orange,
           ),
         );
@@ -195,6 +203,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
@@ -206,16 +215,16 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(_isEditing ? 'Edit item' : 'Add to shopping list',
+          Text(_isEditing ? l.shoppingEditTitle : l.shoppingAddTitle,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16),
           TextField(
             controller: _nameCtrl,
             autofocus: !_isEditing,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              labelText: 'Item *',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l.shoppingItemLabel,
+              border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => _add(),
           ),
@@ -230,7 +239,9 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.camera_alt),
-              label: Text(_identifying ? 'Identifying…' : 'Take a photo to identify'),
+              label: Text(_identifying
+                  ? l.shoppingIdentifying
+                  : l.shoppingTakePhotoToIdentify),
             ),
           ],
           const SizedBox(height: 12),
@@ -241,11 +252,11 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
                   controller: _storeCtrl,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    labelText: 'Store (optional)',
+                    labelText: l.shoppingStoreOptional,
                     prefixIcon: const Icon(Icons.storefront),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.arrow_drop_down),
-                      tooltip: 'Pick from saved stores',
+                      tooltip: l.shoppingPickFromSavedStores,
                       onPressed: _pickStore,
                     ),
                     border: const OutlineInputBorder(),
@@ -258,7 +269,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
           // Quantity stepper
           Row(
             children: [
-              const Text('Quantity'),
+              Text(l.shoppingQuantity),
               const Spacer(),
               IconButton.outlined(
                 icon: const Icon(Icons.remove),
@@ -280,9 +291,9 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
           const SizedBox(height: 12),
           TextField(
             controller: _noteCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Note (optional) e.g. "the big box"',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l.shoppingNoteOptional,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
@@ -294,7 +305,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
                     width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(_isEditing ? 'Save changes' : 'Add'),
+                : Text(_isEditing ? l.commonSave : l.commonAdd),
           ),
         ],
       ),

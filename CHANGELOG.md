@@ -3,6 +3,67 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.9.1
+
+### Fixed
+- **Imported recipes stayed in the original language.** Sites that publish all
+  their instructions as one run-on string (xiachufang and others) parsed as a
+  single step; the translator then split it into proper steps, and a strict
+  "step counts must match" check threw the whole translation away. The recipe
+  came back fully untranslated with nothing to explain why.
+- Run-on numbered instructions are now split into real steps, so those recipes
+  read as a numbered list instead of one wall of text — translated or not.
+- Recipe text cached by an older build is re-read instead of being trusted
+  forever, so a recipe that came out wrong before fixes itself on next open.
+
+## v1.9.0
+
+### Added
+- **Recipe import now translates.** Paste a recipe link in any language and read it
+  in yours. A Chinese recipe imported with the app in English comes back in English
+  (and vice versa), so the ingredients cross-check against your pantry properly
+  instead of showing "Have 0/N".
+- **Recipes from sites with no structured data.** Many Chinese recipe sites publish
+  no machine-readable recipe data, so importing them used to dead-end at "couldn't
+  read a recipe from this page". The app can now read the page itself.
+- Anything read or translated by AI is labelled as such, since machine translation
+  gets quantities wrong often enough to be worth checking.
+
+### Changed
+- **Saved link recipes now store their text.** Reopening one is instant, works
+  offline, and no longer re-fetches (or re-translates) the page every single time.
+  If a housemate saved it in the other language, it re-reads it in yours.
+- The recipe screen says what it's waiting on instead of showing a bare spinner.
+
+### Fixed
+- Recipe pages that don't declare their character set are no longer read as
+  gibberish — this affected most Chinese recipe sites.
+- Opening a recipe no longer flashes the "couldn't read a recipe" card for a frame
+  before the spinner appears.
+- Retry on a failed recipe import actually retries instead of replaying the same
+  cached failure.
+
+## v1.8.0
+
+### Added
+- **Traditional Chinese (繁體中文).** The whole app is now translated — 332 strings
+  across every screen. It follows your phone's language automatically, and there's
+  a new **Settings → Language** picker (System default / English / 繁體中文).
+- **Chinese product scanning.** Photo identification now answers in your language,
+  so photographing Chinese packaging gives you a Chinese item name (with Taiwan
+  store hints instead of US ones). Barcode lookups ask for Chinese product names.
+- **Barcode misses no longer dead-end.** When a barcode isn't in the product
+  database — common for local and imported products — the app offers to identify
+  it from a photo instead.
+- Item categories are now auto-guessed from Chinese names too, so items moved from
+  the shopping list land in the right category instead of "Other".
+
+### Notes
+- Nothing stored changed: categories, locations, units and meal types keep their
+  existing values, so all existing pantry and planner data works untouched and
+  English is unaffected.
+- Recipe *content* from the recipe search remains English.
+
 ## v1.7.0
 
 ### Added

@@ -12,10 +12,22 @@ class OpenFoodFactsService {
 
   /// Looks up a product by barcode. Returns null if not found.
   /// Throws on network/timeout so the caller can show a retry message.
-  Future<ProductInfo?> lookup(String barcode) async {
+  ///
+  /// [languageCode] is the app's active language. For non-English we also ask for
+  /// the localized name field (e.g. `product_name_zh`) and prefer it, so a Chinese
+  /// user gets a Chinese product name when the database has one. Note Open Food
+  /// Facts' coverage of Chinese products is thin — many barcodes simply won't be
+  /// found, which is why the caller falls back to the photo identifier.
+  Future<ProductInfo?> lookup(String barcode, {String languageCode = 'en'}) async {
+    final localized =
+        languageCode != 'en' ? ',product_name_$languageCode' : '';
+    // tags_lc is pinned to en so `categories_tags` keep their `en:` prefixes —
+    // ProductInfo.categoryFromTags matches English substrings, and letting them
+    // come back localized would silently file every scan under "other".
     final uri = Uri.parse(
       'https://world.openfoodfacts.org/api/v2/product/$barcode.json'
-      '?fields=product_name,brands,image_url,categories_tags,quantity',
+      '?lc=$languageCode&tags_lc=en'
+      '&fields=product_name$localized,brands,image_url,categories_tags,quantity',
     );
 
     final resp = await _client
@@ -34,11 +46,18 @@ class OpenFoodFactsService {
     final p = json['product'] as Map<String, dynamic>;
     final tags = (p['categories_tags'] as List?)?.cast<String>() ?? const [];
 
+    // Prefer the localized name when the database has one, else the generic.
+    String? pickName() {
+      for (final key in ['product_name_$languageCode', 'product_name']) {
+        final v = (p[key] as String?)?.trim();
+        if (v != null && v.isNotEmpty) return v;
+      }
+      return null;
+    }
+
     return ProductInfo(
       barcode: barcode,
-      name: (p['product_name'] as String?)?.trim().isEmpty ?? true
-          ? null
-          : (p['product_name'] as String).trim(),
+      name: pickName(),
       brand: (p['brands'] as String?)?.split(',').first.trim(),
       imageUrl: p['image_url'] as String?,
       quantity: p['quantity'] as String?,

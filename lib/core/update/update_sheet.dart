@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'update_service.dart';
 
 /// Shows the "update available" bottom sheet. Returns nothing — it manages its
@@ -55,6 +56,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -71,12 +73,12 @@ class _UpdateSheetState extends State<_UpdateSheet> {
             children: [
               Icon(Icons.system_update, color: scheme.primary),
               const SizedBox(width: 10),
-              Text('Update available',
+              Text(l.updateAvailable,
                   style: Theme.of(context).textTheme.titleLarge),
             ],
           ),
           const SizedBox(height: 4),
-          Text('Version ${widget.info.version}',
+          Text(l.settingsVersion(widget.info.version),
               style: TextStyle(color: scheme.outline)),
           if (widget.info.notes.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -99,8 +101,9 @@ class _UpdateSheetState extends State<_UpdateSheet> {
             const SizedBox(height: 8),
             Text(
               _progress > 0
-                  ? 'Downloading… ${(_progress * 100).toStringAsFixed(0)}%'
-                  : 'Starting download…',
+                  ? l.updateDownloadingPercent(
+                      (_progress * 100).toStringAsFixed(0))
+                  : l.updateStarting,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ] else
@@ -108,13 +111,13 @@ class _UpdateSheetState extends State<_UpdateSheet> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Later'),
+                  child: Text(l.commonLater),
                 ),
                 const Spacer(),
                 FilledButton.icon(
                   onPressed: _start,
                   icon: const Icon(Icons.download),
-                  label: Text(_error == null ? 'Update now' : 'Retry'),
+                  label: Text(_error == null ? l.updateNow : l.commonRetry),
                 ),
               ],
             ),
