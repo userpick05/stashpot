@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.7.0/stashpot-1.7.0.apk",
-  "notes": "Meal planner upgrades -- Move/swap any planned meal to a different day (swaps if the day already has that meal type), plus a Meal Roulette that auto-fills the next N days with a random mix of Breakfast/Lunch/Dinner drawn from meals you've planned before (only fills empty slots; preview and re-roll before adding)."
+  "version": "1.9.1",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.9.1/stashpot-1.9.1.apk",
+  "notes": "Traditional Chinese + recipe translation -- The whole app is now translated into 繁體中文, with a Settings > Language picker. Photographing Chinese packaging returns a Chinese item name, and a barcode that isn't in the database now offers photo identification instead of dead-ending. Recipe links import in your language: a Chinese recipe read in English comes back in English, so its ingredients cross-check against your pantry properly. Recipes can also be read off pages that publish no structured data, and saved link recipes now store their text so reopening is instant and works offline."
 }
