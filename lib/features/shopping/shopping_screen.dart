@@ -10,6 +10,8 @@ import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 import 'add_shopping_item_sheet.dart';
 import 'reorder_screen.dart';
+import '../../models/scanned_item.dart';
+import '../importing/screenshot_import.dart';
 
 class ShoppingScreen extends ConsumerWidget {
   const ShoppingScreen({super.key});
@@ -211,6 +213,12 @@ class ShoppingScreen extends ConsumerWidget {
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ReorderScreen()),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.photo_library_outlined),
+            tooltip: l.importFromScreenshots,
+            onPressed: () => startScreenshotImport(context, ref,
+                destination: ImportDestination.shopping),
           ),
           shopping.maybeWhen(
             data: (items) {

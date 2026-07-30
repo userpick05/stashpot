@@ -1218,4 +1218,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerTitle => 'Meal planner';
+
+  @override
+  String get importFromScreenshots => 'Add from screenshots';
+
+  @override
+  String get importReviewTitle => 'Review items';
+
+  @override
+  String get importReading => 'Reading your screenshots…';
+
+  @override
+  String get importNothingFound =>
+      'No shopping list found in those screenshots. Try a shot that shows the item rows.';
+
+  @override
+  String importFailed(String error) {
+    return 'Couldn\'t read the screenshots: $error';
+  }
+
+  @override
+  String get importNoAiKey => 'Photo reading isn\'t available in this build.';
+
+  @override
+  String importFromStore(String store) {
+    return 'From $store · tap a row\'s chip to send it elsewhere';
+  }
+
+  @override
+  String get importTapRowToChange =>
+      'Tap a row\'s chip to send it somewhere else';
+
+  @override
+  String get importToShopping => 'Shopping';
+
+  @override
+  String get importToPantry => 'Pantry';
+
+  @override
+  String get importSelectAll => 'Select all';
+
+  @override
+  String get importSelectNone => 'Clear all';
+
+  @override
+  String get importEditTitle => 'Edit item';
+
+  @override
+  String get importQuantityUnsure => 'qty?';
+
+  @override
+  String get importNothingSelected => 'Nothing selected';
+
+  @override
+  String importAdded(int pantry, int shopping) {
+    return 'Added $pantry to the pantry, $shopping to shopping';
+  }
+
+  @override
+  String get homeImportScreenshots => 'Screenshot';
+
+  @override
+  String get importAiDisclosure =>
+      'Read from your screenshots by AI — check the names and quantities before adding.';
+
+  @override
+  String get importNotSignedIn => 'Sign in to add items.';
+
+  @override
+  String importPartialFailure(String error) {
+    return 'Some items may not have been added: $error';
+  }
+
+  @override
+  String importWillMerge(String from, String to) {
+    return 'have $from → $to';
+  }
+
+  @override
+  String get importPartialRow => 'cut off';
+
+  @override
+  String importConfirmPantry(int count) {
+    return 'Add $count to pantry';
+  }
+
+  @override
+  String importConfirmShopping(int count) {
+    return 'Add $count to shopping';
+  }
+
+  @override
+  String importConfirmBoth(int pantry, int shopping) {
+    return 'Add $pantry to pantry, $shopping to shopping';
+  }
+
+  @override
+  String get importRepeatedRow => 'read twice';
+
+  @override
+  String importAddedPantry(int count) {
+    return 'Added $count to the pantry';
+  }
+
+  @override
+  String importAddedShopping(int count) {
+    return 'Added $count to the shopping list';
+  }
+
+  @override
+  String importMergedSuffix(int merged) {
+    return ' ($merged merged into existing items)';
+  }
 }

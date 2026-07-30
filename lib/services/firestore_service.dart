@@ -185,6 +185,55 @@ class FirestoreService {
       .doc(itemId)
       .delete();
 
+  /// Bulk write for a screenshot import: creates [created] and overwrites
+  /// [updated] (items merged into) in as few round-trips as possible.
+  ///
+  /// Firestore caps a batch at 500 operations, so this chunks. Chunks commit
+  /// independently, which means a mid-way failure can leave a partial import —
+  /// acceptable here because Undo works off the ids the caller already holds,
+  /// and the alternative (a transaction) has the same 500-op limit anyway.
+  Future<void> writeItemsBatch(
+    String householdId, {
+    List<InventoryItem> created = const [],
+    List<InventoryItem> updated = const [],
+  }) async {
+    final ref =
+        _db.collection('households').doc(householdId).collection('items');
+    final ops = <void Function(WriteBatch)>[
+      for (final i in created) (b) => b.set(ref.doc(i.id), i.toFirestore()),
+      // merge:true so touching one item's quantity can't blank a field the
+      // other phone set meanwhile — toFirestore() omits nulls, and a plain
+      // set() would delete an expiry date added since this snapshot was read.
+      for (final i in updated)
+        (b) => b.set(ref.doc(i.id), i.toFirestore(), SetOptions(merge: true)),
+    ];
+    await _commitChunked(ops);
+  }
+
+  Future<void> deleteItemsBatch(
+      String householdId, List<String> itemIds) async {
+    final ref =
+        _db.collection('households').doc(householdId).collection('items');
+    await _commitChunked([
+      for (final id in itemIds) (b) => b.delete(ref.doc(id)),
+    ]);
+  }
+
+  static const _batchLimit = 500;
+
+  Future<void> _commitChunked(List<void Function(WriteBatch)> ops) async {
+    for (var i = 0; i < ops.length; i += _batchLimit) {
+      final batch = _db.batch();
+      for (final op in ops.skip(i).take(_batchLimit)) {
+        op(batch);
+      }
+      // Offline, commit() applies locally but its future never resolves, which
+      // would leave the caller spinning forever over rows already on screen.
+      await batch.commit().timeout(_writeTimeout,
+          onTimeout: () => throw NetworkTimeoutException());
+    }
+  }
+
   // ── Shopping list (shared per household) ─────────────────────────────────
 
   CollectionReference<Map<String, dynamic>> _shoppingRef(String householdId) =>
@@ -212,6 +261,37 @@ class FirestoreService {
 
   Future<void> deleteShoppingItem(String householdId, String itemId) =>
       _shoppingRef(householdId).doc(itemId).delete();
+
+  /// Bulk counterpart of [addShoppingItem] for a screenshot import. Catalog
+  /// entries are still recorded (that's what makes these items reorderable),
+  /// but after the batch so a slow catalog write can't hold up the list showing
+  /// the new items.
+  Future<void> writeShoppingBatch(
+    String householdId, {
+    List<ShoppingItem> created = const [],
+    List<ShoppingItem> updated = const [],
+  }) async {
+    final ref = _shoppingRef(householdId);
+    await _commitChunked([
+      for (final i in created) (b) => b.set(ref.doc(i.id), i.toFirestore()),
+      for (final i in updated)
+        (b) => b.set(ref.doc(i.id), i.toFirestore(), SetOptions(merge: true)),
+    ]);
+    // Deliberately NOT awaited: 30 sequential catalog round-trips would hold the
+    // Confirm button spinning long after the items are already in the list. The
+    // catalog is only a reorder convenience, so a lost write costs nothing.
+    for (final i in created) {
+      _recordCatalog(householdId, i).catchError((_) {});
+    }
+  }
+
+  Future<void> deleteShoppingBatch(
+      String householdId, List<String> itemIds) async {
+    final ref = _shoppingRef(householdId);
+    await _commitChunked([
+      for (final id in itemIds) (b) => b.delete(ref.doc(id)),
+    ]);
+  }
 
   // Removes every checked-off item in one batch.
   Future<void> clearCheckedShopping(String householdId) async {

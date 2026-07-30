@@ -1184,4 +1184,113 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerTitle => '菜單規劃';
+
+  @override
+  String get importFromScreenshots => '從截圖新增';
+
+  @override
+  String get importReviewTitle => '確認項目';
+
+  @override
+  String get importReading => '正在讀取截圖…';
+
+  @override
+  String get importNothingFound => '在這些截圖中找不到購物清單。請改用能看到商品列表的截圖。';
+
+  @override
+  String importFailed(String error) {
+    return '無法讀取截圖：$error';
+  }
+
+  @override
+  String get importNoAiKey => '此版本無法使用照片辨識。';
+
+  @override
+  String importFromStore(String store) {
+    return '來自 $store．點選列上的標籤可改變去處';
+  }
+
+  @override
+  String get importTapRowToChange => '點選列上的標籤可改變去處';
+
+  @override
+  String get importToShopping => '購物清單';
+
+  @override
+  String get importToPantry => '食品櫃';
+
+  @override
+  String get importSelectAll => '全選';
+
+  @override
+  String get importSelectNone => '全部取消';
+
+  @override
+  String get importEditTitle => '編輯項目';
+
+  @override
+  String get importQuantityUnsure => '數量？';
+
+  @override
+  String get importNothingSelected => '尚未選擇項目';
+
+  @override
+  String importAdded(int pantry, int shopping) {
+    return '已新增 $pantry 項到食品櫃、$shopping 項到購物清單';
+  }
+
+  @override
+  String get homeImportScreenshots => '截圖';
+
+  @override
+  String get importAiDisclosure => '由 AI 從你的截圖讀取 — 新增前請確認名稱與數量。';
+
+  @override
+  String get importNotSignedIn => '請先登入才能新增項目。';
+
+  @override
+  String importPartialFailure(String error) {
+    return '部分項目可能沒有新增成功：$error';
+  }
+
+  @override
+  String importWillMerge(String from, String to) {
+    return '現有 $from → $to';
+  }
+
+  @override
+  String get importPartialRow => '顯示不完整';
+
+  @override
+  String importConfirmPantry(int count) {
+    return '新增 $count 項到食品櫃';
+  }
+
+  @override
+  String importConfirmShopping(int count) {
+    return '新增 $count 項到購物清單';
+  }
+
+  @override
+  String importConfirmBoth(int pantry, int shopping) {
+    return '新增 食品櫃 $pantry 項、購物清單 $shopping 項';
+  }
+
+  @override
+  String get importRepeatedRow => '重複讀取';
+
+  @override
+  String importAddedPantry(int count) {
+    return '已新增 $count 項到食品櫃';
+  }
+
+  @override
+  String importAddedShopping(int count) {
+    return '已新增 $count 項到購物清單';
+  }
+
+  @override
+  String importMergedSuffix(int merged) {
+    return '（$merged 項併入現有項目）';
+  }
 }

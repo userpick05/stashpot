@@ -14,6 +14,8 @@ import '../../core/widgets/invite_code_sheet.dart';
 import '../../models/planned_meal.dart';
 import '../recipes/recipe_detail_screen.dart';
 import 'running_low_sheet.dart';
+import '../../models/scanned_item.dart';
+import '../importing/screenshot_import.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -265,22 +267,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _AddAction(
-                      icon: Icons.edit_note,
-                      label: l.homeAddItem,
-                      onTap: () => context.push('/inventory/add'),
+                    Expanded(
+                      child: _AddAction(
+                        icon: Icons.edit_note,
+                        label: l.homeAddItem,
+                        onTap: () => context.push('/inventory/add'),
+                      ),
                     ),
-                    _AddAction(
-                      icon: Icons.qr_code_scanner,
-                      label: l.homeScan,
-                      onTap: () => context.push('/inventory/add', extra: 'scan'),
+                    Expanded(
+                      child: _AddAction(
+                        icon: Icons.qr_code_scanner,
+                        label: l.homeScan,
+                        onTap: () =>
+                            context.push('/inventory/add', extra: 'scan'),
+                      ),
                     ),
-                    _AddAction(
-                      icon: Icons.camera_alt,
-                      label: l.homePhoto,
-                      onTap: () => context.push('/inventory/add', extra: 'photo'),
+                    Expanded(
+                      child: _AddAction(
+                        icon: Icons.camera_alt,
+                        label: l.homePhoto,
+                        onTap: () =>
+                            context.push('/inventory/add', extra: 'photo'),
+                      ),
+                    ),
+                    Expanded(
+                      child: _AddAction(
+                        icon: Icons.photo_library_outlined,
+                        label: l.homeImportScreenshots,
+                        onTap: () => startScreenshotImport(context, ref,
+                            destination: ImportDestination.pantry),
+                      ),
                     ),
                   ],
                 ),
@@ -453,7 +470,7 @@ class _AddAction extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Column(
           children: [
             CircleAvatar(
@@ -462,7 +479,13 @@ class _AddAction extends StatelessWidget {
               child: Icon(icon, color: scheme.onPrimaryContainer),
             ),
             const SizedBox(height: 6),
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
