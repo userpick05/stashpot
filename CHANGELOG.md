@@ -3,6 +3,40 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.10.0
+
+### Added
+- **Add items from a screenshot of another shopping app.** Screenshot your cart or
+  order in Meijer, Instacart, Walmart — whatever you use — and Stashpot reads the
+  products off it. Pick up to 5 screenshots at once, so a list longer than one
+  screen still works: overlapping scroll positions are recognised as the same
+  list rather than counted twice.
+- **A review step before anything is saved.** Every row can be unchecked, edited,
+  or sent somewhere different. A Shopping/Pantry switch at the top sets them all,
+  and any single row can be flipped — so an order where you got most things
+  (→ pantry) but two were out of stock (→ shopping list) takes one pass.
+- **Store control.** The store is recognised where the screenshot shows it, and
+  fills in on every imported row — and you can change it. A **Set store /
+  Change** control in the header sets the store for the whole list, and the edit
+  sheet on any single row sets that one item's store (or clears it, or puts it
+  back to following the list). Pick from your saved stores or type a new one;
+  new ones get added to your store list so grouping stays tidy.
+- Rows worth a second look are flagged: **already in your pantry** (with the
+  arithmetic, "have 2 → 4"), **quantity cut off by the screenshot edge**, and
+  **read twice**. Those rows start unchecked, because a silently doubled quantity
+  is the hardest thing to notice and undo.
+- Imported items land somewhere sensible — frozen in the freezer, dairy and meat
+  in the fridge — instead of everything piling into one location.
+- One Undo reverses the whole import, including quantities that were merged into
+  items you already had.
+- Everything is translated, so this works in 繁體中文 too, and item names come
+  back in whatever language the app is set to.
+
+### Notes
+Anything read from a screenshot is labelled as AI-read on the review screen —
+worth a glance at the names and quantities before adding. Screenshots are sent to
+Google to be read, the same as the existing photo identification.
+
 ## v1.9.1
 
 ### Fixed

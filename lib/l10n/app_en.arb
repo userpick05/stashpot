@@ -748,5 +748,136 @@
     }
   },
   "imageLoadFailed": "Could not load image",
-  "plannerTitle": "Meal planner"
+  "plannerTitle": "Meal planner",
+  "importFromScreenshots": "Add from screenshots",
+  "importReviewTitle": "Review items",
+  "importReading": "Reading your screenshots…",
+  "importNothingFound": "No shopping list found in those screenshots. Try a shot that shows the item rows.",
+  "importFailed": "Couldn't read the screenshots: {error}",
+  "@importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importNoAiKey": "Photo reading isn't available in this build.",
+  "importFromStore": "From {store}",
+  "@importFromStore": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "importTapRowToChange": "Tap a row's chip to send it somewhere else",
+  "importToShopping": "Shopping",
+  "importToPantry": "Pantry",
+  "importSelectAll": "Select all",
+  "importSelectNone": "Clear all",
+  "importEditTitle": "Edit item",
+  "importQuantityUnsure": "qty?",
+  "importNothingSelected": "Nothing selected",
+  "importAdded": "Added {pantry} to the pantry, {shopping} to shopping",
+  "@importAdded": {
+    "placeholders": {
+      "pantry": {
+        "type": "int"
+      },
+      "shopping": {
+        "type": "int"
+      }
+    }
+  },
+  "homeImportScreenshots": "Screenshot",
+  "importAiDisclosure": "Read from your screenshots by AI — check the names and quantities before adding.",
+  "importNotSignedIn": "Sign in to add items.",
+  "importPartialFailure": "Some items may not have been added: {error}",
+  "@importPartialFailure": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importWillMerge": "have {from} → {to}",
+  "@importWillMerge": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "importPartialRow": "cut off",
+  "importConfirmPantry": "Add {count} to pantry",
+  "@importConfirmPantry": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importConfirmShopping": "Add {count} to shopping",
+  "@importConfirmShopping": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importConfirmBoth": "Add {pantry} to pantry, {shopping} to shopping",
+  "@importConfirmBoth": {
+    "placeholders": {
+      "pantry": {
+        "type": "int"
+      },
+      "shopping": {
+        "type": "int"
+      }
+    }
+  },
+  "importRepeatedRow": "read twice",
+  "importAddedPantry": "Added {count} to the pantry",
+  "@importAddedPantry": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importAddedShopping": "Added {count} to the shopping list",
+  "@importAddedShopping": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importMergedSuffix": " ({merged} merged into existing items)",
+  "@importMergedSuffix": {
+    "placeholders": {
+      "merged": {
+        "type": "int"
+      }
+    }
+  },
+  "importStoreAllTitle": "Store for all these items",
+  "importStoreRowTitle": "Store for this item",
+  "importStoreNone": "No store",
+  "importStoreNoneSet": "No store set",
+  "importStoreSet": "Set store",
+  "importStoreChange": "Change",
+  "importPickSavedStore": "Or pick a saved store",
+  "importStoreUseList": "Use the list's store ({store})",
+  "@importStoreUseList": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "importStoreUseListNone": "Use the list's store (none)"
 }

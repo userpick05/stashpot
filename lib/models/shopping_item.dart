@@ -25,6 +25,24 @@ class ShoppingItem {
   String get quantityLabel =>
       quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toString();
 
+  ShoppingItem copyWith({
+    String? name,
+    String? store,
+    double? quantity,
+    String? note,
+    bool? checked,
+  }) =>
+      ShoppingItem(
+        id: id,
+        name: name ?? this.name,
+        store: store ?? this.store,
+        quantity: quantity ?? this.quantity,
+        note: note ?? this.note,
+        checked: checked ?? this.checked,
+        addedAt: addedAt,
+        addedBy: addedBy,
+      );
+
   factory ShoppingItem.fromFirestore(DocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
     return ShoppingItem(

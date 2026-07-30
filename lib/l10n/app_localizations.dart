@@ -2113,6 +2113,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Meal planner'**
   String get plannerTitle;
+
+  /// No description provided for @importFromScreenshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from screenshots'**
+  String get importFromScreenshots;
+
+  /// No description provided for @importReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review items'**
+  String get importReviewTitle;
+
+  /// No description provided for @importReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your screenshots…'**
+  String get importReading;
+
+  /// No description provided for @importNothingFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No shopping list found in those screenshots. Try a shot that shows the item rows.'**
+  String get importNothingFound;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the screenshots: {error}'**
+  String importFailed(String error);
+
+  /// No description provided for @importNoAiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo reading isn\'t available in this build.'**
+  String get importNoAiKey;
+
+  /// No description provided for @importFromStore.
+  ///
+  /// In en, this message translates to:
+  /// **'From {store}'**
+  String importFromStore(String store);
+
+  /// No description provided for @importTapRowToChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a row\'s chip to send it somewhere else'**
+  String get importTapRowToChange;
+
+  /// No description provided for @importToShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get importToShopping;
+
+  /// No description provided for @importToPantry.
+  ///
+  /// In en, this message translates to:
+  /// **'Pantry'**
+  String get importToPantry;
+
+  /// No description provided for @importSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get importSelectAll;
+
+  /// No description provided for @importSelectNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get importSelectNone;
+
+  /// No description provided for @importEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit item'**
+  String get importEditTitle;
+
+  /// No description provided for @importQuantityUnsure.
+  ///
+  /// In en, this message translates to:
+  /// **'qty?'**
+  String get importQuantityUnsure;
+
+  /// No description provided for @importNothingSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected'**
+  String get importNothingSelected;
+
+  /// No description provided for @importAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {pantry} to the pantry, {shopping} to shopping'**
+  String importAdded(int pantry, int shopping);
+
+  /// No description provided for @homeImportScreenshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot'**
+  String get homeImportScreenshots;
+
+  /// No description provided for @importAiDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Read from your screenshots by AI — check the names and quantities before adding.'**
+  String get importAiDisclosure;
+
+  /// No description provided for @importNotSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to add items.'**
+  String get importNotSignedIn;
+
+  /// No description provided for @importPartialFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Some items may not have been added: {error}'**
+  String importPartialFailure(String error);
+
+  /// No description provided for @importWillMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'have {from} → {to}'**
+  String importWillMerge(String from, String to);
+
+  /// No description provided for @importPartialRow.
+  ///
+  /// In en, this message translates to:
+  /// **'cut off'**
+  String get importPartialRow;
+
+  /// No description provided for @importConfirmPantry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count} to pantry'**
+  String importConfirmPantry(int count);
+
+  /// No description provided for @importConfirmShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count} to shopping'**
+  String importConfirmShopping(int count);
+
+  /// No description provided for @importConfirmBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {pantry} to pantry, {shopping} to shopping'**
+  String importConfirmBoth(int pantry, int shopping);
+
+  /// No description provided for @importRepeatedRow.
+  ///
+  /// In en, this message translates to:
+  /// **'read twice'**
+  String get importRepeatedRow;
+
+  /// No description provided for @importAddedPantry.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {count} to the pantry'**
+  String importAddedPantry(int count);
+
+  /// No description provided for @importAddedShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {count} to the shopping list'**
+  String importAddedShopping(int count);
+
+  /// No description provided for @importMergedSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' ({merged} merged into existing items)'**
+  String importMergedSuffix(int merged);
+
+  /// No description provided for @importStoreAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store for all these items'**
+  String get importStoreAllTitle;
+
+  /// No description provided for @importStoreRowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store for this item'**
+  String get importStoreRowTitle;
+
+  /// No description provided for @importStoreNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No store'**
+  String get importStoreNone;
+
+  /// No description provided for @importStoreNoneSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No store set'**
+  String get importStoreNoneSet;
+
+  /// No description provided for @importStoreSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set store'**
+  String get importStoreSet;
+
+  /// No description provided for @importStoreChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get importStoreChange;
+
+  /// No description provided for @importPickSavedStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Or pick a saved store'**
+  String get importPickSavedStore;
+
+  /// No description provided for @importStoreUseList.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the list\'s store ({store})'**
+  String importStoreUseList(String store);
+
+  /// No description provided for @importStoreUseListNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the list\'s store (none)'**
+  String get importStoreUseListNone;
 }
 
 class _AppLocalizationsDelegate

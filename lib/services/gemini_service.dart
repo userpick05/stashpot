@@ -3,11 +3,50 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../models/food_id_result.dart';
 
+/// One image to send alongside a prompt, with the mime type Gemini needs.
+///
+/// Use [InlineImage.detect] rather than assuming JPEG: phone screenshots are
+/// PNG, and mislabelling them gets the request rejected.
+class InlineImage {
+  final Uint8List bytes;
+  final String mimeType;
+
+  const InlineImage({required this.bytes, required this.mimeType});
+
+  /// Sniffs the format from the file's magic bytes. Deliberately ignores the
+  /// filename — gallery picks and share-sheet temp files lie about extensions
+  /// often enough to matter, and the bytes never do.
+  factory InlineImage.detect(Uint8List bytes) {
+    String mime = 'image/jpeg'; // Gemini's most permissive default
+    if (bytes.length >= 8 &&
+        bytes[0] == 0x89 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x4E &&
+        bytes[3] == 0x47) {
+      mime = 'image/png';
+    } else if (bytes.length >= 3 &&
+        bytes[0] == 0xFF &&
+        bytes[1] == 0xD8 &&
+        bytes[2] == 0xFF) {
+      mime = 'image/jpeg';
+    } else if (bytes.length >= 12 &&
+        bytes[8] == 0x57 &&
+        bytes[9] == 0x45 &&
+        bytes[10] == 0x42 &&
+        bytes[11] == 0x50) {
+      mime = 'image/webp'; // RIFF....WEBP
+    }
+    return InlineImage(bytes: bytes, mimeType: mime);
+  }
+}
+
 class GeminiService {
   // Injected at build time via --dart-define-from-file=secrets.json
   static const _apiKey = String.fromEnvironment('GEMINI_API_KEY');
   static const _model = 'gemini-2.5-flash';
   static const _timeout = Duration(seconds: 30);
+  // Reading several screenshots takes longer than identifying one product.
+  static const _multiImageTimeout = Duration(seconds: 60);
 
   final http.Client _client;
   GeminiService([http.Client? client]) : _client = client ?? http.Client();
@@ -77,11 +116,16 @@ token Unknown. That token is a fixed sentinel the app matches on — it is the O
 value that must stay English, even when you are answering in another language.''';
   }
 
-  /// Generic JSON generation. Sends [prompt] (and an optional JPEG image) to
-  /// Gemini and returns the parsed JSON object. Throws on network/timeout/HTTP.
+  /// Generic JSON generation. Sends [prompt] plus any images to Gemini and
+  /// returns the parsed JSON object. Throws on network/timeout/HTTP.
+  ///
+  /// [imageJpeg] is the single-image shorthand kept for the photo-ID callers;
+  /// [images] sends several in ONE request, which lets the model reason across
+  /// them (e.g. de-duplicate a product visible in two overlapping screenshots).
   Future<Map<String, dynamic>?> generateJson({
     required String prompt,
     Uint8List? imageJpeg,
+    List<InlineImage>? images,
   }) async {
     if (!isConfigured) {
       throw Exception(
@@ -92,13 +136,19 @@ value that must stay English, even when you are answering in another language.''
       'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent?key=$_apiKey',
     );
 
+    final all = <InlineImage>[
+      if (imageJpeg != null)
+        InlineImage(bytes: imageJpeg, mimeType: 'image/jpeg'),
+      ...?images,
+    ];
+
     final parts = <Map<String, dynamic>>[
       {'text': prompt},
-      if (imageJpeg != null)
+      for (final img in all)
         {
           'inline_data': {
-            'mime_type': 'image/jpeg',
-            'data': base64Encode(imageJpeg),
+            'mime_type': img.mimeType,
+            'data': base64Encode(img.bytes),
           }
         },
     ];
@@ -112,7 +162,7 @@ value that must stay English, even when you are answering in another language.''
 
     final resp = await _client
         .post(uri, headers: {'Content-Type': 'application/json'}, body: body)
-        .timeout(_timeout);
+        .timeout((images?.isNotEmpty ?? false) ? _multiImageTimeout : _timeout);
 
     if (resp.statusCode != 200) {
       throw Exception('Gemini error (HTTP ${resp.statusCode})');
@@ -122,7 +172,17 @@ value that must stay English, even when you are answering in another language.''
     final candidates = decoded['candidates'] as List?;
     if (candidates == null || candidates.isEmpty) return null;
 
-    final text = candidates[0]['content']?['parts']?[0]?['text'] as String?;
+    // A truncated or safety-blocked response comes back with no parts at all —
+    // indexing it blind would throw a RangeError instead of failing gracefully.
+    final replyParts = candidates[0]['content']?['parts'] as List?;
+    if (replyParts == null || replyParts.isEmpty) {
+      final reason = candidates[0]['finishReason'];
+      if (reason != null && reason != 'STOP') {
+        throw Exception('Gemini stopped early ($reason)');
+      }
+      return null;
+    }
+    final text = replyParts[0]?['text'] as String?;
     if (text == null || text.isEmpty) return null;
 
     return jsonDecode(text) as Map<String, dynamic>;
