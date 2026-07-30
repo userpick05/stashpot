@@ -762,7 +762,7 @@
     }
   },
   "importNoAiKey": "Photo reading isn't available in this build.",
-  "importFromStore": "From {store} · tap a row's chip to send it elsewhere",
+  "importFromStore": "From {store}",
   "@importFromStore": {
     "placeholders": {
       "store": {
@@ -863,5 +863,21 @@
         "type": "int"
       }
     }
-  }
+  },
+  "importStoreAllTitle": "Store for all these items",
+  "importStoreRowTitle": "Store for this item",
+  "importStoreNone": "No store",
+  "importStoreNoneSet": "No store set",
+  "importStoreSet": "Set store",
+  "importStoreChange": "Change",
+  "importPickSavedStore": "Or pick a saved store",
+  "importStoreUseList": "Use the list's store ({store})",
+  "@importStoreUseList": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "importStoreUseListNone": "Use the list's store (none)"
 }

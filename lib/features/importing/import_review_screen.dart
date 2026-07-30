@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 import '../../models/scanned_item.dart';
 import '../../models/shopping_item.dart';
+import 'store_picker_sheet.dart';
 
 /// Reads the picked screenshots, then lets the user review before anything is
 /// written.
@@ -46,6 +47,10 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
   bool _loading = true;
   bool _saving = false;
   String? _error;
+
+  /// True once the user has set the store themselves, so a later scan result
+  /// can't quietly overwrite their choice.
+  bool _storeChosen = false;
 
   /// How each row resolved to a target document on the FIRST confirm attempt.
   ///
@@ -109,7 +114,8 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
       }
       setState(() {
         _items = result.items;
-        _store = result.store;
+        // Don't clobber a store the user picked before retrying the scan.
+        if (!_storeChosen) _store = result.store;
       });
     } catch (e) {
       if (mounted) setState(() => _error = '$e');
@@ -202,6 +208,45 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
               ],
               onChanged: (v) => pendingCategory = v ?? pendingCategory,
             ),
+            const SizedBox(height: 8),
+            // Per-item store, for when one thing came from somewhere else than
+            // the rest of the list.
+            // Applied straight away rather than on Save: the tile opens its own
+            // sheet, which trains swipe-to-close, and a swipe would otherwise
+            // discard a change the subtitle already showed as made.
+            StatefulBuilder(
+              builder: (innerCtx, setSheetState) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.storefront),
+                title: Text(l.addItemStoreLabel),
+                subtitle: Text(item.effectiveStore(_store) ?? l.importStoreNone),
+                trailing: const Icon(Icons.edit_outlined, size: 18),
+                onTap: () async {
+                  final inherited = _store;
+                  final pick = await showStorePicker(
+                    innerCtx,
+                    savedStores:
+                        ref.read(storesProvider).valueOrNull ?? const [],
+                    current: item.effectiveStore(_store),
+                    title: l.importStoreRowTitle,
+                    canInherit: item.storeOverridden,
+                    inheritFrom: inherited,
+                  );
+                  if (!pick.changed || !innerCtx.mounted) return;
+                  setState(() {
+                    if (pick.inherit || pick.store == inherited) {
+                      // Matching the list's store means "follow the list", not
+                      // "pin to this value" — otherwise a curious tap on Save
+                      // would strand the row when the list store later changes.
+                      item.clearStoreOverride();
+                    } else {
+                      item.overrideStore(pick.store);
+                    }
+                  });
+                  setSheetState(() {});
+                },
+              ),
+            ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(true),
@@ -234,6 +279,21 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
     nameC.dispose();
     noteC.dispose();
     qtyC.dispose();
+  }
+
+  Future<void> _changeStore() async {
+    final l = AppLocalizations.of(context);
+    final pick = await showStorePicker(
+      context,
+      savedStores: ref.read(storesProvider).valueOrNull ?? const [],
+      current: _store,
+      title: l.importStoreAllTitle,
+    );
+    if (!pick.changed || !mounted) return;
+    setState(() {
+      _store = pick.store;
+      _storeChosen = true;
+    });
   }
 
   /// Resolves a row to its target document, remembering the answer so a retry
@@ -313,7 +373,7 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
                   unit: 'item',
                   location: s.suggestedLocation,
                   notes: s.note,
-                  store: store,
+                  store: s.effectiveStore(store),
                   addedAt: now,
                   addedBy: uid,
                 ),
@@ -338,7 +398,7 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
               : ShoppingItem(
                   id: docId!,
                   name: s.name,
-                  store: store,
+                  store: s.effectiveStore(store),
                   quantity: qty,
                   note: s.note,
                   checked: false,
@@ -384,14 +444,27 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
       await svc.writeShoppingBatch(hid, updated: restoreShopping);
     }
 
-    // Registering the store keeps grouping from fragmenting into "Meijer" and
+    // Only rows that CREATE an item carry a store: the merge path keeps the
+    // existing item's store rather than rewriting its provenance, so a merged
+    // row's store is never actually filed anywhere.
+    final newRows = [for (final r in chosen) if (_resolve(r).isCreate) r];
+
+    // Registering the stores keeps grouping from fragmenting into "Meijer" and
     // "meijer", but it is a nicety — never awaited, so it can't abort or stall
     // the import it decorates.
-    if (store != null && store.isNotEmpty) {
-      final known = ref.read(storesProvider).valueOrNull ?? const <String>[];
-      if (!known.any((x) => x.toLowerCase() == store.toLowerCase())) {
-        svc.addStore(hid, store).catchError((_) {});
-      }
+    final known = ref.read(storesProvider).valueOrNull ?? const <String>[];
+    // Case-folded, keeping the first spelling: two spellings in ONE import both
+    // pass the "already known" check, and arrayUnion would then add both —
+    // producing two store headers for one shop, the exact fragmentation this
+    // is here to prevent.
+    final used = <String, String>{};
+    for (final row in newRows) {
+      final st = row.effectiveStore(store)?.trim();
+      if (st != null && st.isNotEmpty) used.putIfAbsent(st.toLowerCase(), () => st);
+    }
+    used.removeWhere((lower, _) => known.any((x) => x.toLowerCase() == lower));
+    for (final st in used.values) {
+      svc.addStore(hid, st).catchError((_) {});
     }
 
     var failed = false;
@@ -567,11 +640,28 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
                     ),
                   ),
                 ]),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
+                // The scan's guess is a starting point, not a verdict — a promo
+                // banner or the wrong app in shot can name the wrong retailer,
+                // and every row inherits it.
+                Row(children: [
+                  Expanded(
+                    child: Text(
+                      _store == null
+                          ? l.importStoreNoneSet
+                          : l.importFromStore(_store!),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _saving ? null : _changeStore,
+                    icon: const Icon(Icons.storefront, size: 16),
+                    label: Text(
+                        _store == null ? l.importStoreSet : l.importStoreChange),
+                  ),
+                ]),
                 Text(
-                  _store == null
-                      ? l.importTapRowToChange
-                      : l.importFromStore(_store!),
+                  l.importTapRowToChange,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline),
                 ),
@@ -658,6 +748,14 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
                               label: l.importRepeatedRow,
                               tone: _ChipTone.warning,
                             ),
+                          // Only when this row differs from the screen's store,
+                          // otherwise it is noise on every single row.
+                          if (item.storeOverridden &&
+                              item.effectiveStore(_store) != _store)
+                            _Chip(
+                              icon: Icons.storefront,
+                              label: item.store ?? l.importStoreNone,
+                            ),
                           if (item.quantityAssumed)
                             _Chip(
                               icon: Icons.help_outline,
@@ -721,6 +819,10 @@ class _Resolved {
   final InventoryItem? pantryItem;
   final ShoppingItem? shoppingItem;
   final double baseQuantity;
+
+  /// No existing item matched, so this row will create a document — the only
+  /// case where the row's store is actually written anywhere.
+  bool get isCreate => pantryItem == null && shoppingItem == null;
 
   const _Resolved({
     required this.destination,

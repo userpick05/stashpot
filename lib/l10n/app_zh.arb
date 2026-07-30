@@ -342,7 +342,7 @@
   "importNothingFound": "在這些截圖中找不到購物清單。請改用能看到商品列表的截圖。",
   "importFailed": "無法讀取截圖：{error}",
   "importNoAiKey": "此版本無法使用照片辨識。",
-  "importFromStore": "來自 {store}．點選列上的標籤可改變去處",
+  "importFromStore": "來自 {store}",
   "importTapRowToChange": "點選列上的標籤可改變去處",
   "importToShopping": "購物清單",
   "importToPantry": "食品櫃",
@@ -364,5 +364,14 @@
   "importRepeatedRow": "重複讀取",
   "importAddedPantry": "已新增 {count} 項到食品櫃",
   "importAddedShopping": "已新增 {count} 項到購物清單",
-  "importMergedSuffix": "（{merged} 項併入現有項目）"
+  "importMergedSuffix": "（{merged} 項併入現有項目）",
+  "importStoreAllTitle": "所有項目的商店",
+  "importStoreRowTitle": "這個項目的商店",
+  "importStoreNone": "未指定商店",
+  "importStoreNoneSet": "尚未指定商店",
+  "importStoreSet": "設定商店",
+  "importStoreChange": "變更",
+  "importPickSavedStore": "或選擇已儲存的商店",
+  "importStoreUseList": "沿用清單的商店（{store}）",
+  "importStoreUseListNone": "沿用清單的設定（未指定商店）"
 }

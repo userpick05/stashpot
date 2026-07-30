@@ -2153,7 +2153,7 @@ abstract class AppLocalizations {
   /// No description provided for @importFromStore.
   ///
   /// In en, this message translates to:
-  /// **'From {store} · tap a row\'s chip to send it elsewhere'**
+  /// **'From {store}'**
   String importFromStore(String store);
 
   /// No description provided for @importTapRowToChange.
@@ -2287,6 +2287,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **' ({merged} merged into existing items)'**
   String importMergedSuffix(int merged);
+
+  /// No description provided for @importStoreAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store for all these items'**
+  String get importStoreAllTitle;
+
+  /// No description provided for @importStoreRowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store for this item'**
+  String get importStoreRowTitle;
+
+  /// No description provided for @importStoreNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No store'**
+  String get importStoreNone;
+
+  /// No description provided for @importStoreNoneSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No store set'**
+  String get importStoreNoneSet;
+
+  /// No description provided for @importStoreSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set store'**
+  String get importStoreSet;
+
+  /// No description provided for @importStoreChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get importStoreChange;
+
+  /// No description provided for @importPickSavedStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Or pick a saved store'**
+  String get importPickSavedStore;
+
+  /// No description provided for @importStoreUseList.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the list\'s store ({store})'**
+  String importStoreUseList(String store);
+
+  /// No description provided for @importStoreUseListNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the list\'s store (none)'**
+  String get importStoreUseListNone;
 }
 
 class _AppLocalizationsDelegate

@@ -33,6 +33,14 @@ class ScannedItem {
   /// creating a second copy of everything that already landed.
   String? docId;
 
+  /// Per-row store, overriding the screen's store for this one item.
+  ///
+  /// Two states have to be distinguishable from "not set", so this pairs with
+  /// [storeOverridden]: a user who clears the store on one row means "no store
+  /// for this item", which is a different instruction from "follow the others".
+  String? store;
+  bool storeOverridden = false;
+
   /// Another selected row reads as the same product. The model is told never to
   /// do this (a product in two overlapping screenshots is ONE line), so it means
   /// its de-duplication missed — worth showing rather than silently summing.
@@ -72,6 +80,22 @@ class ScannedItem {
       // Treat a missing count as assumed, so the UI flags it either way.
       quantityAssumed: _asBool(raw['quantityAssumed']) || qty == null,
     );
+  }
+
+  /// The store this row will actually be saved with, given the screen-wide
+  /// [screenStore] it inherits when it has no override of its own.
+  String? effectiveStore(String? screenStore) =>
+      storeOverridden ? store : screenStore;
+
+  void overrideStore(String? value) {
+    store = value;
+    storeOverridden = true;
+  }
+
+  /// Back to following the screen-wide store.
+  void clearStoreOverride() {
+    store = null;
+    storeOverridden = false;
   }
 
   /// Identity used to decide "these two are the same product". Name AND note

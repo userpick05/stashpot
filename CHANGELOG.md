@@ -15,8 +15,12 @@ All notable changes to Stashpot. Versions track `kAppVersion` in
   or sent somewhere different. A Shopping/Pantry switch at the top sets them all,
   and any single row can be flipped — so an order where you got most things
   (→ pantry) but two were out of stock (→ shopping list) takes one pass.
-- The store is recognised where the screenshot shows it, and gets filled in on
-  every imported row.
+- **Store control.** The store is recognised where the screenshot shows it, and
+  fills in on every imported row — and you can change it. A **Set store /
+  Change** control in the header sets the store for the whole list, and the edit
+  sheet on any single row sets that one item's store (or clears it, or puts it
+  back to following the list). Pick from your saved stores or type a new one;
+  new ones get added to your store list so grouping stays tidy.
 - Rows worth a second look are flagged: **already in your pantry** (with the
   arithmetic, "have 2 → 4"), **quantity cut off by the screenshot edge**, and
   **read twice**. Those rows start unchecked, because a silently doubled quantity

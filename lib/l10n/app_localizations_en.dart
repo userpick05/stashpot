@@ -1242,7 +1242,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String importFromStore(String store) {
-    return 'From $store · tap a row\'s chip to send it elsewhere';
+    return 'From $store';
   }
 
   @override
@@ -1330,4 +1330,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String importMergedSuffix(int merged) {
     return ' ($merged merged into existing items)';
   }
+
+  @override
+  String get importStoreAllTitle => 'Store for all these items';
+
+  @override
+  String get importStoreRowTitle => 'Store for this item';
+
+  @override
+  String get importStoreNone => 'No store';
+
+  @override
+  String get importStoreNoneSet => 'No store set';
+
+  @override
+  String get importStoreSet => 'Set store';
+
+  @override
+  String get importStoreChange => 'Change';
+
+  @override
+  String get importPickSavedStore => 'Or pick a saved store';
+
+  @override
+  String importStoreUseList(String store) {
+    return 'Use the list\'s store ($store)';
+  }
+
+  @override
+  String get importStoreUseListNone => 'Use the list\'s store (none)';
 }

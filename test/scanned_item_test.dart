@@ -176,4 +176,52 @@ void main() {
       }
     });
   });
+
+  group('store override', () {
+    test('a row with no override follows the screen store', () {
+      final i = ScannedItem(name: 'Milk');
+      expect(i.effectiveStore('Meijer'), 'Meijer');
+      expect(i.effectiveStore(null), isNull);
+      expect(i.storeOverridden, isFalse);
+    });
+
+    test('an overridden row keeps its own store', () {
+      final i = ScannedItem(name: 'Milk')..overrideStore('Costco');
+      expect(i.effectiveStore('Meijer'), 'Costco');
+      expect(i.storeOverridden, isTrue);
+    });
+
+    test('clearing a row is distinct from never setting it', () {
+      // Both read back as null, but only the cleared one ignores the screen
+      // store — otherwise "no store for this item" would be impossible to say.
+      final untouched = ScannedItem(name: 'Milk');
+      final cleared = ScannedItem(name: 'Milk')..overrideStore(null);
+      expect(untouched.effectiveStore('Meijer'), 'Meijer');
+      expect(cleared.effectiveStore('Meijer'), isNull);
+    });
+
+    test('changing the screen store still moves un-overridden rows', () {
+      final rows = [ScannedItem(name: 'A'), ScannedItem(name: 'B')..overrideStore('Aldi')];
+      expect(rows.map((r) => r.effectiveStore('Kroger')).toList(),
+          ['Kroger', 'Aldi']);
+    });
+
+    test('an override can be released so the row follows the list again', () {
+      // Without this, "set the store for all items" would silently skip any row
+      // the user had ever touched — the request that motivated the feature.
+      final i = ScannedItem(name: 'Milk')..overrideStore('Costco');
+      expect(i.effectiveStore('Meijer'), 'Costco');
+      i.clearStoreOverride();
+      expect(i.storeOverridden, isFalse);
+      expect(i.effectiveStore('Meijer'), 'Meijer');
+      expect(i.effectiveStore('Aldi'), 'Aldi');
+    });
+
+    test('releasing a cleared override also returns to the list store', () {
+      final i = ScannedItem(name: 'Milk')..overrideStore(null);
+      expect(i.effectiveStore('Meijer'), isNull);
+      i.clearStoreOverride();
+      expect(i.effectiveStore('Meijer'), 'Meijer');
+    });
+  });
 }

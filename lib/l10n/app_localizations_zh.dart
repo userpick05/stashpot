@@ -1207,7 +1207,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String importFromStore(String store) {
-    return '來自 $store．點選列上的標籤可改變去處';
+    return '來自 $store';
   }
 
   @override
@@ -1293,4 +1293,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String importMergedSuffix(int merged) {
     return '（$merged 項併入現有項目）';
   }
+
+  @override
+  String get importStoreAllTitle => '所有項目的商店';
+
+  @override
+  String get importStoreRowTitle => '這個項目的商店';
+
+  @override
+  String get importStoreNone => '未指定商店';
+
+  @override
+  String get importStoreNoneSet => '尚未指定商店';
+
+  @override
+  String get importStoreSet => '設定商店';
+
+  @override
+  String get importStoreChange => '變更';
+
+  @override
+  String get importPickSavedStore => '或選擇已儲存的商店';
+
+  @override
+  String importStoreUseList(String store) {
+    return '沿用清單的商店（$store）';
+  }
+
+  @override
+  String get importStoreUseListNone => '沿用清單的設定（未指定商店）';
 }
