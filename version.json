@@ -1,5 +1,5 @@
 {
-  "version": "1.9.1",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.9.1/stashpot-1.9.1.apk",
-  "notes": "Traditional Chinese + recipe translation -- The whole app is now translated into 繁體中文, with a Settings > Language picker. Photographing Chinese packaging returns a Chinese item name, and a barcode that isn't in the database now offers photo identification instead of dead-ending. Recipe links import in your language: a Chinese recipe read in English comes back in English, so its ingredients cross-check against your pantry properly. Recipes can also be read off pages that publish no structured data, and saved link recipes now store their text so reopening is instant and works offline."
+  "version": "1.10.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.10.0/stashpot-1.10.0.apk",
+  "notes": "Add items from a screenshot of another shopping app -- screenshot your cart or order in Meijer, Instacart, Walmart, whatever you use, and Stashpot reads the products off it. Pick up to 5 screenshots so a list longer than one screen works; overlapping scroll positions are recognised as the same list rather than counted twice. Nothing is saved until you review it: uncheck, edit or re-route any row, with a Shopping/Pantry switch for the whole list and a per-row override. Set the store for the list or per item. Rows worth checking are flagged and start unchecked -- already in your pantry, quantity cut off by the screenshot edge, or read twice. Frozen goes to the freezer and dairy/meat to the fridge. One Undo reverses the whole import."
 }
