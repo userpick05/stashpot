@@ -247,8 +247,12 @@ class FirestoreService {
 
   Future<void> addShoppingItem(String householdId, ShoppingItem item) async {
     await _shoppingRef(householdId).doc(item.id).set(item.toFirestore());
-    // Remember it in the catalog for quick reordering later.
-    await _recordCatalog(householdId, item);
+    // Remember it in the catalog for quick reordering later. The catalog is a
+    // convenience index only, so its failure must never break adding the item
+    // — which is exactly what used to happen when a name held a '/'.
+    try {
+      await _recordCatalog(householdId, item);
+    } catch (_) {}
   }
 
   Future<void> setShoppingChecked(

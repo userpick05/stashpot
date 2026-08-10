@@ -3,6 +3,24 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.10.1
+
+### Fixed
+- **Shopping items with a "/" in the name now save.** Typing something like
+  "sourdough/Italian bread" silently failed — the slash isn't allowed in the
+  internal key we use to remember items for quick re-ordering, and the error
+  made a successful add look like it didn't take. Slashes and other symbols
+  work now, and a hiccup in that re-order list can no longer block adding an
+  item at all.
+
+### Changed
+- **Planner view switcher is now a dropdown.** The Month / 2 weeks / Week button
+  used to show the view you'd switch *to*, not the one you were on, which kept
+  reading as broken. It's now a labelled "Month ▾" dropdown that shows the
+  current view and lets you pick another.
+- A little breathing room under the planner calendar, which sat flush against
+  the bottom edge.
+
 ## v1.10.0
 
 ### Added

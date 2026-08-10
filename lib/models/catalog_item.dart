@@ -21,7 +21,29 @@ class CatalogItem {
     this.lastAddedAt,
   });
 
-  static String idFor(String name) => name.toLowerCase().trim();
+  /// A Firestore-safe document id derived from the name, so re-adds of the same
+  /// item de-duplicate. The name itself is stored untouched in the `name` field
+  /// and is what's ever displayed — this is only the key.
+  ///
+  /// Firestore document ids can't contain '/' (it's the path separator), can't
+  /// be '.' or '..', and can't match `__…__`. A name like "sourdough/Italian
+  /// bread" hit the first rule, which threw and made the whole add look like it
+  /// failed. Fold those cases into something legal.
+  static String idFor(String name) {
+    var id = name
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[/\\]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    // '.', '..' and anything matching __…__ are reserved. Prefix with a token
+    // that can't itself re-trigger a rule (a leading '_' would keep matching
+    // the __…__ pattern).
+    if (id == '.' || id == '..' || RegExp(r'^__.*__$').hasMatch(id)) {
+      id = 'item-$id';
+    }
+    return id;
+  }
 
   factory CatalogItem.fromFirestore(DocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
