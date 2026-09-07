@@ -6,8 +6,11 @@ import 'package:uuid/uuid.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/scanning_providers.dart';
+import '../../core/utils/category_icons.dart';
+import '../../core/utils/labels.dart';
 import '../../core/utils/pantry_match.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 
 /// Bottom sheet for adding or editing a shopping-list item.
@@ -28,6 +31,14 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
   int _quantity = 1;
   bool _saving = false;
   bool _identifying = false;
+
+  // Same optional fields a pantry item has, so a card carries everything.
+  ItemCategory _category = ItemCategory.other;
+  String _unit = 'item';
+  String? _location; // optional on the shopping side
+  DateTime? _expiryDate;
+
+  static const _units = ['item', 'g', 'kg', 'ml', 'L', 'oz', 'lb', 'cup', 'bunch'];
 
   bool get _isEditing => widget.existing != null;
 
@@ -129,6 +140,10 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
       _storeCtrl.text = e.store ?? '';
       _noteCtrl.text = e.note ?? '';
       _quantity = e.quantity.round().clamp(1, 999);
+      _category = e.category;
+      _unit = _units.contains(e.unit) ? e.unit : _units.first;
+      _location = e.location;
+      _expiryDate = e.expiryDate;
     }
   }
 
@@ -161,6 +176,66 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
       ),
     );
     if (picked != null) setState(() => _storeCtrl.text = picked);
+  }
+
+  Future<void> _pickExpiry() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _expiryDate ?? DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
+    );
+    if (picked != null) setState(() => _expiryDate = picked);
+  }
+
+  // Add a custom location on the fly, mirroring the pantry editor.
+  Future<void> _addLocationFlow() async {
+    final l = AppLocalizations.of(context);
+    final ctrl = TextEditingController();
+    final name = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 0, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.addItemNewLocationTitle,
+                style: Theme.of(ctx).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                hintText: l.addItemNewLocationHint,
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (v) => Navigator.pop(ctx, v),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(ctx, ctrl.text),
+                child: Text(l.commonAdd),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    ctrl.dispose();
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return;
+    final hid = ref.read(householdIdProvider);
+    if (hid != null) {
+      await ref.read(firestoreServiceProvider).addLocation(hid, trimmed);
+    }
+    if (mounted) setState(() => _location = trimmed);
   }
 
   /// If the typed item is already in the pantry (or something like it is), give
@@ -267,6 +342,13 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
         quantity: _quantity.toDouble(),
         note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
         checked: e?.checked ?? false,
+        category: _category,
+        unit: _unit,
+        location: _location,
+        expiryDate: _expiryDate,
+        // Not editable here yet, but carried so an edit never drops them.
+        imageUrl: e?.imageUrl,
+        barcode: e?.barcode,
         addedAt: e?.addedAt ?? DateTime.now(),
         addedBy: e?.addedBy ?? uid,
       );
@@ -291,7 +373,8 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
         top: 8,
         bottom: MediaQuery.of(context).viewInsets.bottom + 16,
       ),
-      child: Column(
+      child: SingleChildScrollView(
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -376,6 +459,109 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
               border: const OutlineInputBorder(),
             ),
           ),
+          const SizedBox(height: 12),
+          // ── Same optional fields a pantry item has (all optional) ────────
+          DropdownButtonFormField<String>(
+            initialValue: _unit,
+            decoration: InputDecoration(
+              labelText: l.addItemUnitLabel,
+              border: const OutlineInputBorder(),
+            ),
+            items: _units
+                .map((u) =>
+                    DropdownMenuItem(value: u, child: Text(unitLabelOf(l, u))))
+                .toList(),
+            onChanged: (v) => setState(() => _unit = v ?? _unit),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<ItemCategory>(
+            initialValue: _category,
+            decoration: InputDecoration(
+              labelText: l.addItemFoodTypeLabel,
+              border: const OutlineInputBorder(),
+            ),
+            items: [
+              for (final c in kPickableCategories.contains(_category)
+                  ? kPickableCategories
+                  : [...kPickableCategories, _category])
+                DropdownMenuItem(
+                  value: c,
+                  child: Row(children: [
+                    Icon(categoryIcon(c), size: 18),
+                    const SizedBox(width: 8),
+                    Text(categoryLabelOf(l, c)),
+                  ]),
+                ),
+            ],
+            onChanged: (v) => setState(() => _category = v ?? _category),
+          ),
+          const SizedBox(height: 12),
+          Builder(builder: (context) {
+            const addSentinel = '__add_location__';
+            const noneSentinel = '__none__';
+            final keys = [...ref.watch(allLocationKeysProvider)];
+            if (_location != null && !keys.contains(_location)) {
+              keys.add(_location!);
+            }
+            return DropdownButtonFormField<String>(
+              initialValue: _location ?? noneSentinel,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l.addItemLocationLabel,
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                DropdownMenuItem(
+                    value: noneSentinel, child: Text(l.shoppingLocationNone)),
+                for (final k in keys)
+                  DropdownMenuItem(
+                    value: k,
+                    child: Row(children: [
+                      Icon(locationIcon(k), size: 18),
+                      const SizedBox(width: 8),
+                      Text(locationLabelOf(l, k)),
+                    ]),
+                  ),
+                DropdownMenuItem(
+                  value: addSentinel,
+                  child: Row(children: [
+                    const Icon(Icons.add, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l.addItemAddLocation),
+                  ]),
+                ),
+              ],
+              onChanged: (v) {
+                if (v == null) return;
+                if (v == addSentinel) {
+                  _addLocationFlow();
+                } else if (v == noneSentinel) {
+                  setState(() => _location = null);
+                } else {
+                  setState(() => _location = v);
+                }
+              },
+            );
+          }),
+          const SizedBox(height: 12),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.calendar_today),
+            title: Text(_expiryDate == null
+                ? l.addItemExpiryLabel
+                : l.addItemExpiresOn(_expiryDate!)),
+            trailing: _expiryDate != null
+                ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(() => _expiryDate = null),
+                  )
+                : null,
+            onTap: _pickExpiry,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+              side: BorderSide(color: Theme.of(context).colorScheme.outline),
+            ),
+          ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _saving ? null : _add,
@@ -388,6 +574,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
                 : Text(_isEditing ? l.commonSave : l.commonAdd),
           ),
         ],
+        ),
       ),
     );
   }

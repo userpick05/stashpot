@@ -402,6 +402,9 @@ class _ImportReviewScreenState extends ConsumerState<ImportReviewScreen> {
                   quantity: qty,
                   note: s.note,
                   checked: false,
+                  // Carry the scanned category so it survives a later move to
+                  // the pantry instead of being re-guessed from the name.
+                  category: s.category,
                   addedAt: now,
                   addedBy: uid,
                 ),

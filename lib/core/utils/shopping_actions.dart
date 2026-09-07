@@ -87,14 +87,12 @@ Future<void> sendItemToShopping(
   final messenger = ScaffoldMessenger.of(context);
   final l = AppLocalizations.of(context);
 
-  final shoppingItem = ShoppingItem(
+  // Carry ALL fields (category, unit, location, expiry, photo, note, store) so
+  // the card can come back to the pantry later with nothing lost.
+  final shoppingItem = ShoppingItem.fromInventory(
+    item,
     id: const Uuid().v4(),
-    name: item.name,
-    store: item.store,
     quantity: item.quantity,
-    note: item.notes, // carry the note (e.g. size) over to the shopping list
-    checked: false,
-    addedAt: DateTime.now(),
     addedBy: uid,
   );
   await svc.addShoppingItem(householdId, shoppingItem);
@@ -144,14 +142,10 @@ Future<void> moveItemToShopping(
   final movingAll = moveQty >= item.quantity;
   final movedQty = movingAll ? item.quantity : moveQty;
 
-  final shoppingItem = ShoppingItem(
+  final shoppingItem = ShoppingItem.fromInventory(
+    item,
     id: const Uuid().v4(),
-    name: item.name,
-    store: item.store,
     quantity: movedQty,
-    note: item.notes,
-    checked: false,
-    addedAt: DateTime.now(),
     addedBy: uid,
   );
   await svc.addShoppingItem(householdId, shoppingItem);

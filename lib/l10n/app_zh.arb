@@ -378,5 +378,6 @@
   "pantryWarnTitleSimilar": "食品櫃裡有類似的東西",
   "pantryWarnAlready": "你已經有：",
   "pantryWarnSimilar": "你有類似的項目：",
-  "pantryWarnAddAnyway": "仍要新增"
+  "pantryWarnAddAnyway": "仍要新增",
+  "shoppingLocationNone": "不指定位置"
 }

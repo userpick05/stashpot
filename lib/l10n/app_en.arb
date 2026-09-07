@@ -884,5 +884,6 @@
   "pantryWarnTitleSimilar": "Similar items in your pantry",
   "pantryWarnAlready": "You already have:",
   "pantryWarnSimilar": "Similar items you have:",
-  "pantryWarnAddAnyway": "Add anyway"
+  "pantryWarnAddAnyway": "Add anyway",
+  "shoppingLocationNone": "No location"
 }

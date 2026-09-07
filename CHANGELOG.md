@@ -3,6 +3,24 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.12.0
+
+### Changed
+- **A shopping item and a pantry item are now the same "card."** Editing a
+  shopping-list item shows the same options as a pantry item — category,
+  location, expiry date, unit — all optional. And moving a card between the
+  shopping list and the pantry (using the buttons you already have) now carries
+  everything with it: nothing is dropped or changed. This fixes the long-standing
+  "notes/details get lost when moving between lists" problem at its root.
+- The checked-off box stays a shopping-list thing; the expiry date is available
+  on both sides and you can just ignore it when it doesn't apply.
+
+### Notes
+- Photos travel with an item between the lists, so nothing is lost — but
+  attaching a *new* photo to a shopping-only item isn't in yet (waiting on cloud
+  storage). The camera button on the shopping sheet still identifies an item
+  (fills in the name), it doesn't save a picture.
+
 ## v1.11.0
 
 ### Added

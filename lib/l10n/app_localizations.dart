@@ -2371,6 +2371,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add anyway'**
   String get pantryWarnAddAnyway;
+
+  /// No description provided for @shoppingLocationNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No location'**
+  String get shoppingLocationNone;
 }
 
 class _AppLocalizationsDelegate
