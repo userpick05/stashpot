@@ -1,5 +1,5 @@
 {
-  "version": "1.11.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.11.0/stashpot-1.11.0.apk",
-  "notes": "Shopping + planner improvements. New: when you add something to the shopping list, Stashpot now warns if you already have it in the pantry (and flags similar items -- type 'chicken' and it shows chicken breast + chicken broth), so you don't double-buy. New items now default to the 'Other' location instead of Pantry. Fixed: shopping items with a slash in the name (e.g. 'sourdough/Italian bread') wouldn't save. Planner: the Month/2-weeks/Week control is now a dropdown showing the current view, plus a little breathing room under the calendar."
+  "version": "1.12.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.12.0/stashpot-1.12.0.apk",
+  "notes": "Shopping-list items and pantry items are now the same card. Editing a shopping item shows the same options as a pantry item (category, location, expiry, unit) -- all optional. Moving an item between the shopping list and the pantry now carries everything with it, nothing dropped or changed. The checked-off box stays a shopping-list thing; the expiry date is available on both sides. (Photos travel with an item between the lists; attaching a new photo to a shopping-only item isn't in yet.)"
 }
