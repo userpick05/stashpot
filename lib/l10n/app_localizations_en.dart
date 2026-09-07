@@ -1374,4 +1374,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pantryWarnAddAnyway => 'Add anyway';
+
+  @override
+  String get shoppingLocationNone => 'No location';
 }

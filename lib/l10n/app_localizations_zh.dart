@@ -1337,4 +1337,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pantryWarnAddAnyway => '仍要新增';
+
+  @override
+  String get shoppingLocationNone => '不指定位置';
 }

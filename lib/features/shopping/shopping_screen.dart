@@ -110,19 +110,15 @@ class ShoppingScreen extends ConsumerWidget {
       } else {
         final id = const Uuid().v4();
         createdIds.add(id);
+        // Carry every field back into the pantry, losslessly. Category/location
+        // fall back only when this card never had them (e.g. a plain quick-add):
+        // guess the category from the name, and default the location.
         await svc.addItem(
           householdId,
-          InventoryItem(
+          s.toInventory(
             id: id,
-            name: s.name,
-            category: guessCategory(s.name) ?? ItemCategory.other,
-            quantity: s.quantity,
-            unit: 'item',
-            location: kDefaultLocationKey,
-            store: s.store,
-            notes: s.note, // carry the note (e.g. size) into the pantry
-            addedAt: DateTime.now(),
             addedBy: uid,
+            categoryFallback: guessCategory(s.name),
           ),
         );
         addedCount++;
