@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/scanning_providers.dart';
+import '../../core/utils/pantry_match.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/shopping_item.dart';
 
@@ -162,12 +163,91 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
     if (picked != null) setState(() => _storeCtrl.text = picked);
   }
 
+  /// If the typed item is already in the pantry (or something like it is), give
+  /// the user a chance to reconsider before it goes on the list — so a "chicken"
+  /// they already have doesn't get bought twice, and a "chicken" that only
+  /// surfaces "chicken broth" is theirs to judge. Returns true to go ahead.
+  ///
+  /// Skipped when editing an existing item — the warning is for fresh adds.
+  Future<bool> _confirmNotAlreadyStocked(String name) async {
+    if (_isEditing) return true;
+    final pantry = ref.read(inventoryProvider).valueOrNull ?? const [];
+    final match = PantryMatch.overlap(name, [for (final i in pantry) i.name]);
+    if (match.strong.isEmpty && match.similar.isEmpty) return true;
+
+    final l = AppLocalizations.of(context);
+    // Bottom sheet, not a dialog — AlertDialogs black-screen via Impeller here.
+    final proceed = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(children: [
+                Icon(Icons.inventory_2_outlined,
+                    color: Theme.of(ctx).colorScheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    match.strong.isNotEmpty
+                        ? l.pantryWarnTitleHave
+                        : l.pantryWarnTitleSimilar,
+                    style: Theme.of(ctx).textTheme.titleMedium,
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 12),
+              if (match.strong.isNotEmpty) ...[
+                Text(l.pantryWarnAlready,
+                    style: Theme.of(ctx).textTheme.labelLarge),
+                for (final n in match.strong)
+                  _PantryHit(name: n, strong: true),
+                const SizedBox(height: 8),
+              ],
+              if (match.similar.isNotEmpty) ...[
+                Text(l.pantryWarnSimilar,
+                    style: Theme.of(ctx).textTheme.labelLarge),
+                for (final n in match.similar)
+                  _PantryHit(name: n, strong: false),
+                const SizedBox(height: 8),
+              ],
+              const SizedBox(height: 8),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(l.commonCancel),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: Text(l.pantryWarnAddAnyway),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+    return proceed ?? false;
+  }
+
   Future<void> _add() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) return;
     final householdId = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (householdId == null || uid == null) return;
+
+    if (!await _confirmNotAlreadyStocked(name)) return;
+    if (!mounted) return;
 
     setState(() => _saving = true);
     try {
@@ -307,6 +387,31 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
                   )
                 : Text(_isEditing ? l.commonSave : l.commonAdd),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One matched pantry item in the "already have this?" warning. A filled dot for
+/// a strong match, a hollow one for a merely-similar item, so the two read
+/// differently at a glance.
+class _PantryHit extends StatelessWidget {
+  final String name;
+  final bool strong;
+  const _PantryHit({required this.name, required this.strong});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(strong ? Icons.check_circle : Icons.circle_outlined,
+              size: 16, color: strong ? scheme.primary : scheme.outline),
+          const SizedBox(width: 8),
+          Expanded(child: Text(name)),
         ],
       ),
     );

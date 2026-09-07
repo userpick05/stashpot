@@ -3,6 +3,19 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.11.0
+
+### Added
+- **"Already in your pantry?" check.** When you add something to the shopping
+  list, if you already have it in the pantry you'll get a quick heads-up so you
+  don't buy it twice — and it flags *similar* items too, so typing "chicken"
+  shows you both "chicken breast" and "chicken broth" to judge for yourself.
+  You can always add anyway.
+
+### Changed
+- **New items now default to "Other"** instead of "Pantry", so freshly added
+  things don't all pile into the Pantry location. (Existing items are untouched.)
+
 ## v1.10.1
 
 ### Fixed

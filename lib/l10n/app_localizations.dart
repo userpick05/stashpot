@@ -2341,6 +2341,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use the list\'s store (none)'**
   String get importStoreUseListNone;
+
+  /// No description provided for @pantryWarnTitleHave.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your pantry'**
+  String get pantryWarnTitleHave;
+
+  /// No description provided for @pantryWarnTitleSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar items in your pantry'**
+  String get pantryWarnTitleSimilar;
+
+  /// No description provided for @pantryWarnAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have:'**
+  String get pantryWarnAlready;
+
+  /// No description provided for @pantryWarnSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar items you have:'**
+  String get pantryWarnSimilar;
+
+  /// No description provided for @pantryWarnAddAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Add anyway'**
+  String get pantryWarnAddAnyway;
 }
 
 class _AppLocalizationsDelegate

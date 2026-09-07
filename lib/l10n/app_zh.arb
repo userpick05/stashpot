@@ -373,5 +373,10 @@
   "importStoreChange": "變更",
   "importPickSavedStore": "或選擇已儲存的商店",
   "importStoreUseList": "沿用清單的商店（{store}）",
-  "importStoreUseListNone": "沿用清單的設定（未指定商店）"
+  "importStoreUseListNone": "沿用清單的設定（未指定商店）",
+  "pantryWarnTitleHave": "食品櫃裡已經有了",
+  "pantryWarnTitleSimilar": "食品櫃裡有類似的東西",
+  "pantryWarnAlready": "你已經有：",
+  "pantryWarnSimilar": "你有類似的項目：",
+  "pantryWarnAddAnyway": "仍要新增"
 }
