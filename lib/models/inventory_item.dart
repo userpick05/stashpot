@@ -6,7 +6,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// simply its display name.
 const List<String> kBuiltInLocationKeys = ['fridge', 'freezer', 'pantry', 'other'];
 
-const String kDefaultLocationKey = 'pantry';
+// New items default to "Other" rather than "Pantry": Amy found everything
+// silently landing in Pantry confusing, and "Other" reads as "not sorted yet".
+const String kDefaultLocationKey = 'other';
 
 // Display labels for these keys live in lib/core/utils/labels.dart
 // (`locationLabelOf`) so they can be localized — the keys above are what's

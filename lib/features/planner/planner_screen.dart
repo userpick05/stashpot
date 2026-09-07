@@ -166,11 +166,37 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       body: planner.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
+              // The shell's NavigationBar already sits below this and clears the
+              // gesture inset, so a constant is enough.
               padding: const EdgeInsets.only(bottom: 24),
               children: [
+                // View selector — a real dropdown showing the CURRENT view.
+                // The calendar's own format button showed the NEXT view instead,
+                // which read as broken.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+                  child: Row(
+                    children: [
+                      const Spacer(),
+                      _FormatDropdown(
+                        format: _format,
+                        labels: {
+                          CalendarFormat.month: l.plannerFormatMonth,
+                          CalendarFormat.twoWeeks: l.plannerFormatTwoWeeks,
+                          CalendarFormat.week: l.plannerFormatWeek,
+                        },
+                        onChanged: (f) => setState(() => _format = f),
+                      ),
+                    ],
+                  ),
+                ),
                 Card(
                   margin: const EdgeInsets.all(8),
-                  child: TableCalendar<PlannedMeal>(
+                  // A little room below the last week row, which otherwise sits
+                  // flush against the card's bottom border.
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: TableCalendar<PlannedMeal>(
                     firstDay: DateTime.utc(2022, 1, 1),
                     lastDay: DateTime.utc(2032, 12, 31),
                     focusedDay: _focusedDay,
@@ -181,6 +207,12 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                       CalendarFormat.twoWeeks: l.plannerFormatTwoWeeks,
                       CalendarFormat.week: l.plannerFormatWeek,
                     },
+                    // Our own dropdown above replaces this — the built-in button
+                    // showed the next format, not the current one.
+                    headerStyle: const HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                    ),
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     eventLoader: forDay,
                     startingDayOfWeek: StartingDayOfWeek.sunday,
@@ -230,6 +262,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                         );
                       },
                     ),
+                  ),
                   ),
                 ),
 
@@ -355,4 +388,62 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         'Dinner' => Icons.dinner_dining,
         _ => Icons.bakery_dining,
       };
+}
+
+/// Calendar view selector. A pull-down that shows the view you're ON and lets
+/// you pick another — unlike the calendar's built-in button, which showed the
+/// view you'd switch TO and kept reading as broken.
+class _FormatDropdown extends StatelessWidget {
+  final CalendarFormat format;
+  final Map<CalendarFormat, String> labels;
+  final ValueChanged<CalendarFormat> onChanged;
+
+  const _FormatDropdown({
+    required this.format,
+    required this.labels,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return PopupMenuButton<CalendarFormat>(
+      initialValue: format,
+      onSelected: onChanged,
+      itemBuilder: (_) => [
+        for (final entry in labels.entries)
+          PopupMenuItem(
+            value: entry.key,
+            child: Row(
+              children: [
+                Icon(
+                  entry.key == format
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  size: 18,
+                  color: scheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(entry.value),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: scheme.outlineVariant),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(labels[format] ?? '',
+                style: Theme.of(context).textTheme.labelLarge),
+            const Icon(Icons.arrow_drop_down, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -879,5 +879,10 @@
       }
     }
   },
-  "importStoreUseListNone": "Use the list's store (none)"
+  "importStoreUseListNone": "Use the list's store (none)",
+  "pantryWarnTitleHave": "Already in your pantry",
+  "pantryWarnTitleSimilar": "Similar items in your pantry",
+  "pantryWarnAlready": "You already have:",
+  "pantryWarnSimilar": "Similar items you have:",
+  "pantryWarnAddAnyway": "Add anyway"
 }

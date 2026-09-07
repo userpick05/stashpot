@@ -1359,4 +1359,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importStoreUseListNone => 'Use the list\'s store (none)';
+
+  @override
+  String get pantryWarnTitleHave => 'Already in your pantry';
+
+  @override
+  String get pantryWarnTitleSimilar => 'Similar items in your pantry';
+
+  @override
+  String get pantryWarnAlready => 'You already have:';
+
+  @override
+  String get pantryWarnSimilar => 'Similar items you have:';
+
+  @override
+  String get pantryWarnAddAnyway => 'Add anyway';
 }

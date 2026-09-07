@@ -63,6 +63,50 @@ class PantryMatch {
     return false;
   }
 
+  /// Pantry names that overlap [query], split into STRONG matches (effectively
+  /// the same item — "you already have this") and merely SIMILAR ones (share a
+  /// word, e.g. "chicken" surfacing "chicken breast" and "chicken broth" — a
+  /// nudge to check, not a claim you have it).
+  static ({List<String> strong, List<String> similar}) overlap(
+    String query,
+    List<String> pantryNames,
+  ) {
+    final strong = <String>[];
+    final similar = <String>[];
+    final q = coreWords(query);
+    final qNorm = query.trim().toLowerCase();
+    if (q.isEmpty) {
+      // No Latin core words. If the query still has Latin letters it was all
+      // stop-words, so stay silent (no false alarms). If it has none — a
+      // Chinese name, say — coreWords can't help, so fall back to whole-name
+      // matching, otherwise the warning would be silently dead for CJK users.
+      if (qNorm.isEmpty || RegExp(r'[a-z]').hasMatch(qNorm)) {
+        return (strong: strong, similar: similar);
+      }
+      for (final name in pantryNames) {
+        final n = name.trim().toLowerCase();
+        if (n == qNorm) {
+          strong.add(name);
+        } else if (n.isNotEmpty && (n.contains(qNorm) || qNorm.contains(n))) {
+          similar.add(name);
+        }
+      }
+      return (strong: strong, similar: similar);
+    }
+    for (final name in pantryNames) {
+      final p = coreWords(name);
+      if (p.intersection(q).isEmpty) continue;
+      // Same item: identical core words, or the raw names match once normalized.
+      final sameCore = p.length == q.length && p.difference(q).isEmpty;
+      if (sameCore || name.trim().toLowerCase() == qNorm) {
+        strong.add(name);
+      } else {
+        similar.add(name);
+      }
+    }
+    return (strong: strong, similar: similar);
+  }
+
   /// Splits ingredients into (have, missing) given pantry item names.
   static (List<String> have, List<String> missing) split(
     List<String> ingredients,

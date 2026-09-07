@@ -1322,4 +1322,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get importStoreUseListNone => '沿用清單的設定（未指定商店）';
+
+  @override
+  String get pantryWarnTitleHave => '食品櫃裡已經有了';
+
+  @override
+  String get pantryWarnTitleSimilar => '食品櫃裡有類似的東西';
+
+  @override
+  String get pantryWarnAlready => '你已經有：';
+
+  @override
+  String get pantryWarnSimilar => '你有類似的項目：';
+
+  @override
+  String get pantryWarnAddAnyway => '仍要新增';
 }
