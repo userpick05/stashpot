@@ -1,5 +1,5 @@
 {
-  "version": "1.10.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.10.0/stashpot-1.10.0.apk",
-  "notes": "Add items from a screenshot of another shopping app -- screenshot your cart or order in Meijer, Instacart, Walmart, whatever you use, and Stashpot reads the products off it. Pick up to 5 screenshots so a list longer than one screen works; overlapping scroll positions are recognised as the same list rather than counted twice. Nothing is saved until you review it: uncheck, edit or re-route any row, with a Shopping/Pantry switch for the whole list and a per-row override. Set the store for the list or per item. Rows worth checking are flagged and start unchecked -- already in your pantry, quantity cut off by the screenshot edge, or read twice. Frozen goes to the freezer and dairy/meat to the fridge. One Undo reverses the whole import."
+  "version": "1.11.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.11.0/stashpot-1.11.0.apk",
+  "notes": "Shopping + planner improvements. New: when you add something to the shopping list, Stashpot now warns if you already have it in the pantry (and flags similar items -- type 'chicken' and it shows chicken breast + chicken broth), so you don't double-buy. New items now default to the 'Other' location instead of Pantry. Fixed: shopping items with a slash in the name (e.g. 'sourdough/Italian bread') wouldn't save. Planner: the Month/2-weeks/Week control is now a dropdown showing the current view, plus a little breathing room under the calendar."
 }
