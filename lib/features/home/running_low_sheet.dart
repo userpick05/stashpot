@@ -163,7 +163,7 @@ class _RunningLowTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(categoryIcon(item.category),
+        child: Icon(categoryIconFor(item.category, item.customCategory),
             color: Theme.of(context).colorScheme.onPrimaryContainer),
       ),
       title: Text(item.name),

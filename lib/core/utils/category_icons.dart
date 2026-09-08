@@ -17,6 +17,12 @@ IconData categoryIcon(ItemCategory c) => switch (c) {
       ItemCategory.other => Icons.category,
     };
 
+/// Icon for an item's food type, using a generic tag for user-defined types.
+IconData categoryIconFor(ItemCategory c, String? custom) =>
+    (custom != null && custom.trim().isNotEmpty)
+        ? Icons.sell_outlined
+        : categoryIcon(c);
+
 IconData locationIcon(String key) => switch (key) {
       'fridge' => Icons.kitchen,
       'freezer' => Icons.ac_unit,

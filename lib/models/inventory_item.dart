@@ -56,6 +56,12 @@ class InventoryItem {
   final String? barcode;
   final String? imageUrl;
   final ItemCategory category;
+
+  /// A user-defined food type. When set, it overrides [category] for display,
+  /// grouping and sorting; [category] is left at [ItemCategory.other]. Null =
+  /// use the built-in [category]. Mirrors how custom locations work.
+  final String? customCategory;
+
   final double quantity;
   final String unit;
   final DateTime? expiryDate;
@@ -71,6 +77,7 @@ class InventoryItem {
     this.barcode,
     this.imageUrl,
     required this.category,
+    this.customCategory,
     required this.quantity,
     required this.unit,
     this.expiryDate,
@@ -92,6 +99,9 @@ class InventoryItem {
         (c) => c.name == (d['category'] as String?),
         orElse: () => ItemCategory.other,
       ),
+      customCategory: (d['customCategory'] as String?)?.trim().isNotEmpty == true
+          ? (d['customCategory'] as String).trim()
+          : null,
       quantity: (d['quantity'] as num?)?.toDouble() ?? 1.0,
       unit: d['unit'] as String? ?? 'item',
       expiryDate: (d['expiryDate'] as Timestamp?)?.toDate(),
@@ -110,6 +120,7 @@ class InventoryItem {
         if (barcode != null) 'barcode': barcode,
         if (imageUrl != null) 'imageUrl': imageUrl,
         'category': category.name,
+        if (customCategory != null) 'customCategory': customCategory,
         'quantity': quantity,
         'unit': unit,
         if (expiryDate != null) 'expiryDate': Timestamp.fromDate(expiryDate!),
@@ -127,6 +138,7 @@ class InventoryItem {
         barcode: barcode,
         imageUrl: imageUrl,
         category: category,
+        customCategory: customCategory,
         quantity: quantity ?? this.quantity,
         unit: unit,
         expiryDate: expiryDate,

@@ -61,7 +61,7 @@ class InventoryItemCard extends StatelessWidget {
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Icon(categoryIcon(item.category),
+          child: Icon(categoryIconFor(item.category, item.customCategory),
               color: Theme.of(context).colorScheme.onPrimaryContainer),
         ),
         title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600)),

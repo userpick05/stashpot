@@ -109,6 +109,32 @@ class FirestoreService {
         'stores': FieldValue.arrayRemove([name]),
       });
 
+  // ── Custom food types (shared list per household) ────────────────────────
+
+  Stream<List<String>> categoriesStream(String householdId) => _db
+      .collection('households')
+      .doc(householdId)
+      .snapshots()
+      .map((s) {
+        final list =
+            (s.data()?['categories'] as List?)?.cast<String>() ?? const [];
+        return list..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      });
+
+  Future<void> addCategory(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'categories': FieldValue.arrayUnion([name]),
+      }, SetOptions(merge: true));
+
+  Future<void> removeCategory(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'categories': FieldValue.arrayRemove([name]),
+      }, SetOptions(merge: true));
+
   // ── Custom locations (shared list per household) ─────────────────────────
 
   Stream<List<String>> locationsStream(String householdId) => _db

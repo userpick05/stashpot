@@ -45,6 +45,13 @@ final allLocationKeysProvider = Provider<List<String>>((ref) {
   return result;
 });
 
+// User-created food types for the household (beyond the built-in categories).
+final customCategoriesProvider = StreamProvider<List<String>>((ref) {
+  final householdId = ref.watch(householdIdProvider);
+  if (householdId == null) return Stream.value([]);
+  return ref.watch(firestoreServiceProvider).categoriesStream(householdId);
+});
+
 // Catalog of previously-added items, for the reorder screen.
 final catalogProvider = StreamProvider<List<CatalogItem>>((ref) {
   final householdId = ref.watch(householdIdProvider);

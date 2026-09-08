@@ -3,6 +3,23 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.13.0
+
+### Changed
+- **The "Pantry" tab is now "Stash List."** Same list, new name that suits the
+  app. (The "Pantry" *storage location* is unchanged — items can still live in
+  the Fridge / Freezer / Pantry / Other.)
+- **Shopping list groups by food type within each store.** Sorted by store
+  first, then clustered by food type with small headers, so when you're in one
+  area of the store you can focus on just those items.
+
+### Added
+- **Your own food types.** Beyond the built-in categories, you can add custom
+  food types (e.g. "Pet", "Baby", "Spices") from the food-type dropdown when
+  adding or editing an item — shared across your household, like custom
+  locations. They group in the Stash List and sort the shopping list the same
+  as the built-ins.
+
 ## v1.12.0
 
 ### Changed

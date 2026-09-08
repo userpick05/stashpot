@@ -18,6 +18,7 @@ class ShoppingItem {
 
   // Carried so nothing is lost moving to/from the pantry.
   final ItemCategory category;
+  final String? customCategory; // user-defined food type; overrides category
   final String unit;
   final String? location; // optional on the shopping side; null = not set
   final DateTime? expiryDate;
@@ -35,6 +36,7 @@ class ShoppingItem {
     this.note,
     required this.checked,
     this.category = ItemCategory.other,
+    this.customCategory,
     this.unit = 'item',
     this.location,
     this.expiryDate,
@@ -55,6 +57,7 @@ class ShoppingItem {
     String? note,
     bool? checked,
     ItemCategory? category,
+    String? customCategory,
     String? unit,
     String? location,
     DateTime? expiryDate,
@@ -69,6 +72,7 @@ class ShoppingItem {
         note: note ?? this.note,
         checked: checked ?? this.checked,
         category: category ?? this.category,
+        customCategory: customCategory ?? this.customCategory,
         unit: unit ?? this.unit,
         location: location ?? this.location,
         expiryDate: expiryDate ?? this.expiryDate,
@@ -91,6 +95,9 @@ class ShoppingItem {
         (c) => c.name == (d['category'] as String?),
         orElse: () => ItemCategory.other,
       ),
+      customCategory: (d['customCategory'] as String?)?.trim().isNotEmpty == true
+          ? (d['customCategory'] as String).trim()
+          : null,
       unit: d['unit'] as String? ?? 'item',
       location: (d['location'] as String?)?.trim().isNotEmpty == true
           ? (d['location'] as String).trim()
@@ -111,6 +118,7 @@ class ShoppingItem {
         'checked': checked,
         // Only write the extras when they carry meaning, keeping docs lean.
         if (category != ItemCategory.other) 'category': category.name,
+        if (customCategory != null) 'customCategory': customCategory,
         if (unit != 'item') 'unit': unit,
         if (location != null) 'location': location,
         if (expiryDate != null) 'expiryDate': Timestamp.fromDate(expiryDate!),
@@ -136,6 +144,7 @@ class ShoppingItem {
         note: item.notes,
         checked: false,
         category: item.category,
+        customCategory: item.customCategory,
         unit: item.unit,
         location: item.location,
         expiryDate: item.expiryDate,
@@ -159,9 +168,14 @@ class ShoppingItem {
         name: name,
         barcode: barcode,
         imageUrl: imageUrl,
-        category: category != ItemCategory.other
-            ? category
-            : (categoryFallback ?? ItemCategory.other),
+        // A custom food type wins; else the enum, or the guess fallback when
+        // the card had neither.
+        category: customCategory != null
+            ? ItemCategory.other
+            : (category != ItemCategory.other
+                ? category
+                : (categoryFallback ?? ItemCategory.other)),
+        customCategory: customCategory,
         quantity: quantity,
         unit: unit,
         expiryDate: expiryDate,

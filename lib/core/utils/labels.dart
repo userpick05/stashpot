@@ -19,6 +19,13 @@ String categoryLabelOf(AppLocalizations l, ItemCategory c) => switch (c) {
       ItemCategory.other => l.categoryOther,
     };
 
+/// The food type to SHOW for an item: a user-defined [custom] type wins,
+/// otherwise the built-in [c]'s localized label.
+String categoryDisplay(AppLocalizations l, ItemCategory c, String? custom) =>
+    (custom != null && custom.trim().isNotEmpty)
+        ? custom.trim()
+        : categoryLabelOf(l, c);
+
 /// Localized label for a location key. Custom household locations — which the
 /// user typed themselves, possibly in Chinese — pass through unchanged.
 String locationLabelOf(AppLocalizations l, String key) => switch (key) {

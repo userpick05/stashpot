@@ -10,6 +10,7 @@ import '../../core/utils/category_icons.dart';
 import '../../core/utils/labels.dart';
 import '../../core/utils/pantry_match.dart';
 import '../../l10n/app_localizations.dart';
+import '../inventory/food_type_field.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 
@@ -34,6 +35,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
 
   // Same optional fields a pantry item has, so a card carries everything.
   ItemCategory _category = ItemCategory.other;
+  String? _customCategory;
   String _unit = 'item';
   String? _location; // optional on the shopping side
   DateTime? _expiryDate;
@@ -141,6 +143,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
       _noteCtrl.text = e.note ?? '';
       _quantity = e.quantity.round().clamp(1, 999);
       _category = e.category;
+      _customCategory = e.customCategory;
       _unit = _units.contains(e.unit) ? e.unit : _units.first;
       _location = e.location;
       _expiryDate = e.expiryDate;
@@ -343,6 +346,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
         note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
         checked: e?.checked ?? false,
         category: _category,
+        customCategory: _customCategory,
         unit: _unit,
         location: _location,
         expiryDate: _expiryDate,
@@ -474,26 +478,36 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
             onChanged: (v) => setState(() => _unit = v ?? _unit),
           ),
           const SizedBox(height: 12),
-          DropdownButtonFormField<ItemCategory>(
-            initialValue: _category,
-            decoration: InputDecoration(
-              labelText: l.addItemFoodTypeLabel,
-              border: const OutlineInputBorder(),
-            ),
-            items: [
-              for (final c in kPickableCategories.contains(_category)
-                  ? kPickableCategories
-                  : [...kPickableCategories, _category])
-                DropdownMenuItem(
-                  value: c,
-                  child: Row(children: [
-                    Icon(categoryIcon(c), size: 18),
-                    const SizedBox(width: 8),
-                    Text(categoryLabelOf(l, c)),
-                  ]),
-                ),
-            ],
-            onChanged: (v) => setState(() => _category = v ?? _category),
+          FoodTypeField(
+            category: _category,
+            customCategory: _customCategory,
+            customTypes:
+                ref.watch(customCategoriesProvider).valueOrNull ?? const [],
+            onBuiltin: (c) => setState(() {
+              _category = c;
+              _customCategory = null;
+            }),
+            onCustom: (name) => setState(() {
+              _customCategory = name;
+              _category = ItemCategory.other;
+            }),
+            onAddNew: () async {
+              final existing =
+                  ref.read(customCategoriesProvider).valueOrNull ?? const [];
+              final name = await promptNewFoodType(context, existing: existing);
+              if (name == null) return;
+              final hid = ref.read(householdIdProvider);
+              if (hid != null &&
+                  !existing.any((e) => e.toLowerCase() == name.toLowerCase())) {
+                await ref.read(firestoreServiceProvider).addCategory(hid, name);
+              }
+              if (mounted) {
+                setState(() {
+                  _customCategory = name;
+                  _category = ItemCategory.other;
+                });
+              }
+            },
           ),
           const SizedBox(height: 12),
           Builder(builder: (context) {
