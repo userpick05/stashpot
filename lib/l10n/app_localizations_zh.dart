@@ -18,7 +18,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navHome => '首頁';
 
   @override
-  String get navPantry => '食品櫃';
+  String get navPantry => '庫存';
 
   @override
   String get navShopping => '購物清單';
@@ -267,7 +267,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeShoppingList => '購物清單';
 
   @override
-  String get homeAddToPantry => '加入食品櫃';
+  String get homeAddToPantry => '加入庫存';
 
   @override
   String get homeAddItem => '新增項目';
@@ -377,7 +377,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inviteTitle => '邀請你的夥伴';
 
   @override
-  String get inviteBody => '分享這組代碼，讓對方加入你的食品櫃。對方先註冊自己的帳號，再到「加入既有的家庭」輸入這組代碼。';
+  String get inviteBody => '分享這組代碼，讓對方加入你的庫存。對方先註冊自己的帳號，再到「加入既有的家庭」輸入這組代碼。';
 
   @override
   String get inviteCopyCode => '複製邀請碼';
@@ -417,7 +417,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pantryGroupByStore => '依商店分組';
 
   @override
-  String get pantryEmptyTitle => '你的食品櫃是空的';
+  String get pantryEmptyTitle => '你的庫存清單是空的';
 
   @override
   String get pantryEmptySubtitle => '點按 + 新增第一項物品';
@@ -438,7 +438,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get pantrySearchHint => '搜尋食品櫃…';
+  String get pantrySearchHint => '搜尋庫存…';
 
   @override
   String get pantryAddItemFab => '新增項目';
@@ -476,7 +476,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pantryAddToShoppingList => '加入購物清單';
 
   @override
-  String get pantryMoveToShoppingList => '從食品櫃移除並加入購物清單';
+  String get pantryMoveToShoppingList => '從庫存移除並加入購物清單';
 
   @override
   String get pantryViewPhoto => '檢視照片';
@@ -630,7 +630,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get addItemSaveChanges => '儲存變更';
 
   @override
-  String get addItemAddToPantry => '加入食品櫃';
+  String get addItemAddToPantry => '加入庫存';
 
   @override
   String get qtySheetTitle => '數量';
@@ -640,7 +640,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String qtyMoveAvailable(String amount) {
-    return '你目前有 $amount。其餘會留在食品櫃。';
+    return '你目前有 $amount。其餘會留在庫存中。';
   }
 
   @override
@@ -964,13 +964,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get findRecipesSearchButton => '搜尋';
 
   @override
-  String get findRecipesFromPantry => '用食品櫃裡的食材能做什麼？';
+  String get findRecipesFromPantry => '我的庫存能做什麼料理？';
 
   @override
   String get findRecipesNoResults => '找不到食譜 — 請換個關鍵字試試';
 
   @override
-  String get findRecipesPantryEmpty => '你的食品櫃是空的 — 請先新增一些項目';
+  String get findRecipesPantryEmpty => '你的庫存清單是空的 — 請先加入一些項目';
 
   @override
   String get findRecipesNoLink => '這道食譜沒有網頁連結';
@@ -984,7 +984,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get findRecipesEmptyHint => '搜尋料理名稱，或點選「用食品櫃裡的食材能做什麼」\n從你現有的食材找靈感。';
+  String get findRecipesEmptyHint => '搜尋料理名稱，或點選「我的庫存能做什麼料理？」\n從你現有的食材找靈感。';
 
   @override
   String get findRecipesHaveAll => '你的食材都齊全了！';
@@ -1003,7 +1003,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shoppingReorderTooltip => '再次購買先前的項目';
 
   @override
-  String get shoppingMoveToPantryTooltip => '把已勾選的移入食品櫃';
+  String get shoppingMoveToPantryTooltip => '將已勾選項目移到庫存';
 
   @override
   String get shoppingClearCheckedTooltip => '清除已勾選的項目';
@@ -1026,7 +1026,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String shoppingDupPantryTitle(String name) {
-    return '「$name」已在食品櫃中';
+    return '「$name」已經在你的庫存中';
   }
 
   @override
@@ -1037,7 +1037,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String shoppingPantryUpdated(String summary) {
-    return '食品櫃已更新 — $summary';
+    return '庫存已更新：$summary';
   }
 
   @override
@@ -1172,7 +1172,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get runningLowSearchHint => '搜尋要加入清單的項目…';
 
   @override
-  String get runningLowPantryEmpty => '你的食品櫃是空的';
+  String get runningLowPantryEmpty => '你的庫存清單是空的';
 
   @override
   String runningLowAddToList(String name) {
@@ -1217,7 +1217,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importToShopping => '購物清單';
 
   @override
-  String get importToPantry => '食品櫃';
+  String get importToPantry => '庫存';
 
   @override
   String get importSelectAll => '全選';
@@ -1236,7 +1236,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String importAdded(int pantry, int shopping) {
-    return '已新增 $pantry 項到食品櫃、$shopping 項到購物清單';
+    return '已新增 $pantry 項到庫存、$shopping 項到購物清單';
   }
 
   @override
@@ -1263,7 +1263,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String importConfirmPantry(int count) {
-    return '新增 $count 項到食品櫃';
+    return '新增 $count 項到庫存';
   }
 
   @override
@@ -1273,7 +1273,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String importConfirmBoth(int pantry, int shopping) {
-    return '新增 食品櫃 $pantry 項、購物清單 $shopping 項';
+    return '庫存 $pantry 項、購物清單 $shopping 項';
   }
 
   @override
@@ -1281,7 +1281,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String importAddedPantry(int count) {
-    return '已新增 $count 項到食品櫃';
+    return '已新增 $count 項到庫存';
   }
 
   @override
@@ -1324,10 +1324,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importStoreUseListNone => '沿用清單的設定（未指定商店）';
 
   @override
-  String get pantryWarnTitleHave => '食品櫃裡已經有了';
+  String get pantryWarnTitleHave => '庫存裡已經有了';
 
   @override
-  String get pantryWarnTitleSimilar => '食品櫃裡有類似的東西';
+  String get pantryWarnTitleSimilar => '庫存裡有類似的東西';
 
   @override
   String get pantryWarnAlready => '你已經有：';
@@ -1340,4 +1340,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get shoppingLocationNone => '不指定位置';
+
+  @override
+  String get addItemAddFoodType => '新增食品分類…';
+
+  @override
+  String get addItemNewFoodTypeTitle => '新增食品分類';
+
+  @override
+  String get addItemNewFoodTypeHint => '例如：嬰兒用品、寵物、香料';
 }

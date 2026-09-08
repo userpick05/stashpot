@@ -18,7 +18,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navHome => 'Home';
 
   @override
-  String get navPantry => 'Pantry';
+  String get navPantry => 'Stash';
 
   @override
   String get navShopping => 'Shopping';
@@ -178,7 +178,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsInviteSubtitle => 'Share your household invite code';
 
   @override
-  String get settingsPantryLocations => 'Pantry locations';
+  String get settingsPantryLocations => 'Storage locations';
 
   @override
   String get settingsPantryLocationsSubtitle =>
@@ -269,7 +269,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeShoppingList => 'Shopping list';
 
   @override
-  String get homeAddToPantry => 'Add to pantry';
+  String get homeAddToPantry => 'Add to Stash List';
 
   @override
   String get homeAddItem => 'Add item';
@@ -382,7 +382,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inviteBody =>
-      'Share this code so they can join your pantry. They register their own account, then enter it under \"Join an existing household\".';
+      'Share this code so they can join your stash. They register their own account, then enter it under \"Join an existing household\".';
 
   @override
   String get inviteCopyCode => 'Copy code';
@@ -422,7 +422,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pantryGroupByStore => 'Group by store';
 
   @override
-  String get pantryEmptyTitle => 'Your pantry is empty';
+  String get pantryEmptyTitle => 'Your Stash List is empty';
 
   @override
   String get pantryEmptySubtitle => 'Tap + to add your first item';
@@ -444,7 +444,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get pantrySearchHint => 'Search pantry…';
+  String get pantrySearchHint => 'Search your stash…';
 
   @override
   String get pantryAddItemFab => 'Add item';
@@ -485,7 +485,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pantryMoveToShoppingList =>
-      'Remove from pantry & add to shopping list';
+      'Remove from stash & add to shopping list';
 
   @override
   String get pantryViewPhoto => 'View photo';
@@ -644,7 +644,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addItemSaveChanges => 'Save changes';
 
   @override
-  String get addItemAddToPantry => 'Add to pantry';
+  String get addItemAddToPantry => 'Add to Stash List';
 
   @override
   String get qtySheetTitle => 'Quantity';
@@ -654,7 +654,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String qtyMoveAvailable(String amount) {
-    return 'You have $amount. The rest stays in your pantry.';
+    return 'You have $amount. The rest stays in your Stash List.';
   }
 
   @override
@@ -989,14 +989,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get findRecipesSearchButton => 'Search';
 
   @override
-  String get findRecipesFromPantry => 'What can I make from my pantry?';
+  String get findRecipesFromPantry => 'What can I make from my stash?';
 
   @override
   String get findRecipesNoResults => 'No recipes found — try different terms';
 
   @override
   String get findRecipesPantryEmpty =>
-      'Your pantry is empty — add some items first';
+      'Your Stash List is empty — add some items first';
 
   @override
   String get findRecipesNoLink => 'No web link for this recipe';
@@ -1011,7 +1011,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get findRecipesEmptyHint =>
-      'Search for a dish, or tap \"What can I make\"\nfor ideas from what you have.';
+      'Search for a dish, or tap \"What can I make from my stash?\"\nfor ideas from what you have.';
 
   @override
   String get findRecipesHaveAll => 'You have everything!';
@@ -1031,7 +1031,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingReorderTooltip => 'Reorder previous items';
 
   @override
-  String get shoppingMoveToPantryTooltip => 'Move checked to pantry';
+  String get shoppingMoveToPantryTooltip => 'Move checked to Stash List';
 
   @override
   String get shoppingClearCheckedTooltip => 'Clear checked items';
@@ -1055,7 +1055,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String shoppingDupPantryTitle(String name) {
-    return '\"$name\" is already in your pantry';
+    return '\"$name\" is already in your stash';
   }
 
   @override
@@ -1067,7 +1067,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String shoppingPantryUpdated(String summary) {
-    return 'Pantry updated — $summary';
+    return 'Stash updated — $summary';
   }
 
   @override
@@ -1206,7 +1206,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningLowSearchHint => 'Find an item to add to the list…';
 
   @override
-  String get runningLowPantryEmpty => 'Your pantry is empty';
+  String get runningLowPantryEmpty => 'Your Stash List is empty';
 
   @override
   String runningLowAddToList(String name) {
@@ -1253,7 +1253,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importToShopping => 'Shopping';
 
   @override
-  String get importToPantry => 'Pantry';
+  String get importToPantry => 'Stash';
 
   @override
   String get importSelectAll => 'Select all';
@@ -1272,7 +1272,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String importAdded(int pantry, int shopping) {
-    return 'Added $pantry to the pantry, $shopping to shopping';
+    return 'Added $pantry to your stash, $shopping to shopping';
   }
 
   @override
@@ -1300,7 +1300,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String importConfirmPantry(int count) {
-    return 'Add $count to pantry';
+    return 'Add $count to Stash List';
   }
 
   @override
@@ -1310,7 +1310,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String importConfirmBoth(int pantry, int shopping) {
-    return 'Add $pantry to pantry, $shopping to shopping';
+    return 'Add $pantry to stash, $shopping to shopping';
   }
 
   @override
@@ -1318,7 +1318,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String importAddedPantry(int count) {
-    return 'Added $count to the pantry';
+    return 'Added $count to your stash';
   }
 
   @override
@@ -1361,10 +1361,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importStoreUseListNone => 'Use the list\'s store (none)';
 
   @override
-  String get pantryWarnTitleHave => 'Already in your pantry';
+  String get pantryWarnTitleHave => 'Already in your Stash List';
 
   @override
-  String get pantryWarnTitleSimilar => 'Similar items in your pantry';
+  String get pantryWarnTitleSimilar => 'Similar items in your Stash List';
 
   @override
   String get pantryWarnAlready => 'You already have:';
@@ -1377,4 +1377,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shoppingLocationNone => 'No location';
+
+  @override
+  String get addItemAddFoodType => 'Add food type…';
+
+  @override
+  String get addItemNewFoodTypeTitle => 'New food type';
+
+  @override
+  String get addItemNewFoodTypeHint => 'e.g. Baby, Pet, Spices';
 }

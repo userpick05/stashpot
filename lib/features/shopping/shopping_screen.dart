@@ -6,6 +6,8 @@ import '../../core/providers/inventory_providers.dart';
 import '../../core/utils/category_guess.dart';
 import '../../core/widgets/swipe_to_delete.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/category_icons.dart';
+import '../../core/utils/labels.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 import 'add_shopping_item_sheet.dart';
@@ -167,21 +169,55 @@ class ShoppingScreen extends ConsumerWidget {
   // stored; the header text goes through l.noStoreGroup.
   static const _noStoreKey = 'Other / no store';
 
-  Map<String, List<ShoppingItem>> _groupByStore(List<ShoppingItem> items) {
+  Map<String, List<ShoppingItem>> _groupByStore(
+      List<ShoppingItem> items, AppLocalizations l) {
     final groups = <String, List<ShoppingItem>>{};
     for (final item in items) {
       final key =
           (item.store != null && item.store!.trim().isNotEmpty) ? item.store! : _noStoreKey;
       groups.putIfAbsent(key, () => []).add(item);
     }
-    // Within each store: unchecked first, then checked.
+    // Within each store, group by store first (already done) then by food type,
+    // so you can knock out one area of the store at a time. Checked items still
+    // sink to the bottom; ties break by name.
+    String typeKey(ShoppingItem i) =>
+        categoryDisplay(l, i.category, i.customCategory).toLowerCase();
     for (final list in groups.values) {
       list.sort((a, b) {
         if (a.checked != b.checked) return a.checked ? 1 : -1;
-        return a.addedAt.compareTo(b.addedAt);
+        final t = typeKey(a).compareTo(typeKey(b));
+        if (t != 0) return t;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
     }
     return groups;
+  }
+
+  // Rows for one store: the item tiles, with a small food-type sub-header
+  // before each new type — so within a store you can see and focus on one area
+  // (dairy, produce, …) at a time. Skipped when a store has only one type,
+  // where a lone header would just be noise.
+  List<Widget> _storeRows(BuildContext context, AppLocalizations l,
+      List<ShoppingItem> items, String? householdId) {
+    final distinctTypes = items
+        .map((i) => categoryDisplay(l, i.category, i.customCategory).toLowerCase())
+        .toSet()
+        .length;
+    final rows = <Widget>[];
+    String? prevType;
+    for (final item in items) {
+      if (distinctTypes > 1) {
+        final label = categoryDisplay(l, item.category, item.customCategory);
+        if (label.toLowerCase() != prevType) {
+          rows.add(_FoodTypeSubheader(
+              label: label,
+              icon: categoryIconFor(item.category, item.customCategory)));
+          prevType = label.toLowerCase();
+        }
+      }
+      rows.add(_ShoppingTile(item: item, householdId: householdId));
+    }
+    return rows;
   }
 
   List<String> _sortedStoreKeys(Map<String, List<ShoppingItem>> groups) {
@@ -288,7 +324,7 @@ class ShoppingScreen extends ConsumerWidget {
             );
           }
 
-          final groups = _groupByStore(items);
+          final groups = _groupByStore(items, l);
           final storeKeys = _sortedStoreKeys(groups);
 
           return ListView(
@@ -315,8 +351,7 @@ class ShoppingScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                for (final item in groups[store]!)
-                  _ShoppingTile(item: item, householdId: householdId),
+                ..._storeRows(context, l, groups[store]!, householdId),
               ],
             ],
           );
@@ -397,6 +432,29 @@ class _ShoppingTile extends ConsumerWidget {
           ],
         ),
         subtitle: item.note != null ? Text(item.note!) : null,
+      ),
+    );
+  }
+}
+
+/// A small, muted food-type divider shown within a store's items.
+class _FoodTypeSubheader extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  const _FoodTypeSubheader({required this.label, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Theme.of(context).colorScheme.outline;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 16, 2),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: c),
+          const SizedBox(width: 6),
+          Text(label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: c)),
+        ],
       ),
     );
   }

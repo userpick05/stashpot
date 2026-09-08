@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @navPantry.
   ///
   /// In en, this message translates to:
-  /// **'Pantry'**
+  /// **'Stash'**
   String get navPantry;
 
   /// No description provided for @navShopping.
@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPantryLocations.
   ///
   /// In en, this message translates to:
-  /// **'Pantry locations'**
+  /// **'Storage locations'**
   String get settingsPantryLocations;
 
   /// No description provided for @settingsPantryLocationsSubtitle.
@@ -599,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeAddToPantry.
   ///
   /// In en, this message translates to:
-  /// **'Add to pantry'**
+  /// **'Add to Stash List'**
   String get homeAddToPantry;
 
   /// No description provided for @homeAddItem.
@@ -815,7 +815,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteBody.
   ///
   /// In en, this message translates to:
-  /// **'Share this code so they can join your pantry. They register their own account, then enter it under \"Join an existing household\".'**
+  /// **'Share this code so they can join your stash. They register their own account, then enter it under \"Join an existing household\".'**
   String get inviteBody;
 
   /// No description provided for @inviteCopyCode.
@@ -887,7 +887,7 @@ abstract class AppLocalizations {
   /// No description provided for @pantryEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your pantry is empty'**
+  /// **'Your Stash List is empty'**
   String get pantryEmptyTitle;
 
   /// No description provided for @pantryEmptySubtitle.
@@ -911,7 +911,7 @@ abstract class AppLocalizations {
   /// No description provided for @pantrySearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search pantry…'**
+  /// **'Search your stash…'**
   String get pantrySearchHint;
 
   /// No description provided for @pantryAddItemFab.
@@ -959,7 +959,7 @@ abstract class AppLocalizations {
   /// No description provided for @pantryMoveToShoppingList.
   ///
   /// In en, this message translates to:
-  /// **'Remove from pantry & add to shopping list'**
+  /// **'Remove from stash & add to shopping list'**
   String get pantryMoveToShoppingList;
 
   /// No description provided for @pantryViewPhoto.
@@ -1229,7 +1229,7 @@ abstract class AppLocalizations {
   /// No description provided for @addItemAddToPantry.
   ///
   /// In en, this message translates to:
-  /// **'Add to pantry'**
+  /// **'Add to Stash List'**
   String get addItemAddToPantry;
 
   /// No description provided for @qtySheetTitle.
@@ -1247,7 +1247,7 @@ abstract class AppLocalizations {
   /// No description provided for @qtyMoveAvailable.
   ///
   /// In en, this message translates to:
-  /// **'You have {amount}. The rest stays in your pantry.'**
+  /// **'You have {amount}. The rest stays in your Stash List.'**
   String qtyMoveAvailable(String amount);
 
   /// No description provided for @qtyMoveAll.
@@ -1775,7 +1775,7 @@ abstract class AppLocalizations {
   /// No description provided for @findRecipesFromPantry.
   ///
   /// In en, this message translates to:
-  /// **'What can I make from my pantry?'**
+  /// **'What can I make from my stash?'**
   String get findRecipesFromPantry;
 
   /// No description provided for @findRecipesNoResults.
@@ -1787,7 +1787,7 @@ abstract class AppLocalizations {
   /// No description provided for @findRecipesPantryEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Your pantry is empty — add some items first'**
+  /// **'Your Stash List is empty — add some items first'**
   String get findRecipesPantryEmpty;
 
   /// No description provided for @findRecipesNoLink.
@@ -1811,7 +1811,7 @@ abstract class AppLocalizations {
   /// No description provided for @findRecipesEmptyHint.
   ///
   /// In en, this message translates to:
-  /// **'Search for a dish, or tap \"What can I make\"\nfor ideas from what you have.'**
+  /// **'Search for a dish, or tap \"What can I make from my stash?\"\nfor ideas from what you have.'**
   String get findRecipesEmptyHint;
 
   /// No description provided for @findRecipesHaveAll.
@@ -1835,7 +1835,7 @@ abstract class AppLocalizations {
   /// No description provided for @shoppingMoveToPantryTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Move checked to pantry'**
+  /// **'Move checked to Stash List'**
   String get shoppingMoveToPantryTooltip;
 
   /// No description provided for @shoppingClearCheckedTooltip.
@@ -1865,7 +1865,7 @@ abstract class AppLocalizations {
   /// No description provided for @shoppingDupPantryTitle.
   ///
   /// In en, this message translates to:
-  /// **'\"{name}\" is already in your pantry'**
+  /// **'\"{name}\" is already in your stash'**
   String shoppingDupPantryTitle(String name);
 
   /// No description provided for @shoppingDupPantryBody.
@@ -1883,7 +1883,7 @@ abstract class AppLocalizations {
   /// No description provided for @shoppingPantryUpdated.
   ///
   /// In en, this message translates to:
-  /// **'Pantry updated — {summary}'**
+  /// **'Stash updated — {summary}'**
   String shoppingPantryUpdated(String summary);
 
   /// No description provided for @shoppingSummaryAdded.
@@ -2093,7 +2093,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningLowPantryEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Your pantry is empty'**
+  /// **'Your Stash List is empty'**
   String get runningLowPantryEmpty;
 
   /// No description provided for @runningLowAddToList.
@@ -2171,7 +2171,7 @@ abstract class AppLocalizations {
   /// No description provided for @importToPantry.
   ///
   /// In en, this message translates to:
-  /// **'Pantry'**
+  /// **'Stash'**
   String get importToPantry;
 
   /// No description provided for @importSelectAll.
@@ -2207,7 +2207,7 @@ abstract class AppLocalizations {
   /// No description provided for @importAdded.
   ///
   /// In en, this message translates to:
-  /// **'Added {pantry} to the pantry, {shopping} to shopping'**
+  /// **'Added {pantry} to your stash, {shopping} to shopping'**
   String importAdded(int pantry, int shopping);
 
   /// No description provided for @homeImportScreenshots.
@@ -2249,7 +2249,7 @@ abstract class AppLocalizations {
   /// No description provided for @importConfirmPantry.
   ///
   /// In en, this message translates to:
-  /// **'Add {count} to pantry'**
+  /// **'Add {count} to Stash List'**
   String importConfirmPantry(int count);
 
   /// No description provided for @importConfirmShopping.
@@ -2261,7 +2261,7 @@ abstract class AppLocalizations {
   /// No description provided for @importConfirmBoth.
   ///
   /// In en, this message translates to:
-  /// **'Add {pantry} to pantry, {shopping} to shopping'**
+  /// **'Add {pantry} to stash, {shopping} to shopping'**
   String importConfirmBoth(int pantry, int shopping);
 
   /// No description provided for @importRepeatedRow.
@@ -2273,7 +2273,7 @@ abstract class AppLocalizations {
   /// No description provided for @importAddedPantry.
   ///
   /// In en, this message translates to:
-  /// **'Added {count} to the pantry'**
+  /// **'Added {count} to your stash'**
   String importAddedPantry(int count);
 
   /// No description provided for @importAddedShopping.
@@ -2345,13 +2345,13 @@ abstract class AppLocalizations {
   /// No description provided for @pantryWarnTitleHave.
   ///
   /// In en, this message translates to:
-  /// **'Already in your pantry'**
+  /// **'Already in your Stash List'**
   String get pantryWarnTitleHave;
 
   /// No description provided for @pantryWarnTitleSimilar.
   ///
   /// In en, this message translates to:
-  /// **'Similar items in your pantry'**
+  /// **'Similar items in your Stash List'**
   String get pantryWarnTitleSimilar;
 
   /// No description provided for @pantryWarnAlready.
@@ -2377,6 +2377,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No location'**
   String get shoppingLocationNone;
+
+  /// No description provided for @addItemAddFoodType.
+  ///
+  /// In en, this message translates to:
+  /// **'Add food type…'**
+  String get addItemAddFoodType;
+
+  /// No description provided for @addItemNewFoodTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New food type'**
+  String get addItemNewFoodTypeTitle;
+
+  /// No description provided for @addItemNewFoodTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Baby, Pet, Spices'**
+  String get addItemNewFoodTypeHint;
 }
 
 class _AppLocalizationsDelegate

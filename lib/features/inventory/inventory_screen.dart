@@ -39,7 +39,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     return items.where((i) {
       return i.name.toLowerCase().contains(q) ||
           locationLabelOf(l, i.location).toLowerCase().contains(q) ||
-          categoryLabelOf(l, i.category).toLowerCase().contains(q) ||
+          categoryDisplay(l, i.category, i.customCategory).toLowerCase().contains(q) ||
           (i.store?.toLowerCase().contains(q) ?? false);
     }).toList();
   }
@@ -95,9 +95,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         ));
       }
     } else {
-      final order = [...kPickableCategories, ItemCategory.produce];
-      for (final cat in order) {
-        final group = items.where((i) => i.category == cat).toList()
+      // Group by effective food type: built-ins in enum order first, then the
+      // household's custom types alphabetically. A custom type overrides the
+      // enum, so an item with customCategory lands only in its custom group.
+      bool isCustom(InventoryItem i) =>
+          i.customCategory != null && i.customCategory!.trim().isNotEmpty;
+      for (final cat in [...kPickableCategories, ItemCategory.produce]) {
+        final group = items
+            .where((i) => !isCustom(i) && i.category == cat)
+            .toList()
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         if (group.isNotEmpty) {
           result.add((
@@ -107,6 +113,29 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             items: group
           ));
         }
+      }
+      // Case-insensitive dedup, keeping the first spelling seen, so "Pet" and
+      // "pet" collapse into ONE group instead of rendering each item twice.
+      final customKeys = <String>[];
+      final seenCustom = <String>{};
+      for (final i in items.where(isCustom)) {
+        final name = i.customCategory!.trim();
+        if (seenCustom.add(name.toLowerCase())) customKeys.add(name);
+      }
+      customKeys.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      for (final name in customKeys) {
+        final group = items
+            .where((i) =>
+                isCustom(i) &&
+                i.customCategory!.trim().toLowerCase() == name.toLowerCase())
+            .toList()
+          ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        result.add((
+          id: 'cat-custom-$name',
+          label: name,
+          icon: Icons.sell_outlined,
+          items: group
+        ));
       }
     }
     return result;
@@ -250,7 +279,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 child: InventoryItemCard(
                   item: item,
                   secondaryLabel: groupBy == InventoryGroupBy.location
-                      ? categoryLabelOf(l, item.category)
+                      ? categoryDisplay(l, item.category, item.customCategory)
                       : locationLabelOf(l, item.location),
                   onTap: () => context.push('/inventory/edit', extra: item),
                   onTapQuantity: () => showQuantityEditSheet(context, ref, item),

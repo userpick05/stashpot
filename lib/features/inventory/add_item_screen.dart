@@ -13,6 +13,7 @@ import '../../core/utils/category_icons.dart';
 import '../../core/utils/labels.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
+import 'food_type_field.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   /// When non-null, the screen edits this existing item instead of adding.
@@ -33,6 +34,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final _notesCtrl = TextEditingController();
 
   ItemCategory _category = ItemCategory.other;
+  String? _customCategory;
   String _location = kDefaultLocationKey;
   String _unit = 'item';
   DateTime? _expiryDate;
@@ -58,6 +60,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       _storeCtrl.text = e.store ?? '';
       _notesCtrl.text = e.notes ?? '';
       _category = e.category;
+      _customCategory = e.customCategory;
       _location = e.location;
       _unit = _units.contains(e.unit) ? e.unit : _units.first;
       _expiryDate = e.expiryDate;
@@ -496,6 +499,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         barcode: _barcode,
         imageUrl: _imageUrl,
         category: _category,
+        customCategory: _customCategory,
         quantity: double.tryParse(_qtyCtrl.text) ?? 1,
         unit: _unit,
         location: _location,
@@ -630,31 +634,42 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             const SizedBox(height: 16),
 
             // Category (food type) — auto-detected, tap to override
-            DropdownButtonFormField<ItemCategory>(
-              value: _category,
-              decoration: InputDecoration(
-                labelText: l.addItemFoodTypeLabel,
-                border: const OutlineInputBorder(),
-              ),
-              items: [
-                for (final c in kPickableCategories.contains(_category)
-                    ? kPickableCategories
-                    : [...kPickableCategories, _category])
-                  DropdownMenuItem(
-                    value: c,
-                    child: Row(
-                      children: [
-                        Icon(categoryIcon(c), size: 18),
-                        const SizedBox(width: 8),
-                        Text(categoryLabelOf(l, c)),
-                      ],
-                    ),
-                  ),
-              ],
-              onChanged: (v) => setState(() {
-                _category = v!;
+            FoodTypeField(
+              category: _category,
+              customCategory: _customCategory,
+              customTypes: ref.watch(customCategoriesProvider).valueOrNull ??
+                  const [],
+              onBuiltin: (c) => setState(() {
+                _category = c;
+                _customCategory = null;
                 _categoryManuallySet = true;
               }),
+              onCustom: (name) => setState(() {
+                _customCategory = name;
+                _category = ItemCategory.other;
+                _categoryManuallySet = true;
+              }),
+              onAddNew: () async {
+                final existing =
+                    ref.read(customCategoriesProvider).valueOrNull ?? const [];
+                final name = await promptNewFoodType(context, existing: existing);
+                if (name == null) return;
+                final hid = ref.read(householdIdProvider);
+                if (hid != null &&
+                    !existing.any((e) =>
+                        e.toLowerCase() == name.toLowerCase())) {
+                  await ref
+                      .read(firestoreServiceProvider)
+                      .addCategory(hid, name);
+                }
+                if (mounted) {
+                  setState(() {
+                    _customCategory = name;
+                    _category = ItemCategory.other;
+                    _categoryManuallySet = true;
+                  });
+                }
+              },
             ),
             const SizedBox(height: 16),
 
