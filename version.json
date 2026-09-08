@@ -1,5 +1,5 @@
 {
-  "version": "1.13.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.13.0/stashpot-1.13.0.apk",
-  "notes": "The Pantry tab is now the Stash List (same list, new name -- items can still be stored in the Pantry location). The shopping list now groups by food type within each store, so you can focus on one area of the store at a time. And you can add your own food types (like Pet, Baby, or Spices) from the food-type dropdown when adding or editing an item."
+  "version": "1.14.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.14.0/stashpot-1.14.0.apk",
+  "notes": "Manage your custom food types. Settings now has a 'Food types' screen (next to 'Storage locations') where you can rename or delete the food types you've made. Renaming updates every item using that type, on both the Stash List and the shopping list."
 }
