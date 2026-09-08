@@ -1349,4 +1349,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get addItemNewFoodTypeHint => '例如：嬰兒用品、寵物、香料';
+
+  @override
+  String get settingsFoodTypes => '食品分類';
+
+  @override
+  String get settingsFoodTypesSubtitle => '重新命名或移除你的自訂食品分類';
+
+  @override
+  String get foodTypesBuiltIn => '內建分類';
+
+  @override
+  String get foodTypesYours => '你的食品分類';
+
+  @override
+  String get foodTypesEmpty => '尚未建立自訂食品分類。新增或編輯項目時即可加入。';
+
+  @override
+  String get foodTypesRename => '重新命名食品分類';
+
+  @override
+  String get foodTypesHint => '例如：寵物、嬰兒用品、香料';
+
+  @override
+  String foodTypesRemoved(String name) {
+    return '已移除食品分類「$name」';
+  }
+
+  @override
+  String get foodTypesNameTaken => '這個名稱已被其他食品分類使用。';
 }

@@ -3,6 +3,14 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.14.0
+
+### Added
+- **Manage your custom food types.** Settings now has a "Food types" screen
+  (next to "Storage locations") where you can rename or delete the food types
+  you've created. Renaming updates every item using that type, on both the
+  Stash List and the shopping list.
+
 ## v1.13.0
 
 ### Changed

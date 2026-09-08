@@ -1386,4 +1386,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addItemNewFoodTypeHint => 'e.g. Baby, Pet, Spices';
+
+  @override
+  String get settingsFoodTypes => 'Food types';
+
+  @override
+  String get settingsFoodTypesSubtitle =>
+      'Rename or remove your custom food types';
+
+  @override
+  String get foodTypesBuiltIn => 'Built-in';
+
+  @override
+  String get foodTypesYours => 'Your food types';
+
+  @override
+  String get foodTypesEmpty =>
+      'No custom food types yet. Add one when adding or editing an item.';
+
+  @override
+  String get foodTypesRename => 'Rename food type';
+
+  @override
+  String get foodTypesHint => 'e.g. Pet, Baby, Spices';
+
+  @override
+  String foodTypesRemoved(String name) {
+    return 'Removed food type \"$name\"';
+  }
+
+  @override
+  String get foodTypesNameTaken =>
+      'That name is already used by another food type.';
 }

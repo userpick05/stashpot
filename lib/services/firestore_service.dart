@@ -135,6 +135,28 @@ class FirestoreService {
         'categories': FieldValue.arrayRemove([name]),
       }, SetOptions(merge: true));
 
+  // Rename a custom food type and move every item (in BOTH the stash and the
+  // shopping list) that used it to the new name — the same idea as
+  // renameLocation, but customCategory lives on both collections.
+  Future<void> renameCategory(
+      String householdId, String oldName, String newName) async {
+    await removeCategory(householdId, oldName);
+    await addCategory(householdId, newName);
+    final hh = _db.collection('households').doc(householdId);
+    for (final col in ['items', 'shopping']) {
+      final affected = await hh
+          .collection(col)
+          .where('customCategory', isEqualTo: oldName)
+          .get();
+      if (affected.docs.isEmpty) continue;
+      final batch = _db.batch();
+      for (final d in affected.docs) {
+        batch.update(d.reference, {'customCategory': newName});
+      }
+      await batch.commit();
+    }
+  }
+
   // ── Custom locations (shared list per household) ─────────────────────────
 
   Stream<List<String>> locationsStream(String householdId) => _db

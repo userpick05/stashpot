@@ -5,6 +5,7 @@ import '../../core/providers/auth_providers.dart';
 import '../../core/providers/locale_provider.dart';
 import '../../core/widgets/invite_code_sheet.dart';
 import '../../l10n/app_localizations.dart';
+import 'manage_food_types_screen.dart';
 import 'manage_locations_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -108,6 +109,14 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(l.settingsPantryLocationsSubtitle),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ManageLocationsScreen()),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.sell_outlined),
+            title: Text(l.settingsFoodTypes),
+            subtitle: Text(l.settingsFoodTypesSubtitle),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ManageFoodTypesScreen()),
             ),
           ),
 
