@@ -888,5 +888,21 @@
   "shoppingLocationNone": "No location",
   "addItemAddFoodType": "Add food type…",
   "addItemNewFoodTypeTitle": "New food type",
-  "addItemNewFoodTypeHint": "e.g. Baby, Pet, Spices"
+  "addItemNewFoodTypeHint": "e.g. Baby, Pet, Spices",
+  "settingsFoodTypes": "Food types",
+  "settingsFoodTypesSubtitle": "Rename or remove your custom food types",
+  "foodTypesBuiltIn": "Built-in",
+  "foodTypesYours": "Your food types",
+  "foodTypesEmpty": "No custom food types yet. Add one when adding or editing an item.",
+  "foodTypesRename": "Rename food type",
+  "foodTypesHint": "e.g. Pet, Baby, Spices",
+  "foodTypesRemoved": "Removed food type \"{name}\"",
+  "@foodTypesRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "foodTypesNameTaken": "That name is already used by another food type."
 }

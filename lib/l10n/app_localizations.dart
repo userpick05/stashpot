@@ -2395,6 +2395,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Baby, Pet, Spices'**
   String get addItemNewFoodTypeHint;
+
+  /// No description provided for @settingsFoodTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Food types'**
+  String get settingsFoodTypes;
+
+  /// No description provided for @settingsFoodTypesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename or remove your custom food types'**
+  String get settingsFoodTypesSubtitle;
+
+  /// No description provided for @foodTypesBuiltIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get foodTypesBuiltIn;
+
+  /// No description provided for @foodTypesYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your food types'**
+  String get foodTypesYours;
+
+  /// No description provided for @foodTypesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No custom food types yet. Add one when adding or editing an item.'**
+  String get foodTypesEmpty;
+
+  /// No description provided for @foodTypesRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename food type'**
+  String get foodTypesRename;
+
+  /// No description provided for @foodTypesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Pet, Baby, Spices'**
+  String get foodTypesHint;
+
+  /// No description provided for @foodTypesRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed food type \"{name}\"'**
+  String foodTypesRemoved(String name);
+
+  /// No description provided for @foodTypesNameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That name is already used by another food type.'**
+  String get foodTypesNameTaken;
 }
 
 class _AppLocalizationsDelegate

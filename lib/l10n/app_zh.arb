@@ -382,5 +382,14 @@
   "shoppingLocationNone": "不指定位置",
   "addItemAddFoodType": "新增食品分類…",
   "addItemNewFoodTypeTitle": "新增食品分類",
-  "addItemNewFoodTypeHint": "例如：嬰兒用品、寵物、香料"
+  "addItemNewFoodTypeHint": "例如：嬰兒用品、寵物、香料",
+  "settingsFoodTypes": "食品分類",
+  "settingsFoodTypesSubtitle": "重新命名或移除你的自訂食品分類",
+  "foodTypesBuiltIn": "內建分類",
+  "foodTypesYours": "你的食品分類",
+  "foodTypesEmpty": "尚未建立自訂食品分類。新增或編輯項目時即可加入。",
+  "foodTypesRename": "重新命名食品分類",
+  "foodTypesHint": "例如：寵物、嬰兒用品、香料",
+  "foodTypesRemoved": "已移除食品分類「{name}」",
+  "foodTypesNameTaken": "這個名稱已被其他食品分類使用。"
 }
