@@ -8,11 +8,14 @@ import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/recipe_providers.dart';
 import '../../core/utils/pantry_match.dart';
+import '../../core/utils/recipe_tags.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_details.dart';
 import '../../models/shopping_item.dart';
 import 'add_recipe_manual_screen.dart';
+import 'recipe_tag_chips.dart';
+import 'recipe_tag_picker.dart';
 import 'star_rating.dart';
 
 /// Shows a recipe in-app: ingredients (with pantry cross-check + add-to-list)
@@ -31,7 +34,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   String? _error;
   bool _saved = false;
 
-  Recipe get recipe => widget.recipe;
+  // Mutable so a tag edit sticks across this screen's other saves (which fully
+  // overwrite the doc); starts as the recipe we were opened with.
+  late Recipe _recipe;
+  Recipe get recipe => _recipe;
 
   /// PantryMatch only tokenizes Latin script, so a translated recipe carries a
   /// separate matchName. Check both, since the shopping list may hold either.
@@ -42,6 +48,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _recipe = widget.recipe;
     _saved = recipe.id.isNotEmpty;
     final hasSource = recipe.spoonacularId != null || recipe.sourceUrl != null;
     if (recipe.ingredients.isNotEmpty || recipe.steps.isNotEmpty) {
@@ -197,6 +204,41 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     }
   }
 
+  // The full recipe to write to Firestore (saveRecipe overwrites the doc), with
+  // fetched link content folded in the same way _save does, so a tag edit never
+  // wipes cached ingredients/steps.
+  Recipe _persistable() {
+    final d = _details;
+    if (d != null &&
+        d.hasContent &&
+        recipe.sourceUrl != null &&
+        recipe.spoonacularId == null) {
+      return _withDetails(
+          recipe, d, Localizations.localeOf(context).languageCode);
+    }
+    return recipe;
+  }
+
+  Future<void> _editTags() async {
+    final hid = ref.read(householdIdProvider);
+    if (hid == null) return;
+    final initial =
+        recipe.tags.isEmpty ? suggestRecipeTags(recipe.name) : recipe.tags;
+    final picked = await showRecipeTagPicker(context, ref, initial: initial);
+    if (picked == null) return;
+    final toSave = _persistable().copyWith(tags: picked);
+    setState(() => _recipe = _recipe.copyWith(tags: picked));
+    try {
+      await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).commonError(e.toString()))),
+        );
+      }
+    }
+  }
+
   // Delete immediately + pop, with an Undo snackbar (no confirm dialog —
   // AlertDialogs black-screen via Impeller on some devices).
   Future<void> _delete() async {
@@ -327,6 +369,28 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
+
+          // ── Tags (only on a saved recipe) ──────────────────────────────
+          if (_saved) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: recipe.tags.isEmpty
+                      ? Text(l.recipeTagsNone,
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.outline))
+                      : RecipeTagChips(tags: recipe.tags),
+                ),
+                TextButton.icon(
+                  onPressed: _editTags,
+                  icon: const Icon(Icons.sell_outlined, size: 18),
+                  label: Text(l.recipeTagsEdit),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // ── Nutrition (per serving), when available ────────────────────
           if (d?.nutrition != null && !d!.nutrition!.isEmpty) ...[

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/auth_providers.dart';
+import '../../core/utils/recipe_tags.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
+import 'recipe_tag_chips.dart';
+import 'recipe_tag_picker.dart';
 
 /// Write your own recipe (name, ingredients, steps). Stored directly on the
 /// recipe doc — no web source.
@@ -21,6 +24,7 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
   final _ingredientsCtrl = TextEditingController();
   final _stepsCtrl = TextEditingController();
   bool _saving = false;
+  List<String> _tags = [];
 
   bool get _isEditing => widget.existing != null;
 
@@ -33,7 +37,18 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
       _servingsCtrl.text = e.servings?.toString() ?? '';
       _ingredientsCtrl.text = e.ingredients.join('\n');
       _stepsCtrl.text = e.steps.join('\n');
+      _tags = [...e.tags];
     }
+  }
+
+  Future<void> _editTags() async {
+    // A brand-new recipe with no tags yet gets its name's obvious tags
+    // pre-selected, so tagging is usually one confirming tap.
+    final initial = _tags.isEmpty && !_isEditing
+        ? suggestRecipeTags(_nameCtrl.text)
+        : _tags;
+    final picked = await showRecipeTagPicker(context, ref, initial: initial);
+    if (picked != null) setState(() => _tags = picked);
   }
 
   @override
@@ -70,6 +85,7 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
         servings: int.tryParse(_servingsCtrl.text.trim()),
         ingredients: lines(_ingredientsCtrl.text),
         steps: lines(_stepsCtrl.text),
+        tags: _tags,
         addedAt: e?.addedAt ?? DateTime.now(),
         addedBy: e?.addedBy ?? uid,
       );
@@ -118,6 +134,22 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
               labelText: l.recipeManualServingsLabel,
               border: const OutlineInputBorder(),
             ),
+          ),
+          const SizedBox(height: 16),
+          InputDecorator(
+            decoration: InputDecoration(
+              labelText: l.recipeTagsLabel,
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: l.recipeTagsEdit,
+                onPressed: _editTags,
+              ),
+            ),
+            child: _tags.isEmpty
+                ? Text(l.recipeTagsNone,
+                    style: TextStyle(color: Theme.of(context).colorScheme.outline))
+                : RecipeTagChips(tags: _tags),
           ),
           const SizedBox(height: 16),
           TextField(

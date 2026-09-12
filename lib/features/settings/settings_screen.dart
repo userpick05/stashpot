@@ -7,6 +7,7 @@ import '../../core/widgets/invite_code_sheet.dart';
 import '../../l10n/app_localizations.dart';
 import 'manage_food_types_screen.dart';
 import 'manage_locations_screen.dart';
+import 'manage_recipe_tags_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -117,6 +118,14 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(l.settingsFoodTypesSubtitle),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ManageFoodTypesScreen()),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.restaurant_menu),
+            title: Text(l.settingsRecipeTags),
+            subtitle: Text(l.settingsRecipeTagsSubtitle),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ManageRecipeTagsScreen()),
             ),
           ),
 

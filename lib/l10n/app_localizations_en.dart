@@ -1437,4 +1437,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetAddToShopping => 'Add to shopping list';
+
+  @override
+  String get recipeTagBreakfast => 'Breakfast';
+
+  @override
+  String get recipeTagLunch => 'Lunch';
+
+  @override
+  String get recipeTagDinner => 'Dinner';
+
+  @override
+  String get recipeTagDessert => 'Dessert';
+
+  @override
+  String get recipeTagSnack => 'Snack';
+
+  @override
+  String get recipeTagDrink => 'Drink';
+
+  @override
+  String get recipeTagSide => 'Side';
+
+  @override
+  String get recipeTagSoup => 'Soup';
+
+  @override
+  String get recipeTagSalad => 'Salad';
+
+  @override
+  String get recipeTagChicken => 'Chicken';
+
+  @override
+  String get recipeTagBeef => 'Beef';
+
+  @override
+  String get recipeTagPork => 'Pork';
+
+  @override
+  String get recipeTagSeafood => 'Seafood';
+
+  @override
+  String get recipeTagVegetarian => 'Vegetarian';
+
+  @override
+  String get recipeTagPasta => 'Pasta';
+
+  @override
+  String get recipeTagsLabel => 'Tags';
+
+  @override
+  String get recipeTagsEdit => 'Edit tags';
+
+  @override
+  String get recipeTagsNone => 'No tags yet';
+
+  @override
+  String get recipeTagsPickTitle => 'Choose tags';
+
+  @override
+  String get recipeTagsYours => 'Your tags';
+
+  @override
+  String get recipeTagsAdd => 'Add tag';
+
+  @override
+  String get recipeTagsAddHint => 'New tag';
+
+  @override
+  String get recipeSearchHint => 'Search recipes';
+
+  @override
+  String get recipeNoMatches => 'No recipes match your search or tags.';
+
+  @override
+  String get settingsRecipeTags => 'Recipe tags';
+
+  @override
+  String get settingsRecipeTagsSubtitle =>
+      'Rename or remove your custom recipe tags';
+
+  @override
+  String get recipeTagsBuiltIn => 'Built-in';
+
+  @override
+  String get recipeTagsEmpty =>
+      'No custom recipe tags yet. Add one when tagging a recipe.';
+
+  @override
+  String get recipeTagsRename => 'Rename tag';
+
+  @override
+  String recipeTagsRemoved(String name) {
+    return 'Removed tag \"$name\"';
+  }
+
+  @override
+  String get recipeTagsNameTaken => 'That name is already a recipe tag.';
 }

@@ -157,6 +157,55 @@ class FirestoreService {
     }
   }
 
+  // ── Custom recipe tags (shared list per household) ───────────────────────
+
+  Stream<List<String>> recipeTagsStream(String householdId) => _db
+      .collection('households')
+      .doc(householdId)
+      .snapshots()
+      .map((s) {
+        final list =
+            (s.data()?['recipeTags'] as List?)?.cast<String>() ?? const [];
+        return list..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      });
+
+  Future<void> addRecipeTag(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'recipeTags': FieldValue.arrayUnion([name]),
+      }, SetOptions(merge: true));
+
+  Future<void> removeRecipeTag(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'recipeTags': FieldValue.arrayRemove([name]),
+      }, SetOptions(merge: true));
+
+  // Rename a custom recipe tag and move every recipe carrying it to the new
+  // name (arrays have no atomic replace, so rewrite each affected doc's tags).
+  Future<void> renameRecipeTag(
+      String householdId, String oldName, String newName) async {
+    await removeRecipeTag(householdId, oldName);
+    await addRecipeTag(householdId, newName);
+    final affected = await _recipesRef(householdId)
+        .where('tags', arrayContains: oldName)
+        .get();
+    if (affected.docs.isEmpty) return;
+    final batch = _db.batch();
+    for (final d in affected.docs) {
+      final tags = (d.data()['tags'] as List?)?.cast<String>() ?? const [];
+      final next = <String>[
+        for (final t in tags)
+          if (t != oldName) t,
+      ];
+      if (!next.contains(newName)) next.add(newName);
+      batch.update(d.reference, {'tags': next});
+    }
+    await batch.commit();
+  }
+
   // ── Custom locations (shared list per household) ─────────────────────────
 
   Stream<List<String>> locationsStream(String householdId) => _db

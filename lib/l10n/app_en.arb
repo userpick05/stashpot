@@ -915,5 +915,43 @@
       }
     }
   },
-  "widgetAddToShopping": "Add to shopping list"
+  "widgetAddToShopping": "Add to shopping list",
+  "recipeTagBreakfast": "Breakfast",
+  "recipeTagLunch": "Lunch",
+  "recipeTagDinner": "Dinner",
+  "recipeTagDessert": "Dessert",
+  "recipeTagSnack": "Snack",
+  "recipeTagDrink": "Drink",
+  "recipeTagSide": "Side",
+  "recipeTagSoup": "Soup",
+  "recipeTagSalad": "Salad",
+  "recipeTagChicken": "Chicken",
+  "recipeTagBeef": "Beef",
+  "recipeTagPork": "Pork",
+  "recipeTagSeafood": "Seafood",
+  "recipeTagVegetarian": "Vegetarian",
+  "recipeTagPasta": "Pasta",
+  "recipeTagsLabel": "Tags",
+  "recipeTagsEdit": "Edit tags",
+  "recipeTagsNone": "No tags yet",
+  "recipeTagsPickTitle": "Choose tags",
+  "recipeTagsYours": "Your tags",
+  "recipeTagsAdd": "Add tag",
+  "recipeTagsAddHint": "New tag",
+  "recipeSearchHint": "Search recipes",
+  "recipeNoMatches": "No recipes match your search or tags.",
+  "settingsRecipeTags": "Recipe tags",
+  "settingsRecipeTagsSubtitle": "Rename or remove your custom recipe tags",
+  "recipeTagsBuiltIn": "Built-in",
+  "recipeTagsEmpty": "No custom recipe tags yet. Add one when tagging a recipe.",
+  "recipeTagsRename": "Rename tag",
+  "recipeTagsRemoved": "Removed tag \"{name}\"",
+  "@recipeTagsRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recipeTagsNameTaken": "That name is already a recipe tag."
 }
