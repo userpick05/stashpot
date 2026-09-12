@@ -1,5 +1,5 @@
 {
-  "version": "1.16.0",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.16.0/stashpot-1.16.0.apk",
-  "notes": "New: an Android home-screen quick-add widget. Add the Stashpot widget to your home screen to see how many items are still left to buy, and tap it to jump straight into the app at the shopping list with the add sheet already open. The widget follows the app's language. (Android only.)"
+  "version": "1.15.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.15.0/stashpot-1.15.0.apk",
+  "notes": "The 'already in your pantry?' popup is now interactive - tap one of the listed items to add THAT existing item to the shopping list instead of what you typed. Swipe-to-delete needs a firmer, longer left swipe now, so an accidental sideways drift won't delete an item (an Undo still appears either way). And the 'similar item' matching is smarter - it no longer trips on filler words like 'multi', 'max' or 'value', so it stops surfacing unrelated things."
 }
