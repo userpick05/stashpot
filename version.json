@@ -1,5 +1,5 @@
 {
-  "version": "1.16.1",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.16.1/stashpot-1.16.1.apk",
-  "notes": "Fixes a crash-on-launch that hit v1.16.0. The new home-screen widget accidentally pulled in a piece of Android that the release build's code shrinker was breaking, so the app closed instantly on open. That's fixed - the widget and everything else are unchanged. If your app was crashing, you'll need to reinstall this version once by hand (a crashed app can't update itself)."
+  "version": "1.16.2",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.16.2/stashpot-1.16.2.apk",
+  "notes": "Fixes the home-screen widget: tapping it showed a 'Page Not Found' error instead of opening the app. It now opens straight to the shopping list with the add sheet ready. (If you already updated to 1.16.1 and it wasn't crashing, this one updates normally in-app - no manual reinstall needed.)"
 }
