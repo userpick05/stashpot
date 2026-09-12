@@ -1418,4 +1418,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get foodTypesNameTaken =>
       'That name is already used by another food type.';
+
+  @override
+  String get pantryWarnPickHint =>
+      'Tap one to add it instead, or add what you typed.';
 }

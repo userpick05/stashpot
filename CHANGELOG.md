@@ -3,6 +3,22 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.15.0
+
+### Changed
+- **The "already in your pantry?" popup is now interactive.** Tap one of the
+  listed items to add THAT existing item to the shopping list instead of what
+  you typed — so a quick "chicken" can become the "Chicken Breast" you already
+  have. Or add what you typed / cancel, as before.
+- **Swipe-to-delete needs a firmer swipe.** The left-swipe now travels further
+  before it deletes, so a swipe-up that drifts sideways won't remove an item by
+  accident. (An Undo still appears either way.)
+
+### Fixed
+- **Smarter "similar item" matching.** It no longer matches on throwaway words
+  like "multi", "max" or "value" — e.g. "Mucinex Multi-Symptom" no longer flags
+  "Multi Seed". It keys on the actual product now.
+
 ## v1.14.0
 
 ### Added

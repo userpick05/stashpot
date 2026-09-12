@@ -391,5 +391,6 @@
   "foodTypesRename": "重新命名食品分類",
   "foodTypesHint": "例如：寵物、嬰兒用品、香料",
   "foodTypesRemoved": "已移除食品分類「{name}」",
-  "foodTypesNameTaken": "這個名稱已被其他食品分類使用。"
+  "foodTypesNameTaken": "這個名稱已被其他食品分類使用。",
+  "pantryWarnPickHint": "點一下即可改為新增該項目，或新增你輸入的內容。"
 }

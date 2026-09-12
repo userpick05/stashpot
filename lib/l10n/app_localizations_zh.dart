@@ -1378,4 +1378,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get foodTypesNameTaken => '這個名稱已被其他食品分類使用。';
+
+  @override
+  String get pantryWarnPickHint => '點一下即可改為新增該項目，或新增你輸入的內容。';
 }

@@ -45,6 +45,28 @@ void main() {
       expect(r.similar, isEmpty);
     });
 
+    test('does not match on throwaway modifier words (Mucinex bug)', () {
+      // "Mucinex Multi-Symptom" used to match "Multi Seed" on the shared word
+      // "multi". Matching should key on the actual product, not filler words.
+      final r = PantryMatch.overlap('Mucinex Multi-Symptom', ['Multi Seed']);
+      expect(r.strong, isEmpty);
+      expect(r.similar, isEmpty);
+    });
+
+    test('still matches on the real object after tightening', () {
+      final r = PantryMatch.overlap(
+          'chicken', ['Chicken Breast', 'Chicken Broth', 'Multi Seed']);
+      expect(r.similar, containsAll(['Chicken Breast', 'Chicken Broth']));
+      expect(r.similar, isNot(contains('Multi Seed')));
+    });
+
+    test('a query of only modifier words matches nothing', () {
+      expect(
+          PantryMatch.overlap('Max Strength Value Pack', ['Multi Vitamin'])
+              .similar,
+          isEmpty);
+    });
+
     test('CJK names still match by whole name (for Frank)', () {
       // coreWords is Latin-only, so without a fallback a Chinese user would
       // never see the warning. Exact and containment should still fire.
@@ -55,6 +77,14 @@ void main() {
       final none = PantryMatch.overlap('香蕉', ['牛奶', '雞蛋']);
       expect(none.strong, isEmpty);
       expect(none.similar, isEmpty);
+    });
+  });
+
+  group('hasIngredient (recipe path) survives the modifier stop-set', () {
+    test('an adjectival modifier does not stop the real ingredient matching', () {
+      // The stop-set is shared with recipe matching; the food noun must survive.
+      expect(PantryMatch.hasIngredient('2 lb new potatoes', ['Potatoes']), isTrue);
+      expect(PantryMatch.hasIngredient('natural yogurt', ['Yogurt']), isTrue);
     });
   });
 }
