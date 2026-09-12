@@ -96,14 +96,14 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
       if (uid == null || hid == null) return;
       await ref.read(firestoreServiceProvider).saveRecipe(
             hid,
-            Recipe(
+            withAutoTags(Recipe(
               id: '',
               name: meta.name,
               imageUrl: meta.image,
               sourceUrl: u,
               addedAt: DateTime.now(),
               addedBy: uid,
-            ),
+            )),
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

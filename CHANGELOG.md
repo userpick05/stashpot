@@ -10,9 +10,10 @@ All notable changes to Stashpot. Versions track `kAppVersion` in
   food (Dinner, Dessert, Chicken, Pasta…), and you can add your own custom tags
   (rename/remove them in Settings → Recipe tags, just like food types). The
   recipes list gets a search box and a row of tag chips to filter by, and tags
-  show on each recipe. Tag a recipe from the recipe screen or while writing one;
-  new recipes get obvious tags suggested from their name. Tags follow the app's
-  language.
+  show on each recipe. **New recipes are auto-tagged from their name** (e.g.
+  "Grilled Chicken Salad" → Chicken, Salad) so they're filed with no extra work;
+  you can always adjust the tags from the recipe screen or while writing one.
+  Tags follow the app's language.
 
 ## v1.16.2
 

@@ -132,6 +132,14 @@ List<String> suggestRecipeTags(String name) {
   return [for (final k in kRecipeTagKeys) if (hits.contains(k)) k];
 }
 
+/// Auto-tag a NEWLY created recipe from its name when the user hasn't set any
+/// tags — so recipes get filed by type/food with no extra work. A recipe that
+/// already carries tags (the user picked some) is returned untouched, and this
+/// must only be used when CREATING a recipe, never when editing one (or it
+/// would re-tag a recipe the user deliberately cleared).
+Recipe withAutoTags(Recipe r) =>
+    r.tags.isEmpty ? r.copyWith(tags: suggestRecipeTags(r.name)) : r;
+
 /// The tags actually in use across a set of recipes, ordered with the built-in
 /// tags first (in canonical order) and custom tags after, alphabetically. This
 /// is what the filter row offers, so it never shows a tag nothing is filed

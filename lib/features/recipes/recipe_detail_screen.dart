@@ -194,15 +194,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final hid = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (hid == null || uid == null) return;
-    // Adopt the new doc id, so a later tag edit updates this recipe instead of
-    // creating a duplicate.
-    final id = await ref.read(firestoreServiceProvider).saveRecipe(
-          hid,
-          _persistable(),
-        );
+    // Auto-tag from the name on first save (no tags yet), then adopt the new
+    // doc id so a later tag edit updates this recipe instead of duplicating it.
+    final toSave = withAutoTags(_persistable());
+    final id = await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
     if (mounted) {
       setState(() {
-        _recipe = _recipe.copyWith(id: id);
+        _recipe = _recipe.copyWith(id: id, tags: toSave.tags);
         _saved = true;
       });
       ScaffoldMessenger.of(context).showSnackBar(

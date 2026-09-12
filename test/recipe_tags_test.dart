@@ -56,6 +56,22 @@ void main() {
     });
   });
 
+  group('withAutoTags', () {
+    test('fills tags from the name when the recipe has none', () {
+      final out = withAutoTags(_r('Grilled Chicken'));
+      expect(out.tags, contains('chicken'));
+    });
+
+    test('leaves a recipe that already has tags untouched', () {
+      final tagged = _r('Grilled Chicken', tags: ['dinner']);
+      expect(withAutoTags(tagged).tags, equals(<String>['dinner']));
+    });
+
+    test('an unrecognised name simply stays untagged', () {
+      expect(withAutoTags(_r('Mystery Dish')).tags, isEmpty);
+    });
+  });
+
   group('recipeTagsInUse', () {
     test('built-ins first in canonical order, then custom alphabetical', () {
       final recipes = [

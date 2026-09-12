@@ -89,7 +89,11 @@ class _AddRecipeManualScreenState extends ConsumerState<AddRecipeManualScreen> {
         addedAt: e?.addedAt ?? DateTime.now(),
         addedBy: e?.addedBy ?? uid,
       );
-      await ref.read(firestoreServiceProvider).saveRecipe(hid, recipe);
+      // A brand-new recipe the user didn't tag gets auto-tagged from its name;
+      // an edit keeps exactly the tags they set.
+      await ref
+          .read(firestoreServiceProvider)
+          .saveRecipe(hid, _isEditing ? recipe : withAutoTags(recipe));
       if (mounted) Navigator.of(context).pop();
     } catch (err) {
       if (mounted) {
