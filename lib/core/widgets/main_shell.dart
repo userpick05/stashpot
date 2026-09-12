@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +10,7 @@ import '../../features/shopping/add_shopping_item_sheet.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/shopping_item.dart';
 import '../providers/inventory_providers.dart';
-import '../widget/quick_add_widget.dart';
+import 'quick_add_widget.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -37,18 +38,30 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
+  // The launch intent that carries the widget tap lives for the whole process,
+  // so we must consume it exactly once — otherwise every later remount of the
+  // shell (e.g. coming back from the top-level /settings route) would see it
+  // again and pop the add sheet open unbidden.
+  static bool _initialLaunchConsumed = false;
+
   StreamSubscription<Uri?>? _widgetSub;
   bool _openingQuickAdd = false;
+  String? _lastPushedLocale;
 
   @override
   void initState() {
     super.initState();
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     // The shell only mounts once the user is signed in with a household, so by
     // now the app is ready to act on a home-screen widget tap.
-    HomeWidget.initiallyLaunchedFromHomeWidget().then((uri) {
-      if (uri != null) _handleQuickAdd();
-    });
-    _widgetSub = HomeWidget.widgetClicked.listen((_) => _handleQuickAdd());
+    if (!_initialLaunchConsumed) {
+      _initialLaunchConsumed = true;
+      HomeWidget.initiallyLaunchedFromHomeWidget().then((uri) {
+        if (uri != null) _handleQuickAdd();
+      }).catchError((_) {});
+    }
+    _widgetSub = HomeWidget.widgetClicked
+        .listen((_) => _handleQuickAdd(), onError: (_) {});
   }
 
   @override
@@ -86,21 +99,30 @@ class _MainShellState extends ConsumerState<MainShell> {
     return idx < 0 ? 0 : idx;
   }
 
+  void _pushWidgetText(AppLocalizations l, List<ShoppingItem> items) {
+    QuickAddWidget.setText(
+      countText: l.widgetItemsToBuy(items.where((i) => !i.checked).length),
+      addLabel: l.widgetAddToShopping,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
 
-    // Keep the home-screen widget's "to buy" count in step with the list, in
-    // the app's current language.
+    // Keep the home-screen widget's "to buy" count in step with the list.
     ref.listen<AsyncValue<List<ShoppingItem>>>(shoppingProvider, (_, next) {
       final items = next.valueOrNull;
-      if (items != null) {
-        QuickAddWidget.setText(
-          countText: l.widgetItemsToBuy(items.where((i) => !i.checked).length),
-          addLabel: l.widgetAddToShopping,
-        );
-      }
+      if (items != null) _pushWidgetText(l, items);
     });
+
+    // The list listener only fires on data changes, so also repaint the widget
+    // when the language changes — otherwise it keeps the old locale's text.
+    if (_lastPushedLocale != l.localeName) {
+      _lastPushedLocale = l.localeName;
+      final items = ref.read(shoppingProvider).valueOrNull;
+      if (items != null) _pushWidgetText(l, items);
+    }
 
     final selected = _selectedIndex(context);
     return Scaffold(
