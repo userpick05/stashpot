@@ -1,5 +1,5 @@
 {
-  "version": "1.16.2",
-  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.16.2/stashpot-1.16.2.apk",
-  "notes": "Fixes the home-screen widget: tapping it showed a 'Page Not Found' error instead of opening the app. It now opens straight to the shopping list with the add sheet ready. (If you already updated to 1.16.1 and it wasn't crashing, this one updates normally in-app - no manual reinstall needed.)"
+  "version": "1.17.0",
+  "apkUrl": "https://github.com/userpick05/stashpot/releases/download/v1.17.0/stashpot-1.17.0.apk",
+  "notes": "Recipe tags + filtering. Recipes can now be tagged by type and by main food (Dinner, Dessert, Chicken, Pasta...), and new recipes get tagged automatically from their name - no work needed. The recipes list has a search box and tag filter chips so you can find things fast, and you can add your own tags (manage them in Settings > Recipe tags). Tags follow the app's language."
 }
