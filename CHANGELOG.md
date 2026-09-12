@@ -3,6 +3,15 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.16.0
+
+### Added
+- **Home-screen quick-add widget (Android).** Add a Stashpot widget to your
+  phone's home screen to see how many items are still left to buy and jump
+  straight into adding a new one. Tapping the widget opens the app right at the
+  shopping list with the add sheet already open. The widget's text follows the
+  app's language, so Frank sees it in 繁體中文.
+
 ## v1.15.0
 
 ### Changed

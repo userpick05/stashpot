@@ -1,7 +1,7 @@
 name: stashpot
 description: "Home food inventory with barcode scanning and Firebase sync"
 publish_to: 'none'
-version: 1.15.0+23
+version: 1.16.0+24
 
 environment:
   sdk: ^3.12.2
@@ -47,6 +47,9 @@ dependencies:
 
   # Live-preview barcode scanning
   mobile_scanner: ^7.2.0
+
+  # Android home-screen widget (quick-add to the shopping list)
+  home_widget: ^0.7.0
 
 dev_dependencies:
   flutter_test:

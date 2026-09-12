@@ -2455,6 +2455,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap one to add it instead, or add what you typed.'**
   String get pantryWarnPickHint;
+
+  /// Home-screen widget line showing how many unchecked shopping items remain
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to buy} =1{1 item to buy} other{{count} items to buy}}'**
+  String widgetItemsToBuy(int count);
+
+  /// No description provided for @widgetAddToShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to shopping list'**
+  String get widgetAddToShopping;
 }
 
 class _AppLocalizationsDelegate

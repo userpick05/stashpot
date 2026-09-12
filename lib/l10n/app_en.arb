@@ -905,5 +905,15 @@
     }
   },
   "foodTypesNameTaken": "That name is already used by another food type.",
-  "pantryWarnPickHint": "Tap one to add it instead, or add what you typed."
+  "pantryWarnPickHint": "Tap one to add it instead, or add what you typed.",
+  "widgetItemsToBuy": "{count, plural, =0{Nothing to buy} =1{1 item to buy} other{{count} items to buy}}",
+  "@widgetItemsToBuy": {
+    "description": "Home-screen widget line showing how many unchecked shopping items remain",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "widgetAddToShopping": "Add to shopping list"
 }
