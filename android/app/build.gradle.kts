@@ -54,6 +54,15 @@ android {
                 signingConfigs.getByName("release")
             else
                 signingConfigs.getByName("debug")
+            // Keep R8 off. home_widget pulls in WorkManager, whose Room database
+            // (WorkDatabase) is created by reflection on its generated *_Impl
+            // class; R8 full-mode obfuscation renames that class and WorkManager's
+            // startup auto-init then crashes the app on launch (v1.16.0 regression).
+            // Dart is AOT-compiled so R8 only shrinks the small Java/Kotlin layer —
+            // turning it off costs little and removes a whole class of reflection
+            // breakage. Re-enable later only with explicit Room/WorkManager keep rules.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

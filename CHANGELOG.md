@@ -3,6 +3,15 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.16.1
+
+### Fixed
+- **v1.16.0 crashed on launch for everyone.** Adding the home-screen widget
+  pulled in Android's WorkManager, and the release build's code shrinker (R8)
+  renamed a class WorkManager loads by name at startup, so the app died
+  instantly on open. Disabled the shrinker for release builds to fix it; the
+  widget and everything else are unchanged.
+
 ## v1.16.0
 
 ### Added
