@@ -22,3 +22,10 @@ final recipesProvider = StreamProvider<List<Recipe>>((ref) {
   if (householdId == null) return Stream.value([]);
   return ref.watch(firestoreServiceProvider).recipesStream(householdId);
 });
+
+// User-created recipe tags for the household (beyond the built-in ones).
+final customRecipeTagsProvider = StreamProvider<List<String>>((ref) {
+  final householdId = ref.watch(householdIdProvider);
+  if (householdId == null) return Stream.value([]);
+  return ref.watch(firestoreServiceProvider).recipeTagsStream(householdId);
+});

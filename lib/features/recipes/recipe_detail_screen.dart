@@ -8,11 +8,14 @@ import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/recipe_providers.dart';
 import '../../core/utils/pantry_match.dart';
+import '../../core/utils/recipe_tags.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_details.dart';
 import '../../models/shopping_item.dart';
 import 'add_recipe_manual_screen.dart';
+import 'recipe_tag_chips.dart';
+import 'recipe_tag_picker.dart';
 import 'star_rating.dart';
 
 /// Shows a recipe in-app: ingredients (with pantry cross-check + add-to-list)
@@ -31,7 +34,15 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   String? _error;
   bool _saved = false;
 
-  Recipe get recipe => widget.recipe;
+  // Mutable so a tag edit sticks across this screen's other saves (which fully
+  // overwrite the doc); starts as the recipe we were opened with.
+  late Recipe _recipe;
+  Recipe get recipe => _recipe;
+
+  // The language the on-screen [_details] are actually in, so a save stamps the
+  // right detailsLang even when a re-fetch failed and we're showing a stale,
+  // other-language cache.
+  String? _detailsLang;
 
   /// PantryMatch only tokenizes Latin script, so a translated recipe carries a
   /// separate matchName. Check both, since the shopping list may hold either.
@@ -42,6 +53,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _recipe = widget.recipe;
     _saved = recipe.id.isNotEmpty;
     final hasSource = recipe.spoonacularId != null || recipe.sourceUrl != null;
     if (recipe.ingredients.isNotEmpty || recipe.steps.isNotEmpty) {
@@ -64,6 +76,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         steps: recipe.steps,
         aiTranslated: recipe.detailsAi,
       );
+      _detailsLang = recipe.detailsLang;
     }
     if (_details == null && hasSource) {
       // Set here, not in _load: the load is deferred a frame (below), and
@@ -120,7 +133,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       // Keep whatever we already had if the refetch came back empty — a failed
       // language refresh shouldn't blank out a recipe that was on screen.
       if (mounted) setState(() => _details = d ?? _details);
-      if (d != null) unawaited(_storeDetails(d, lang));
+      if (d != null) {
+        _detailsLang = lang;
+        unawaited(_storeDetails(d, lang));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {
@@ -178,22 +194,60 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final hid = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (hid == null || uid == null) return;
-    var toSave = recipe;
+    // Auto-tag from the name on first save (no tags yet), then adopt the new
+    // doc id so a later tag edit updates this recipe instead of duplicating it.
+    final toSave = withAutoTags(_persistable());
+    final id = await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
+    if (mounted) {
+      setState(() {
+        _recipe = _recipe.copyWith(id: id, tags: toSave.tags);
+        _saved = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(AppLocalizations.of(context).recipeSaved(recipe.name))),
+      );
+    }
+  }
+
+  // The full recipe to write to Firestore (saveRecipe overwrites the doc), with
+  // fetched link content folded in the same way _save does, so a tag edit never
+  // wipes cached ingredients/steps.
+  Recipe _persistable() {
     final d = _details;
     if (d != null &&
         d.hasContent &&
         recipe.sourceUrl != null &&
         recipe.spoonacularId == null) {
-      toSave = _withDetails(
-          recipe, d, Localizations.localeOf(context).languageCode);
+      // Stamp the language the details are ACTUALLY in, not the reader's — a
+      // stale other-language cache would otherwise be mislabelled and never
+      // re-fetch. Falls back to the current locale only if we somehow never
+      // recorded one.
+      return _withDetails(recipe, d,
+          _detailsLang ?? Localizations.localeOf(context).languageCode);
     }
-    await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
-    if (mounted) {
-      setState(() => _saved = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(AppLocalizations.of(context).recipeSaved(recipe.name))),
-      );
+    return recipe;
+  }
+
+  Future<void> _editTags() async {
+    final hid = ref.read(householdIdProvider);
+    // Tags only edit an existing doc; without an id a save would create a new
+    // one. The tags UI is gated on _saved, so this is just a belt-and-braces.
+    if (hid == null || recipe.id.isEmpty) return;
+    final initial =
+        recipe.tags.isEmpty ? suggestRecipeTags(recipe.name) : recipe.tags;
+    final picked = await showRecipeTagPicker(context, ref, initial: initial);
+    if (picked == null) return;
+    final toSave = _persistable().copyWith(tags: picked);
+    setState(() => _recipe = _recipe.copyWith(tags: picked));
+    try {
+      await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).commonError(e.toString()))),
+        );
+      }
     }
   }
 
@@ -327,6 +381,28 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
+
+          // ── Tags (only on a saved recipe) ──────────────────────────────
+          if (_saved) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: recipe.tags.isEmpty
+                      ? Text(l.recipeTagsNone,
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.outline))
+                      : RecipeTagChips(tags: recipe.tags),
+                ),
+                TextButton.icon(
+                  onPressed: _editTags,
+                  icon: const Icon(Icons.sell_outlined, size: 18),
+                  label: Text(l.recipeTagsEdit),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // ── Nutrition (per serving), when available ────────────────────
           if (d?.nutrition != null && !d!.nutrition!.isEmpty) ...[

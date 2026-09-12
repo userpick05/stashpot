@@ -2467,6 +2467,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to shopping list'**
   String get widgetAddToShopping;
+
+  /// No description provided for @recipeTagBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get recipeTagBreakfast;
+
+  /// No description provided for @recipeTagLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get recipeTagLunch;
+
+  /// No description provided for @recipeTagDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get recipeTagDinner;
+
+  /// No description provided for @recipeTagDessert.
+  ///
+  /// In en, this message translates to:
+  /// **'Dessert'**
+  String get recipeTagDessert;
+
+  /// No description provided for @recipeTagSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Snack'**
+  String get recipeTagSnack;
+
+  /// No description provided for @recipeTagDrink.
+  ///
+  /// In en, this message translates to:
+  /// **'Drink'**
+  String get recipeTagDrink;
+
+  /// No description provided for @recipeTagSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side'**
+  String get recipeTagSide;
+
+  /// No description provided for @recipeTagSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Soup'**
+  String get recipeTagSoup;
+
+  /// No description provided for @recipeTagSalad.
+  ///
+  /// In en, this message translates to:
+  /// **'Salad'**
+  String get recipeTagSalad;
+
+  /// No description provided for @recipeTagChicken.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicken'**
+  String get recipeTagChicken;
+
+  /// No description provided for @recipeTagBeef.
+  ///
+  /// In en, this message translates to:
+  /// **'Beef'**
+  String get recipeTagBeef;
+
+  /// No description provided for @recipeTagPork.
+  ///
+  /// In en, this message translates to:
+  /// **'Pork'**
+  String get recipeTagPork;
+
+  /// No description provided for @recipeTagSeafood.
+  ///
+  /// In en, this message translates to:
+  /// **'Seafood'**
+  String get recipeTagSeafood;
+
+  /// No description provided for @recipeTagVegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetarian'**
+  String get recipeTagVegetarian;
+
+  /// No description provided for @recipeTagPasta.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasta'**
+  String get recipeTagPasta;
+
+  /// No description provided for @recipeTagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get recipeTagsLabel;
+
+  /// No description provided for @recipeTagsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tags'**
+  String get recipeTagsEdit;
+
+  /// No description provided for @recipeTagsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet'**
+  String get recipeTagsNone;
+
+  /// No description provided for @recipeTagsPickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose tags'**
+  String get recipeTagsPickTitle;
+
+  /// No description provided for @recipeTagsYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tags'**
+  String get recipeTagsYours;
+
+  /// No description provided for @recipeTagsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get recipeTagsAdd;
+
+  /// No description provided for @recipeTagsAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New tag'**
+  String get recipeTagsAddHint;
+
+  /// No description provided for @recipeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search recipes'**
+  String get recipeSearchHint;
+
+  /// No description provided for @recipeNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No recipes match your search or tags.'**
+  String get recipeNoMatches;
+
+  /// No description provided for @settingsRecipeTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe tags'**
+  String get settingsRecipeTags;
+
+  /// No description provided for @settingsRecipeTagsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename or remove your custom recipe tags'**
+  String get settingsRecipeTagsSubtitle;
+
+  /// No description provided for @recipeTagsBuiltIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get recipeTagsBuiltIn;
+
+  /// No description provided for @recipeTagsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No custom recipe tags yet. Add one when tagging a recipe.'**
+  String get recipeTagsEmpty;
+
+  /// No description provided for @recipeTagsRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename tag'**
+  String get recipeTagsRename;
+
+  /// No description provided for @recipeTagsRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed tag \"{name}\"'**
+  String recipeTagsRemoved(String name);
+
+  /// No description provided for @recipeTagsNameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That name is already a recipe tag.'**
+  String get recipeTagsNameTaken;
 }
 
 class _AppLocalizationsDelegate

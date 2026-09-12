@@ -3,17 +3,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/recipe_providers.dart';
+import '../../core/utils/recipe_tags.dart';
 import '../../core/widgets/swipe_to_delete.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/recipe.dart';
 import 'add_recipe_manual_screen.dart';
 import 'recipe_detail_screen.dart';
+import 'recipe_tag_chips.dart';
 import 'star_rating.dart';
 
-class RecipesScreen extends ConsumerWidget {
+class RecipesScreen extends ConsumerStatefulWidget {
   const RecipesScreen({super.key});
 
-  Future<void> _addByLink(BuildContext context, WidgetRef ref) async {
+  @override
+  ConsumerState<RecipesScreen> createState() => _RecipesScreenState();
+}
+
+class _RecipesScreenState extends ConsumerState<RecipesScreen> {
+  final _searchCtrl = TextEditingController();
+  String _search = '';
+  final Set<String> _selectedTags = {};
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addByLink() async {
     final l = AppLocalizations.of(context);
     final ctrl = TextEditingController();
     // Bottom sheet (not an AlertDialog — those black-screen via Impeller on
@@ -58,14 +75,14 @@ class RecipesScreen extends ConsumerWidget {
     if (url == null) return;
     final u = url.trim();
     if (!u.startsWith('http')) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l.recipeLinkNeedsHttp)),
         );
       }
       return;
     }
-    if (context.mounted) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(l.recipeSavingLink),
@@ -79,22 +96,22 @@ class RecipesScreen extends ConsumerWidget {
       if (uid == null || hid == null) return;
       await ref.read(firestoreServiceProvider).saveRecipe(
             hid,
-            Recipe(
+            withAutoTags(Recipe(
               id: '',
               name: meta.name,
               imageUrl: meta.image,
               sourceUrl: u,
               addedAt: DateTime.now(),
               addedBy: uid,
-            ),
+            )),
           );
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l.recipeSaved(meta.name))),
         );
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(l.recipeLinkSaveFailed(e.toString())),
@@ -105,7 +122,7 @@ class RecipesScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final recipes = ref.watch(recipesProvider);
 
@@ -123,7 +140,7 @@ class RecipesScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add_link),
             tooltip: l.recipeAddByLinkTooltip,
-            onPressed: () => _addByLink(context, ref),
+            onPressed: _addByLink,
           ),
           IconButton(
             icon: const Icon(Icons.travel_explore),
@@ -152,49 +169,36 @@ class RecipesScreen extends ConsumerWidget {
               ),
             );
           }
-          return ListView.builder(
-            padding: const EdgeInsets.only(bottom: 88),
-            itemCount: list.length,
-            itemBuilder: (context, i) {
-              final r = list[i];
-              return SwipeToDelete(
-                key: ValueKey(r.id),
-                itemId: r.id,
-                label: r.name,
-                onDelete: () async {
-                  final hid = ref.read(householdIdProvider);
-                  if (hid != null) {
-                    await ref.read(firestoreServiceProvider).deleteRecipe(hid, r.id);
-                  }
-                },
-                child: Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  child: ListTile(
-                    leading: r.imageUrl != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(r.imageUrl!,
-                                width: 56, height: 56, fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const Icon(Icons.restaurant, size: 40)),
-                          )
-                        : const Icon(Icons.restaurant, size: 40),
-                    title: Text(r.name,
-                        style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: r.score != null
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: StarRating(stars: r.stars, count: r.likes),
-                          )
-                        : null,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipe: r)),
-                    ),
-                  ),
-                ),
-              );
-            },
+
+          // Drop any selected tag that's no longer in use (e.g. after a delete)
+          // so the filter can't get stuck on an empty result.
+          final inUse = recipeTagsInUse(list);
+          _selectedTags.removeWhere((t) => !inUse.contains(t));
+          final filtered = filterRecipes(list,
+              search: _search, selectedTags: _selectedTags);
+
+          return Column(
+            children: [
+              _buildFilterBar(l, inUse),
+              Expanded(
+                child: filtered.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(l.recipeNoMatches,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.outline)),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 88),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, i) => _recipeCard(filtered[i]),
+                      ),
+              ),
+            ],
           );
         },
       ),
@@ -202,6 +206,105 @@ class RecipesScreen extends ConsumerWidget {
         onPressed: () => context.push('/recipes/find'),
         icon: const Icon(Icons.search),
         label: Text(l.findRecipesTitle),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar(AppLocalizations l, List<String> inUse) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: TextField(
+            controller: _searchCtrl,
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Icon(Icons.search),
+              hintText: l.recipeSearchHint,
+              border: const OutlineInputBorder(),
+              suffixIcon: _search.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        setState(() => _search = '');
+                      },
+                    ),
+            ),
+            onChanged: (v) => setState(() => _search = v),
+          ),
+        ),
+        if (inUse.isNotEmpty)
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                for (final tag in inUse)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(recipeTagLabelOf(l, tag)),
+                      selected: _selectedTags.contains(tag),
+                      onSelected: (on) => setState(() =>
+                          on ? _selectedTags.add(tag) : _selectedTags.remove(tag)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _recipeCard(Recipe r) {
+    return SwipeToDelete(
+      key: ValueKey(r.id),
+      itemId: r.id,
+      label: r.name,
+      onDelete: () async {
+        final hid = ref.read(householdIdProvider);
+        if (hid != null) {
+          await ref.read(firestoreServiceProvider).deleteRecipe(hid, r.id);
+        }
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: ListTile(
+          leading: r.imageUrl != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(r.imageUrl!,
+                      width: 56, height: 56, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.restaurant, size: 40)),
+                )
+              : const Icon(Icons.restaurant, size: 40),
+          title: Text(r.name,
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+          subtitle: (r.score != null || r.tags.isNotEmpty)
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (r.score != null)
+                        StarRating(stars: r.stars, count: r.likes),
+                      if (r.tags.isNotEmpty) ...[
+                        if (r.score != null) const SizedBox(height: 4),
+                        RecipeTagChips(tags: r.tags),
+                      ],
+                    ],
+                  ),
+                )
+              : null,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipe: r)),
+          ),
+        ),
       ),
     );
   }

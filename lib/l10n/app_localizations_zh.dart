@@ -1395,4 +1395,99 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get widgetAddToShopping => '加入購物清單';
+
+  @override
+  String get recipeTagBreakfast => '早餐';
+
+  @override
+  String get recipeTagLunch => '午餐';
+
+  @override
+  String get recipeTagDinner => '晚餐';
+
+  @override
+  String get recipeTagDessert => '甜點';
+
+  @override
+  String get recipeTagSnack => '點心';
+
+  @override
+  String get recipeTagDrink => '飲料';
+
+  @override
+  String get recipeTagSide => '配菜';
+
+  @override
+  String get recipeTagSoup => '湯';
+
+  @override
+  String get recipeTagSalad => '沙拉';
+
+  @override
+  String get recipeTagChicken => '雞肉';
+
+  @override
+  String get recipeTagBeef => '牛肉';
+
+  @override
+  String get recipeTagPork => '豬肉';
+
+  @override
+  String get recipeTagSeafood => '海鮮';
+
+  @override
+  String get recipeTagVegetarian => '素食';
+
+  @override
+  String get recipeTagPasta => '義大利麵';
+
+  @override
+  String get recipeTagsLabel => '標籤';
+
+  @override
+  String get recipeTagsEdit => '編輯標籤';
+
+  @override
+  String get recipeTagsNone => '尚無標籤';
+
+  @override
+  String get recipeTagsPickTitle => '選擇標籤';
+
+  @override
+  String get recipeTagsYours => '你的標籤';
+
+  @override
+  String get recipeTagsAdd => '新增標籤';
+
+  @override
+  String get recipeTagsAddHint => '新標籤';
+
+  @override
+  String get recipeSearchHint => '搜尋食譜';
+
+  @override
+  String get recipeNoMatches => '沒有符合搜尋或標籤的食譜。';
+
+  @override
+  String get settingsRecipeTags => '食譜標籤';
+
+  @override
+  String get settingsRecipeTagsSubtitle => '重新命名或移除你的自訂食譜標籤';
+
+  @override
+  String get recipeTagsBuiltIn => '內建標籤';
+
+  @override
+  String get recipeTagsEmpty => '尚未建立自訂食譜標籤。為食譜加標籤時即可新增。';
+
+  @override
+  String get recipeTagsRename => '重新命名標籤';
+
+  @override
+  String recipeTagsRemoved(String name) {
+    return '已移除標籤「$name」';
+  }
+
+  @override
+  String get recipeTagsNameTaken => '這個名稱已是食譜標籤。';
 }

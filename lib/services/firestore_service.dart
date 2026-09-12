@@ -157,6 +157,58 @@ class FirestoreService {
     }
   }
 
+  // ── Custom recipe tags (shared list per household) ───────────────────────
+
+  Stream<List<String>> recipeTagsStream(String householdId) => _db
+      .collection('households')
+      .doc(householdId)
+      .snapshots()
+      .map((s) {
+        final list =
+            (s.data()?['recipeTags'] as List?)?.cast<String>() ?? const [];
+        return list..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      });
+
+  Future<void> addRecipeTag(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'recipeTags': FieldValue.arrayUnion([name]),
+      }, SetOptions(merge: true));
+
+  Future<void> removeRecipeTag(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'recipeTags': FieldValue.arrayRemove([name]),
+      }, SetOptions(merge: true));
+
+  // Rename a custom recipe tag and move every recipe carrying it to the new
+  // name (arrays have no atomic replace, so rewrite each affected doc's tags).
+  // Not a single transaction, so do the recipe rewrites FIRST, then swap the
+  // household list — if it stops half-way the worst case is an unused old-name
+  // entry that's still deletable, never an orphan chip nothing can edit.
+  Future<void> renameRecipeTag(
+      String householdId, String oldName, String newName) async {
+    final affected = await _recipesRef(householdId)
+        .where('tags', arrayContains: oldName)
+        .get();
+    await _commitChunked([
+      for (final d in affected.docs)
+        (b) {
+          final tags = (d.data()['tags'] as List?)?.cast<String>() ?? const [];
+          final next = <String>[
+            for (final t in tags)
+              if (t != oldName) t,
+          ];
+          if (!next.contains(newName)) next.add(newName);
+          b.update(d.reference, {'tags': next});
+        },
+    ]);
+    await addRecipeTag(householdId, newName);
+    await removeRecipeTag(householdId, oldName);
+  }
+
   // ── Custom locations (shared list per household) ─────────────────────────
 
   Stream<List<String>> locationsStream(String householdId) => _db
@@ -395,11 +447,15 @@ class FirestoreService {
           .snapshots()
           .map((s) => s.docs.map(Recipe.fromFirestore).toList());
 
-  Future<void> saveRecipe(String householdId, Recipe recipe) {
+  /// Writes the recipe (create when [Recipe.id] is empty, else overwrite) and
+  /// returns the document id. Callers holding an unsaved recipe must adopt this
+  /// id, or a later save would create a second doc instead of updating it.
+  Future<String> saveRecipe(String householdId, Recipe recipe) async {
     final ref = recipe.id.isEmpty
         ? _recipesRef(householdId).doc()
         : _recipesRef(householdId).doc(recipe.id);
-    return ref.set(recipe.toFirestore());
+    await ref.set(recipe.toFirestore());
+    return ref.id;
   }
 
   Future<void> deleteRecipe(String householdId, String recipeId) =>

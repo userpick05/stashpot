@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/inventory_providers.dart';
 import '../../core/providers/recipe_providers.dart';
+import '../../core/utils/recipe_tags.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/recipe_hit.dart';
 import 'recipe_detail_screen.dart';
@@ -126,7 +127,9 @@ class _FindRecipesScreenState extends ConsumerState<FindRecipesScreen> {
     final householdId = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (householdId == null || uid == null) return;
-    await ref.read(firestoreServiceProvider).saveRecipe(householdId, h.toRecipe(uid));
+    await ref
+        .read(firestoreServiceProvider)
+        .saveRecipe(householdId, withAutoTags(h.toRecipe(uid)));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

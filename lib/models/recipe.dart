@@ -27,6 +27,11 @@ class Recipe {
 
   final int? servings;
 
+  /// Free-form tags for finding recipes by type or main food, e.g. "dinner",
+  /// "chicken". Built-in tags are stored as their stable key (see
+  /// recipe_tags.dart); custom household tags are stored as their own text.
+  final List<String> tags;
+
   /// Language the stored [ingredients]/[steps] are written in, for link
   /// recipes whose content was fetched (and possibly translated) on save. Null
   /// for hand-entered recipes. When it doesn't match the reader's language the
@@ -58,6 +63,7 @@ class Recipe {
     this.steps = const [],
     this.matchNames = const [],
     this.servings,
+    this.tags = const [],
     this.detailsLang,
     this.detailsV = 0,
     this.detailsAi = false,
@@ -66,17 +72,19 @@ class Recipe {
   });
 
   Recipe copyWith({
+    String? id,
     String? name,
     List<String>? ingredients,
     List<String>? steps,
     List<String>? matchNames,
     int? servings,
+    List<String>? tags,
     String? detailsLang,
     int? detailsV,
     bool? detailsAi,
   }) =>
       Recipe(
-        id: id,
+        id: id ?? this.id,
         spoonacularId: spoonacularId,
         name: name ?? this.name,
         imageUrl: imageUrl,
@@ -87,6 +95,7 @@ class Recipe {
         steps: steps ?? this.steps,
         matchNames: matchNames ?? this.matchNames,
         servings: servings ?? this.servings,
+        tags: tags ?? this.tags,
         detailsLang: detailsLang ?? this.detailsLang,
         detailsV: detailsV ?? this.detailsV,
         detailsAi: detailsAi ?? this.detailsAi,
@@ -115,6 +124,7 @@ class Recipe {
       steps: (d['steps'] as List?)?.cast<String>() ?? const [],
       matchNames: (d['matchNames'] as List?)?.cast<String>() ?? const [],
       servings: (d['servings'] as num?)?.toInt(),
+      tags: (d['tags'] as List?)?.cast<String>() ?? const [],
       detailsLang: d['detailsLang'] as String?,
       detailsV: (d['detailsV'] as num?)?.toInt() ?? 0,
       detailsAi: d['detailsAi'] as bool? ?? false,
@@ -134,6 +144,7 @@ class Recipe {
         if (steps.isNotEmpty) 'steps': steps,
         if (matchNames.isNotEmpty) 'matchNames': matchNames,
         if (servings != null) 'servings': servings,
+        if (tags.isNotEmpty) 'tags': tags,
         if (detailsLang != null) 'detailsLang': detailsLang,
         if (detailsV > 0) 'detailsV': detailsV,
         if (detailsAi) 'detailsAi': true,
