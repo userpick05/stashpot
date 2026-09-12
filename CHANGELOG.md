@@ -3,6 +3,15 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.16.2
+
+### Fixed
+- **Tapping the home-screen widget showed "Page Not Found."** The widget opens
+  the app with an internal link, and Flutter was handing that link to the app's
+  router instead of letting the widget handler open the shopping add sheet.
+  Disabled that automatic link-routing so a widget tap now lands on the shopping
+  list with the add sheet open, as intended.
+
 ## v1.16.1
 
 ### Fixed

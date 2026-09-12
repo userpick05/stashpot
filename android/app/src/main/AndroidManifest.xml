@@ -27,6 +27,16 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- The home-screen widget launches us with a stashpot://quickadd
+                 intent URI. Flutter's automatic deep-linking would otherwise
+                 feed that URI to go_router as the initial route (no match ->
+                 "Page Not Found"). We consume the widget tap via the home_widget
+                 API in MainShell instead, so keep Flutter from routing intent
+                 URIs and let the app start at its normal initial location. -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="false"
+              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
