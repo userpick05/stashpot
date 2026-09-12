@@ -97,6 +97,10 @@ class _SwipeToDeleteState extends State<SwipeToDelete> {
     return Dismissible(
       key: ValueKey('item-${widget.itemId}'),
       direction: DismissDirection.endToStart,
+      // Require a longer, more deliberate left-swipe (default is 0.4). A
+      // swipe-up that drifts slightly left was crossing the old threshold and
+      // deleting by accident.
+      dismissThresholds: const {DismissDirection.endToStart: 0.6},
       onDismissed: (_) => _startPending(),
       background: Container(
         margin: widget.margin,

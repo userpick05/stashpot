@@ -2449,6 +2449,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That name is already used by another food type.'**
   String get foodTypesNameTaken;
+
+  /// No description provided for @pantryWarnPickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap one to add it instead, or add what you typed.'**
+  String get pantryWarnPickHint;
 }
 
 class _AppLocalizationsDelegate

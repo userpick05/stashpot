@@ -27,6 +27,15 @@ class PantryMatch {
     // fillers
     'of', 'a', 'an', 'the', 'and', 'or', 'into', 'with', 'in', 'on', 'as',
     'each', 'your', 'such', 'like', 'some', 'any',
+    // product-marketing modifiers — almost never the actual object, and the
+    // cause of false "similar item" matches (e.g. "Mucinex Multi-Symptom"
+    // matching "Multi Seed" on "multi"). Matching should key on the item, not
+    // these throwaway words.
+    'multi', 'symptom', 'symptoms', 'max', 'maximum',
+    'strength', 'value', 'family', 'size', 'count', 'ct', 'pack', 'packs',
+    'original', 'natural', 'formula', 'brand', 'mega', 'ultra', 'super',
+    'daily', 'nighttime', 'daytime', 'relief', 'advanced', 'complete',
+    'total', 'essential', 'essentials', 'new', 'improved',
   };
 
   static String _singular(String w) {

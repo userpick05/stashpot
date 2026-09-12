@@ -247,21 +247,32 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
   /// surfaces "chicken broth" is theirs to judge. Returns true to go ahead.
   ///
   /// Skipped when editing an existing item — the warning is for fresh adds.
-  Future<bool> _confirmNotAlreadyStocked(String name) async {
-    if (_isEditing) return true;
+  /// Result of the "already have this?" check:
+  /// - proceed=false → cancel, don't add
+  /// - proceed=true, useName=null → add what the user typed
+  /// - proceed=true, useName='X' → add the existing pantry item 'X' instead
+  Future<({bool proceed, String? useName})> _confirmNotAlreadyStocked(
+      String name) async {
+    if (_isEditing) return (proceed: true, useName: null);
     final pantry = ref.read(inventoryProvider).valueOrNull ?? const [];
     final match = PantryMatch.overlap(name, [for (final i in pantry) i.name]);
-    if (match.strong.isEmpty && match.similar.isEmpty) return true;
+    if (match.strong.isEmpty && match.similar.isEmpty) {
+      return (proceed: true, useName: null);
+    }
 
     final l = AppLocalizations.of(context);
     // Bottom sheet, not a dialog — AlertDialogs black-screen via Impeller here.
-    final proceed = await showModalBottomSheet<bool>(
+    final result =
+        await showModalBottomSheet<({bool proceed, String? useName})>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          child: Column(
+          padding: EdgeInsets.fromLTRB(
+              20, 0, 20, 16 + MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -278,43 +289,60 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
                   ),
                 ),
               ]),
+              const SizedBox(height: 4),
+              Text(l.pantryWarnPickHint,
+                  style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(ctx).colorScheme.outline)),
               const SizedBox(height: 12),
+              // Tapping a match adds THAT existing item instead of the typed
+              // text — so "chicken" can become the "Chicken Breast" you have.
               if (match.strong.isNotEmpty) ...[
                 Text(l.pantryWarnAlready,
                     style: Theme.of(ctx).textTheme.labelLarge),
                 for (final n in match.strong)
-                  _PantryHit(name: n, strong: true),
+                  _PantryHit(
+                      name: n,
+                      strong: true,
+                      onTap: () => Navigator.pop(
+                          ctx, (proceed: true, useName: n))),
                 const SizedBox(height: 8),
               ],
               if (match.similar.isNotEmpty) ...[
                 Text(l.pantryWarnSimilar,
                     style: Theme.of(ctx).textTheme.labelLarge),
                 for (final n in match.similar)
-                  _PantryHit(name: n, strong: false),
+                  _PantryHit(
+                      name: n,
+                      strong: false,
+                      onTap: () => Navigator.pop(
+                          ctx, (proceed: true, useName: n))),
                 const SizedBox(height: 8),
               ],
               const SizedBox(height: 8),
               Row(children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(ctx, false),
+                    onPressed: () =>
+                        Navigator.pop(ctx, (proceed: false, useName: null)),
                     child: Text(l.commonCancel),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: FilledButton(
-                    onPressed: () => Navigator.pop(ctx, true),
+                    onPressed: () =>
+                        Navigator.pop(ctx, (proceed: true, useName: null)),
                     child: Text(l.pantryWarnAddAnyway),
                   ),
                 ),
               ]),
             ],
           ),
+          ),
         ),
       ),
     );
-    return proceed ?? false;
+    return result ?? (proceed: false, useName: null);
   }
 
   Future<void> _add() async {
@@ -324,20 +352,48 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (householdId == null || uid == null) return;
 
-    if (!await _confirmNotAlreadyStocked(name)) return;
+    final decision = await _confirmNotAlreadyStocked(name);
+    if (!decision.proceed) return;
     if (!mounted) return;
 
     setState(() => _saving = true);
     try {
-      final store = _storeCtrl.text.trim();
       final svc = ref.read(firestoreServiceProvider);
+      final e = widget.existing;
+
+      // The user tapped an existing pantry item in the warning: add THAT item
+      // (with all its details) instead of the typed text, at the chosen qty.
+      if (decision.useName != null && e == null) {
+        final pantry = ref.read(inventoryProvider).valueOrNull ?? const [];
+        InventoryItem? picked;
+        for (final i in pantry) {
+          if (i.name.trim().toLowerCase() ==
+              decision.useName!.trim().toLowerCase()) {
+            picked = i;
+            break;
+          }
+        }
+        if (picked != null) {
+          await svc.addShoppingItem(
+            householdId,
+            ShoppingItem.fromInventory(picked,
+                id: const Uuid().v4(),
+                quantity: _quantity.toDouble(),
+                addedBy: uid),
+          );
+          if (mounted) Navigator.pop(context);
+          return;
+        }
+        // Fall through to the typed path if the item vanished.
+      }
+
+      final store = _storeCtrl.text.trim();
       // Remember a new store for next time (silent — quick-add context).
       final known = ref.read(storesProvider).valueOrNull ?? [];
       if (store.isNotEmpty &&
           !known.any((s) => s.toLowerCase() == store.toLowerCase())) {
         await svc.addStore(householdId, store);
       }
-      final e = widget.existing;
       final item = ShoppingItem(
         id: e?.id ?? const Uuid().v4(),
         name: name,
@@ -600,20 +656,27 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
 class _PantryHit extends StatelessWidget {
   final String name;
   final bool strong;
-  const _PantryHit({required this.name, required this.strong});
+  final VoidCallback? onTap;
+  const _PantryHit({required this.name, required this.strong, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Icon(strong ? Icons.check_circle : Icons.circle_outlined,
-              size: 16, color: strong ? scheme.primary : scheme.outline),
-          const SizedBox(width: 8),
-          Expanded(child: Text(name)),
-        ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Icon(strong ? Icons.check_circle : Icons.circle_outlined,
+                size: 16, color: strong ? scheme.primary : scheme.outline),
+            const SizedBox(width: 8),
+            Expanded(child: Text(name)),
+            // Signals the row adds this item instead of the typed one.
+            Icon(Icons.add_shopping_cart, size: 16, color: scheme.outline),
+          ],
+        ),
       ),
     );
   }

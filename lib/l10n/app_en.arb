@@ -904,5 +904,6 @@
       }
     }
   },
-  "foodTypesNameTaken": "That name is already used by another food type."
+  "foodTypesNameTaken": "That name is already used by another food type.",
+  "pantryWarnPickHint": "Tap one to add it instead, or add what you typed."
 }
