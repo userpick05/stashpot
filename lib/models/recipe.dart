@@ -72,6 +72,7 @@ class Recipe {
   });
 
   Recipe copyWith({
+    String? id,
     String? name,
     List<String>? ingredients,
     List<String>? steps,
@@ -83,7 +84,7 @@ class Recipe {
     bool? detailsAi,
   }) =>
       Recipe(
-        id: id,
+        id: id ?? this.id,
         spoonacularId: spoonacularId,
         name: name ?? this.name,
         imageUrl: imageUrl,

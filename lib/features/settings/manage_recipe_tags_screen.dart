@@ -132,7 +132,15 @@ class ManageRecipeTagsScreen extends ConsumerWidget {
                               }
                               return;
                             }
-                            await svc.renameRecipeTag(hid, tag, trimmed);
+                            try {
+                              await svc.renameRecipeTag(hid, tag, trimmed);
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(l.commonError(e.toString()))),
+                                );
+                              }
+                            }
                           },
                   ),
                   IconButton(

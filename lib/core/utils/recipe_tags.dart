@@ -117,11 +117,17 @@ const Map<String, String> _keywordTag = {
 
 /// Best-effort built-in tags implied by a recipe name, in [kRecipeTagKeys]
 /// order and de-duplicated. Used only to pre-select the tag picker.
+///
+/// Matches on whole words so "Hamburger" doesn't imply pork ("ham") and
+/// "Pancakes" doesn't imply dessert ("cake").
 List<String> suggestRecipeTags(String name) {
   final lower = name.toLowerCase();
   final hits = <String>{};
   _keywordTag.forEach((word, tag) {
-    if (lower.contains(word)) hits.add(tag);
+    // Whole word, with an optional plural 's' — so "Pancakes"/"Tacos" match but
+    // "Hamburger" (ham) and "Pancakes" (cake) don't.
+    final re = RegExp(r'\b' + RegExp.escape(word) + r's?\b');
+    if (re.hasMatch(lower)) hits.add(tag);
   });
   return [for (final k in kRecipeTagKeys) if (hits.contains(k)) k];
 }

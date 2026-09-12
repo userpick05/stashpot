@@ -39,6 +39,15 @@ void main() {
       expect(suggestRecipeTags('Mystery Dish'), isEmpty);
     });
 
+    test('matches whole words, not substrings inside other words', () {
+      // "ham" is inside "Hamburger"; "cake" is inside "Pancakes".
+      expect(suggestRecipeTags('Hamburger'), isNot(contains('pork')));
+      expect(suggestRecipeTags('Pancakes'), isNot(contains('dessert')));
+      expect(suggestRecipeTags('Pancakes'), contains('breakfast'));
+      // But real whole-word hits still fire.
+      expect(suggestRecipeTags('Baked Ham'), contains('pork'));
+    });
+
     test('returns tags in canonical order', () {
       // 'dinner' (dish) doesn't come from a keyword, but chicken + soup do;
       // soup is a dish-type key that sorts before chicken in kRecipeTagKeys.

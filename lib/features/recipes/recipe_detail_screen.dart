@@ -39,6 +39,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   late Recipe _recipe;
   Recipe get recipe => _recipe;
 
+  // The language the on-screen [_details] are actually in, so a save stamps the
+  // right detailsLang even when a re-fetch failed and we're showing a stale,
+  // other-language cache.
+  String? _detailsLang;
+
   /// PantryMatch only tokenizes Latin script, so a translated recipe carries a
   /// separate matchName. Check both, since the shopping list may hold either.
   static bool _inList(RecipeIngredient i, List<String> names) =>
@@ -71,6 +76,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         steps: recipe.steps,
         aiTranslated: recipe.detailsAi,
       );
+      _detailsLang = recipe.detailsLang;
     }
     if (_details == null && hasSource) {
       // Set here, not in _load: the load is deferred a frame (below), and
@@ -127,7 +133,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       // Keep whatever we already had if the refetch came back empty — a failed
       // language refresh shouldn't blank out a recipe that was on screen.
       if (mounted) setState(() => _details = d ?? _details);
-      if (d != null) unawaited(_storeDetails(d, lang));
+      if (d != null) {
+        _detailsLang = lang;
+        unawaited(_storeDetails(d, lang));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {
@@ -185,18 +194,17 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final hid = ref.read(householdIdProvider);
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (hid == null || uid == null) return;
-    var toSave = recipe;
-    final d = _details;
-    if (d != null &&
-        d.hasContent &&
-        recipe.sourceUrl != null &&
-        recipe.spoonacularId == null) {
-      toSave = _withDetails(
-          recipe, d, Localizations.localeOf(context).languageCode);
-    }
-    await ref.read(firestoreServiceProvider).saveRecipe(hid, toSave);
+    // Adopt the new doc id, so a later tag edit updates this recipe instead of
+    // creating a duplicate.
+    final id = await ref.read(firestoreServiceProvider).saveRecipe(
+          hid,
+          _persistable(),
+        );
     if (mounted) {
-      setState(() => _saved = true);
+      setState(() {
+        _recipe = _recipe.copyWith(id: id);
+        _saved = true;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(AppLocalizations.of(context).recipeSaved(recipe.name))),
@@ -213,15 +221,21 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         d.hasContent &&
         recipe.sourceUrl != null &&
         recipe.spoonacularId == null) {
-      return _withDetails(
-          recipe, d, Localizations.localeOf(context).languageCode);
+      // Stamp the language the details are ACTUALLY in, not the reader's — a
+      // stale other-language cache would otherwise be mislabelled and never
+      // re-fetch. Falls back to the current locale only if we somehow never
+      // recorded one.
+      return _withDetails(recipe, d,
+          _detailsLang ?? Localizations.localeOf(context).languageCode);
     }
     return recipe;
   }
 
   Future<void> _editTags() async {
     final hid = ref.read(householdIdProvider);
-    if (hid == null) return;
+    // Tags only edit an existing doc; without an id a save would create a new
+    // one. The tags UI is gated on _saved, so this is just a belt-and-braces.
+    if (hid == null || recipe.id.isEmpty) return;
     final initial =
         recipe.tags.isEmpty ? suggestRecipeTags(recipe.name) : recipe.tags;
     final picked = await showRecipeTagPicker(context, ref, initial: initial);
