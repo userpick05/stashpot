@@ -1381,4 +1381,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pantryWarnPickHint => '點一下即可改為新增該項目，或新增你輸入的內容。';
+
+  @override
+  String widgetItemsToBuy(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 項要買',
+      zero: '沒有要買的東西',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get widgetAddToShopping => '加入購物清單';
 }

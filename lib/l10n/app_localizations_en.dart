@@ -1422,4 +1422,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pantryWarnPickHint =>
       'Tap one to add it instead, or add what you typed.';
+
+  @override
+  String widgetItemsToBuy(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items to buy',
+      one: '1 item to buy',
+      zero: 'Nothing to buy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get widgetAddToShopping => 'Add to shopping list';
 }
