@@ -67,7 +67,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'add',
                 builder: (_, state) =>
-                    AddItemScreen(autoStart: state.extra as String?),
+                    AddItemScreen(
+                      autoStart: state.extra as String?,
+                      initialName: state.uri.queryParameters['name'],
+                    ),
               ),
               GoRoute(
                 path: 'edit',

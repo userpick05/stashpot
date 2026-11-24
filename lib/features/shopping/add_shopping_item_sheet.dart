@@ -11,6 +11,7 @@ import '../../core/utils/labels.dart';
 import '../../core/utils/pantry_match.dart';
 import '../../l10n/app_localizations.dart';
 import '../inventory/food_type_field.dart';
+import '../inventory/unit_field.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 
@@ -39,8 +40,6 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
   String _unit = 'item';
   String? _location; // optional on the shopping side
   DateTime? _expiryDate;
-
-  static const _units = ['item', 'g', 'kg', 'ml', 'L', 'oz', 'lb', 'cup', 'bunch'];
 
   bool get _isEditing => widget.existing != null;
 
@@ -144,7 +143,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
       _quantity = e.quantity.round().clamp(1, 999);
       _category = e.category;
       _customCategory = e.customCategory;
-      _unit = _units.contains(e.unit) ? e.unit : _units.first;
+      _unit = e.unit; // any unit, including a household custom one
       _location = e.location;
       _expiryDate = e.expiryDate;
     }
@@ -345,6 +344,55 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
     return result ?? (proceed: false, useName: null);
   }
 
+  // Pull an archived item (something you keep but are out of) onto the shopping
+  // list — carrying all its details. The item stays archived; buying it and
+  // moving it to the Stash List is what brings it back in stock.
+  Future<void> _addFromArchive() async {
+    final l = AppLocalizations.of(context);
+    final archived = ref.read(archivedInventoryProvider).valueOrNull ?? const [];
+    final sorted = [...archived]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final picked = await showModalBottomSheet<InventoryItem>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Text(l.shoppingFromArchiveTitle,
+                  style: Theme.of(ctx).textTheme.titleMedium),
+            ),
+            for (final it in sorted)
+              ListTile(
+                leading: Icon(categoryIconFor(it.category, it.customCategory)),
+                title: Text(it.name),
+                subtitle: (it.notes ?? '').trim().isEmpty
+                    ? null
+                    : Text(it.notes!.trim(),
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                onTap: () => Navigator.pop(ctx, it),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    final hid = ref.read(householdIdProvider);
+    final uid = ref.read(authStateProvider).valueOrNull?.uid;
+    if (hid == null || uid == null) return;
+    await ref.read(firestoreServiceProvider).addShoppingItem(
+          hid,
+          ShoppingItem.fromInventory(picked,
+              id: const Uuid().v4(),
+              quantity: _quantity.toDouble(),
+              addedBy: uid),
+        );
+    if (mounted) Navigator.pop(context);
+  }
+
   Future<void> _add() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) return;
@@ -394,6 +442,14 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
           !known.any((s) => s.toLowerCase() == store.toLowerCase())) {
         await svc.addStore(householdId, store);
       }
+      // Remember a freshly-typed unit (e.g. "dozen") the same way.
+      final unit = _unit.trim().isEmpty ? 'item' : _unit.trim();
+      if (!kBuiltInUnits.any((b) => b.toLowerCase() == unit.toLowerCase())) {
+        final knownUnits = ref.read(customUnitsProvider).valueOrNull ?? const [];
+        if (!knownUnits.any((u) => u.toLowerCase() == unit.toLowerCase())) {
+          await svc.addUnit(householdId, unit);
+        }
+      }
       final item = ShoppingItem(
         id: e?.id ?? const Uuid().v4(),
         name: name,
@@ -403,7 +459,7 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
         checked: e?.checked ?? false,
         category: _category,
         customCategory: _customCategory,
-        unit: _unit,
+        unit: unit,
         location: _location,
         expiryDate: _expiryDate,
         // Not editable here yet, but carried so an edit never drops them.
@@ -466,6 +522,15 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
                   ? l.shoppingIdentifying
                   : l.shoppingTakePhotoToIdentify),
             ),
+            if ((ref.watch(archivedInventoryProvider).valueOrNull ?? const [])
+                .isNotEmpty) ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _addFromArchive,
+                icon: const Icon(Icons.unarchive_outlined),
+                label: Text(l.shoppingAddFromArchive),
+              ),
+            ],
           ],
           const SizedBox(height: 12),
           Row(
@@ -521,17 +586,10 @@ class _AddShoppingItemSheetState extends ConsumerState<AddShoppingItemSheet> {
           ),
           const SizedBox(height: 12),
           // ── Same optional fields a pantry item has (all optional) ────────
-          DropdownButtonFormField<String>(
-            initialValue: _unit,
-            decoration: InputDecoration(
-              labelText: l.addItemUnitLabel,
-              border: const OutlineInputBorder(),
-            ),
-            items: _units
-                .map((u) =>
-                    DropdownMenuItem(value: u, child: Text(unitLabelOf(l, u))))
-                .toList(),
-            onChanged: (v) => setState(() => _unit = v ?? _unit),
+          UnitField(
+            value: _unit,
+            customUnits: ref.watch(customUnitsProvider).valueOrNull ?? const [],
+            onChanged: (v) => _unit = v,
           ),
           const SizedBox(height: 12),
           FoodTypeField(

@@ -2653,6 +2653,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That name is already a recipe tag.'**
   String get recipeTagsNameTaken;
+
+  /// No description provided for @addItemUnitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. dozen'**
+  String get addItemUnitHint;
+
+  /// No description provided for @pantryAddSearched.
+  ///
+  /// In en, this message translates to:
+  /// **'Add \"{query}\"'**
+  String pantryAddSearched(String query);
+
+  /// No description provided for @pantryArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get pantryArchive;
+
+  /// No description provided for @pantryArchivedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived items'**
+  String get pantryArchivedTooltip;
+
+  /// No description provided for @pantryArchivedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived \"{name}\"'**
+  String pantryArchivedSnack(String name);
+
+  /// No description provided for @archivedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get archivedTitle;
+
+  /// No description provided for @archivedEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing archived'**
+  String get archivedEmptyTitle;
+
+  /// No description provided for @archivedEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive an item from the Stash List to keep it without stocking it. Archived items show up here and as quick-adds on the shopping list.'**
+  String get archivedEmptySubtitle;
+
+  /// No description provided for @archivedAddToShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to shopping list'**
+  String get archivedAddToShopping;
+
+  /// No description provided for @archivedRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore to Stash List'**
+  String get archivedRestore;
+
+  /// No description provided for @archivedRestoredSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored \"{name}\"'**
+  String archivedRestoredSnack(String name);
+
+  /// No description provided for @archivedDeletedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted \"{name}\"'**
+  String archivedDeletedSnack(String name);
+
+  /// No description provided for @shoppingAddFromArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from archive'**
+  String get shoppingAddFromArchive;
+
+  /// No description provided for @shoppingFromArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from archive'**
+  String get shoppingFromArchiveTitle;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,29 @@
 All notable changes to Stashpot. Versions track `kAppVersion` in
 `lib/core/app_version.dart`.
 
+## v1.18.0
+
+### Added
+- **Archive list.** Keep item cards for things you're out of without deleting
+  them: archive an item from the Stash List (⋮ menu) and it drops out of your
+  stock, then shows up in **Archived items** (archive icon, top of the Stash
+  List) and as **Add from archive** when building the shopping list. Restore one
+  to bring it back.
+- **Type your own units.** The unit field is now typable — enter "dozen" (or
+  anything) and it's remembered as a quick-pick next time, alongside the common
+  units.
+
+### Changed
+- **Searching the Stash List for something you don't have** now offers an
+  **Add "<what you searched>"** button that opens the add screen with the name
+  already filled in.
+- **Moving an item to the shopping list no longer caps at how many you have** —
+  you can put more on the list than is currently in stock.
+
+### Fixed
+- **Quantity fields now select their contents when you tap them**, so typing a
+  new number replaces the old one instead of inserting (1 → type 4 → 4, not 14).
+
 ## v1.17.0
 
 ### Added

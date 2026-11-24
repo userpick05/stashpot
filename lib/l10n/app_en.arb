@@ -953,5 +953,31 @@
       }
     }
   },
-  "recipeTagsNameTaken": "That name is already a recipe tag."
+  "recipeTagsNameTaken": "That name is already a recipe tag.",
+  "addItemUnitHint": "e.g. dozen",
+  "pantryAddSearched": "Add \"{query}\"",
+  "@pantryAddSearched": {
+    "placeholders": { "query": { "type": "String" } }
+  },
+  "pantryArchive": "Archive",
+  "pantryArchivedTooltip": "Archived items",
+  "pantryArchivedSnack": "Archived \"{name}\"",
+  "@pantryArchivedSnack": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "archivedTitle": "Archived",
+  "archivedEmptyTitle": "Nothing archived",
+  "archivedEmptySubtitle": "Archive an item from the Stash List to keep it without stocking it. Archived items show up here and as quick-adds on the shopping list.",
+  "archivedAddToShopping": "Add to shopping list",
+  "archivedRestore": "Restore to Stash List",
+  "archivedRestoredSnack": "Restored \"{name}\"",
+  "@archivedRestoredSnack": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "archivedDeletedSnack": "Deleted \"{name}\"",
+  "@archivedDeletedSnack": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "shoppingAddFromArchive": "Add from archive",
+  "shoppingFromArchiveTitle": "Add from archive"
 }

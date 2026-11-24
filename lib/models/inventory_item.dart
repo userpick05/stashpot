@@ -68,6 +68,12 @@ class InventoryItem {
   final String location; // built-in key or a custom location name
   final String? store; // where it's bought — used to group shopping lists
   final String? notes;
+
+  /// Archived items are kept but out of stock: they drop off the Stash List and
+  /// out of the pantry cross-checks, but stay available as quick-add options
+  /// when building the shopping list. Re-stocking one un-archives it.
+  final bool archived;
+
   final DateTime addedAt;
   final String addedBy;
 
@@ -84,6 +90,7 @@ class InventoryItem {
     required this.location,
     this.store,
     this.notes,
+    this.archived = false,
     required this.addedAt,
     required this.addedBy,
   });
@@ -110,6 +117,7 @@ class InventoryItem {
           : kDefaultLocationKey,
       store: d['store'] as String?,
       notes: d['notes'] as String?,
+      archived: d['archived'] as bool? ?? false,
       addedAt: (d['addedAt'] as Timestamp).toDate(),
       addedBy: d['addedBy'] as String,
     );
@@ -127,12 +135,14 @@ class InventoryItem {
         'location': location,
         if (store != null) 'store': store,
         if (notes != null) 'notes': notes,
+        if (archived) 'archived': true,
         'addedAt': Timestamp.fromDate(addedAt),
         'addedBy': addedBy,
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-  InventoryItem copyWith({double? quantity, String? location}) => InventoryItem(
+  InventoryItem copyWith({double? quantity, String? location, bool? archived}) =>
+      InventoryItem(
         id: id,
         name: name,
         barcode: barcode,
@@ -145,6 +155,7 @@ class InventoryItem {
         location: location ?? this.location,
         store: store,
         notes: notes,
+        archived: archived ?? this.archived,
         addedAt: addedAt,
         addedBy: addedBy,
       );

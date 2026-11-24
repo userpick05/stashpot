@@ -17,6 +17,8 @@ class InventoryItemCard extends StatelessWidget {
   final VoidCallback? onRemoveToShopping;
   // Tapping the quantity pill opens a quick quantity editor.
   final VoidCallback? onTapQuantity;
+  // Archives the item (keep it, out of stock) — offered in the "⋮" menu.
+  final VoidCallback? onArchive;
 
   const InventoryItemCard({
     super.key,
@@ -27,6 +29,7 @@ class InventoryItemCard extends StatelessWidget {
     this.onAddToShopping,
     this.onRemoveToShopping,
     this.onTapQuantity,
+    this.onArchive,
   });
 
   Color _expiryColor(BuildContext context) {
@@ -163,6 +166,7 @@ class InventoryItemCard extends StatelessWidget {
                 onSelected: (v) {
                   if (v == 'shopping') onAddToShopping!.call();
                   if (v == 'move') onRemoveToShopping?.call();
+                  if (v == 'archive') onArchive?.call();
                   if (v == 'photo' && item.imageUrl != null) {
                     showImageSheet(context, item.imageUrl!);
                   }
@@ -183,6 +187,15 @@ class InventoryItemCard extends StatelessWidget {
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.move_up),
                         title: Text(l.pantryMoveToShoppingList),
+                      ),
+                    ),
+                  if (onArchive != null)
+                    PopupMenuItem(
+                      value: 'archive',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.archive_outlined),
+                        title: Text(l.pantryArchive),
                       ),
                     ),
                   if (item.imageUrl != null)
