@@ -33,6 +33,7 @@ class _MoveToShoppingSheetState extends State<_MoveToShoppingSheet> {
   late double _qty;
   late final double _max;
   late final TextEditingController _ctrl;
+  final _focus = FocusNode();
 
   @override
   void initState() {
@@ -40,20 +41,28 @@ class _MoveToShoppingSheetState extends State<_MoveToShoppingSheet> {
     _max = widget.item.quantity;
     _qty = _max; // default to moving everything
     _ctrl = TextEditingController(text: _label(_qty));
+    // Tap selects all so typing replaces the value.
+    _focus.addListener(() {
+      if (_focus.hasFocus) {
+        _ctrl.selection =
+            TextSelection(baseOffset: 0, extentOffset: _ctrl.text.length);
+      }
+    });
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
   String _label(double q) => q % 1 == 0 ? q.toInt().toString() : q.toString();
 
+  // You can ask for MORE than you have in stock — sometimes you want several on
+  // the list even if only one is on hand. Only the floor (0) is enforced here.
   void _setQty(double q) {
-    var clamped = q;
-    if (clamped < 0) clamped = 0;
-    if (clamped > _max) clamped = _max;
+    final clamped = q < 0 ? 0.0 : q;
     setState(() {
       _qty = clamped;
       _ctrl.text = _label(clamped);
@@ -68,7 +77,9 @@ class _MoveToShoppingSheetState extends State<_MoveToShoppingSheet> {
     // 'item' is the stored key for a plain count — it gets no visible unit.
     final unit =
         widget.item.unit == 'item' ? null : unitLabelOf(l, widget.item.unit);
-    final movingAll = _qty >= _max;
+    // "Move all" only when it exactly empties stock; moving more than stock
+    // shows the amount instead (you're adding beyond what's on hand).
+    final movingAll = _qty == _max;
     final canMove = _qty > 0;
     final moveLabel =
         movingAll ? l.qtyMoveAll : l.qtyMoveAmount(_label(_qty));
@@ -103,6 +114,7 @@ class _MoveToShoppingSheetState extends State<_MoveToShoppingSheet> {
               Expanded(
                 child: TextField(
                   controller: _ctrl,
+                  focusNode: _focus,
                   textAlign: TextAlign.center,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -117,21 +129,15 @@ class _MoveToShoppingSheetState extends State<_MoveToShoppingSheet> {
                   onChanged: (v) {
                     final d = double.tryParse(v);
                     if (d == null) return;
-                    // You can't move more than you have: snap the field down to
-                    // the max so what's shown matches what actually moves. Values
-                    // in range are left as typed so we don't fight the cursor.
-                    if (d > _max) {
-                      _setQty(_max);
-                    } else {
-                      setState(() => _qty = d < 0 ? 0 : d);
-                    }
+                    // No upper cap — you may ask for more than is in stock.
+                    setState(() => _qty = d < 0 ? 0 : d);
                   },
                 ),
               ),
               const SizedBox(width: 12),
               IconButton.filledTonal(
                 icon: const Icon(Icons.add),
-                onPressed: _qty >= _max ? null : () => _setQty(_qty + 1),
+                onPressed: () => _setQty(_qty + 1),
               ),
             ],
           ),

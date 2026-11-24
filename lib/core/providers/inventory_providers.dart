@@ -4,10 +4,28 @@ import '../../models/inventory_item.dart';
 import '../../models/shopping_item.dart';
 import 'auth_providers.dart';
 
-final inventoryProvider = StreamProvider<List<InventoryItem>>((ref) {
+// All items the household has, archived and not. Prefer [inventoryProvider]
+// (active only) for the Stash List and pantry cross-checks.
+final allInventoryProvider = StreamProvider<List<InventoryItem>>((ref) {
   final householdId = ref.watch(householdIdProvider);
   if (householdId == null) return Stream.value([]);
   return ref.watch(firestoreServiceProvider).inventoryStream(householdId);
+});
+
+// Active (in-stock) items only — archived ones are out of stock, so they drop
+// off the Stash List and out of every pantry/expiry/already-have check.
+final inventoryProvider = Provider<AsyncValue<List<InventoryItem>>>((ref) {
+  return ref
+      .watch(allInventoryProvider)
+      .whenData((items) => items.where((i) => !i.archived).toList());
+});
+
+// Archived items — kept but out of stock, surfaced in the Archived view and as
+// quick-add options when building the shopping list.
+final archivedInventoryProvider = Provider<AsyncValue<List<InventoryItem>>>((ref) {
+  return ref
+      .watch(allInventoryProvider)
+      .whenData((items) => items.where((i) => i.archived).toList());
 });
 
 // Shared, per-household list of stores the user buys from.
@@ -43,6 +61,13 @@ final allLocationKeysProvider = Provider<List<String>>((ref) {
     if (seen.add(l)) result.add(l);
   }
   return result;
+});
+
+// User-created units for the household (beyond the built-in ones), e.g. "dozen".
+final customUnitsProvider = StreamProvider<List<String>>((ref) {
+  final householdId = ref.watch(householdIdProvider);
+  if (householdId == null) return Stream.value([]);
+  return ref.watch(firestoreServiceProvider).unitsStream(householdId);
 });
 
 // User-created food types for the household (beyond the built-in categories).

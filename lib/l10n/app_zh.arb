@@ -425,5 +425,19 @@
   "recipeTagsEmpty": "尚未建立自訂食譜標籤。為食譜加標籤時即可新增。",
   "recipeTagsRename": "重新命名標籤",
   "recipeTagsRemoved": "已移除標籤「{name}」",
-  "recipeTagsNameTaken": "這個名稱已是食譜標籤。"
+  "recipeTagsNameTaken": "這個名稱已是食譜標籤。",
+  "addItemUnitHint": "例如：打",
+  "pantryAddSearched": "新增「{query}」",
+  "pantryArchive": "封存",
+  "pantryArchivedTooltip": "已封存的項目",
+  "pantryArchivedSnack": "已封存「{name}」",
+  "archivedTitle": "已封存",
+  "archivedEmptyTitle": "沒有已封存的項目",
+  "archivedEmptySubtitle": "從庫存清單封存項目，即可保留但不計入庫存。已封存的項目會顯示在這裡，也可在購物清單快速加入。",
+  "archivedAddToShopping": "加入購物清單",
+  "archivedRestore": "還原到庫存清單",
+  "archivedRestoredSnack": "已還原「{name}」",
+  "archivedDeletedSnack": "已刪除「{name}」",
+  "shoppingAddFromArchive": "從封存加入",
+  "shoppingFromArchiveTitle": "從封存加入"
 }

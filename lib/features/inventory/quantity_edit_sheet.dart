@@ -33,6 +33,7 @@ class _QuantityEditSheet extends ConsumerStatefulWidget {
 class _QuantityEditSheetState extends ConsumerState<_QuantityEditSheet> {
   late double _qty;
   late final TextEditingController _ctrl;
+  final _focus = FocusNode();
   bool _saving = false;
 
   @override
@@ -40,11 +41,19 @@ class _QuantityEditSheetState extends ConsumerState<_QuantityEditSheet> {
     super.initState();
     _qty = widget.item.quantity;
     _ctrl = TextEditingController(text: _label(_qty));
+    // Tap selects all so typing replaces the value instead of inserting.
+    _focus.addListener(() {
+      if (_focus.hasFocus) {
+        _ctrl.selection =
+            TextSelection(baseOffset: 0, extentOffset: _ctrl.text.length);
+      }
+    });
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
@@ -97,6 +106,7 @@ class _QuantityEditSheetState extends ConsumerState<_QuantityEditSheet> {
               Expanded(
                 child: TextField(
                   controller: _ctrl,
+                  focusNode: _focus,
                   textAlign: TextAlign.center,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [

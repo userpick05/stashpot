@@ -109,6 +109,24 @@ class FirestoreService {
         'stores': FieldValue.arrayRemove([name]),
       });
 
+  // ── Custom units (shared list per household) ─────────────────────────────
+
+  Stream<List<String>> unitsStream(String householdId) => _db
+      .collection('households')
+      .doc(householdId)
+      .snapshots()
+      .map((s) {
+        final list = (s.data()?['units'] as List?)?.cast<String>() ?? const [];
+        return list..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      });
+
+  Future<void> addUnit(String householdId, String name) => _db
+      .collection('households')
+      .doc(householdId)
+      .set({
+        'units': FieldValue.arrayUnion([name]),
+      }, SetOptions(merge: true));
+
   // ── Custom food types (shared list per household) ────────────────────────
 
   Stream<List<String>> categoriesStream(String householdId) => _db
@@ -284,6 +302,17 @@ class FirestoreService {
       .collection('items')
       .doc(itemId)
       .delete();
+
+  // Archive / un-archive an item. A direct field write (not toFirestore, which
+  // omits archived:false) so un-archiving actually clears the flag.
+  Future<void> setItemArchived(
+          String householdId, String itemId, bool archived) =>
+      _db
+          .collection('households')
+          .doc(householdId)
+          .collection('items')
+          .doc(itemId)
+          .update({'archived': archived});
 
   /// Bulk write for a screenshot import: creates [created] and overwrites
   /// [updated] (items merged into) in as few round-trips as possible.

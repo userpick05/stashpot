@@ -70,7 +70,9 @@ class ShoppingScreen extends ConsumerWidget {
     final uid = ref.read(authStateProvider).valueOrNull?.uid;
     if (uid == null) return;
     final svc = ref.read(firestoreServiceProvider);
-    final inventory = ref.read(inventoryProvider).valueOrNull ?? [];
+    // Match against ALL items (including archived), so buying something you'd
+    // archived brings that same card back in stock instead of making a clone.
+    final inventory = ref.read(allInventoryProvider).valueOrNull ?? [];
     final messenger = ScaffoldMessenger.of(context);
     final l = AppLocalizations.of(context);
 
@@ -94,7 +96,20 @@ class ShoppingScreen extends ConsumerWidget {
         }
       }
 
-      if (existing != null) {
+      if (existing != null && existing.archived) {
+        // Buying something you'd archived brings that card back in stock:
+        // un-archive it and add the bought quantity. No "already have this?"
+        // prompt — it isn't currently in stock, so it's not a real duplicate.
+        originalById.putIfAbsent(existing.id, () => existing!);
+        final base = runningQty[existing.id] ?? existing.quantity;
+        final newQty = base + s.quantity;
+        runningQty[existing.id] = newQty;
+        await svc.updateItem(householdId, existing.copyWith(quantity: newQty));
+        // Explicit field write — toFirestore omits archived:false, so this is
+        // what actually clears the flag (updateItem alone would leave it set).
+        await svc.setItemArchived(householdId, existing.id, false);
+        mergedCount++;
+      } else if (existing != null) {
         if (!context.mounted) break;
         final choice = await _askDuplicateChoice(context, s.name);
         if (choice == null) continue; // dismissed → leave this item as-is

@@ -139,26 +139,31 @@ Future<void> moveItemToShopping(
   final messenger = ScaffoldMessenger.of(context);
   final l = AppLocalizations.of(context);
 
-  final movingAll = moveQty >= item.quantity;
-  final movedQty = movingAll ? item.quantity : moveQty;
+  // The full requested amount goes on the list — even if it's more than is in
+  // stock. Stock itself can only go to zero: at or above the amount on hand the
+  // pantry item is removed; below it, it's reduced.
+  final emptiesStock = moveQty >= item.quantity;
 
   final shoppingItem = ShoppingItem.fromInventory(
     item,
     id: const Uuid().v4(),
-    quantity: movedQty,
+    quantity: moveQty,
     addedBy: uid,
   );
   await svc.addShoppingItem(householdId, shoppingItem);
 
-  if (movingAll) {
+  if (emptiesStock) {
     await svc.deleteItem(householdId, item.id);
   } else {
     await svc
         .updateItem(householdId, item.copyWith(quantity: item.quantity - moveQty));
   }
 
+  // "Moved <name>" only when it exactly empties stock; otherwise show the
+  // amount, since that can now exceed what was on hand.
+  final movedExactlyAll = moveQty == item.quantity;
   final label = shoppingItem.quantityLabel;
-  final msg = movingAll
+  final msg = movedExactlyAll
       ? l.shoppingMovedToList(item.name)
       : l.shoppingMovedQtyToList(label, item.name);
 

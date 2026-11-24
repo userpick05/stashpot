@@ -46,6 +46,12 @@ String mealTypeLabelOf(AppLocalizations l, String key) => switch (key) {
       _ => key,
     };
 
+/// Built-in units offered as quick-picks. Stored as these keys; households can
+/// also type their own (e.g. "dozen"), which are remembered per household.
+const List<String> kBuiltInUnits = [
+  'item', 'g', 'kg', 'ml', 'L', 'oz', 'lb', 'cup', 'bunch',
+];
+
 /// Units are stored as keys ('item', 'g', 'kg', ...); display is localized.
 String unitLabelOf(AppLocalizations l, String unit) => switch (unit) {
       'item' => l.unitItem,

@@ -9,6 +9,7 @@ import '../../core/utils/shopping_actions.dart';
 import '../../core/widgets/swipe_to_delete.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
+import 'archived_items_screen.dart';
 import 'inventory_item_card.dart';
 import 'move_to_shopping_sheet.dart';
 import 'quantity_edit_sheet.dart';
@@ -28,6 +29,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  // Archive an item (keep it, out of stock) with an Undo.
+  Future<void> _archive(InventoryItem item) async {
+    final hid = ref.read(householdIdProvider);
+    if (hid == null) return;
+    final svc = ref.read(firestoreServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
+    await svc.setItemArchived(hid, item.id, true);
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(
+        content: Text(l.pantryArchivedSnack(item.name)),
+        action: SnackBarAction(
+          label: l.commonUndo,
+          onPressed: () => svc.setItemArchived(hid, item.id, false),
+        ),
+      ));
   }
 
   // Filter by name, location label, or category label (case-insensitive).
@@ -152,6 +172,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       appBar: AppBar(
         title: Text(l.navPantry),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.archive_outlined),
+            tooltip: l.pantryArchivedTooltip,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ArchivedItemsScreen()),
+            ),
+          ),
           PopupMenuButton<InventoryGroupBy>(
             icon: const Icon(Icons.sort),
             tooltip: l.pantryGroupByTooltip,
@@ -241,6 +268,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   const SizedBox(height: 12),
                   Text(l.pantryNoMatches(_searchCtrl.text),
                       style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 16),
+                  // Jump straight to adding the thing you just searched for,
+                  // with the name already filled in.
+                  FilledButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: Text(l.pantryAddSearched(_searchCtrl.text.trim())),
+                    onPressed: () => context.push(
+                        '/inventory/add?name=${Uri.encodeComponent(_searchCtrl.text.trim())}'),
+                  ),
                 ],
               ),
             ));
@@ -289,6 +325,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     if (moveQty == null || !context.mounted) return;
                     await moveItemToShopping(context, ref, item, moveQty);
                   },
+                  onArchive: () => _archive(item),
                 ),
               ));
             }

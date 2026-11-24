@@ -1490,4 +1490,55 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recipeTagsNameTaken => '這個名稱已是食譜標籤。';
+
+  @override
+  String get addItemUnitHint => '例如：打';
+
+  @override
+  String pantryAddSearched(String query) {
+    return '新增「$query」';
+  }
+
+  @override
+  String get pantryArchive => '封存';
+
+  @override
+  String get pantryArchivedTooltip => '已封存的項目';
+
+  @override
+  String pantryArchivedSnack(String name) {
+    return '已封存「$name」';
+  }
+
+  @override
+  String get archivedTitle => '已封存';
+
+  @override
+  String get archivedEmptyTitle => '沒有已封存的項目';
+
+  @override
+  String get archivedEmptySubtitle =>
+      '從庫存清單封存項目，即可保留但不計入庫存。已封存的項目會顯示在這裡，也可在購物清單快速加入。';
+
+  @override
+  String get archivedAddToShopping => '加入購物清單';
+
+  @override
+  String get archivedRestore => '還原到庫存清單';
+
+  @override
+  String archivedRestoredSnack(String name) {
+    return '已還原「$name」';
+  }
+
+  @override
+  String archivedDeletedSnack(String name) {
+    return '已刪除「$name」';
+  }
+
+  @override
+  String get shoppingAddFromArchive => '從封存加入';
+
+  @override
+  String get shoppingFromArchiveTitle => '從封存加入';
 }

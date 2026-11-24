@@ -14,13 +14,18 @@ import '../../core/utils/labels.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/inventory_item.dart';
 import 'food_type_field.dart';
+import 'unit_field.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   /// When non-null, the screen edits this existing item instead of adding.
   final InventoryItem? existing;
   /// 'scan' or 'photo' to jump straight into that flow on open.
   final String? autoStart;
-  const AddItemScreen({super.key, this.existing, this.autoStart});
+  /// Pre-fills the name on a fresh add — e.g. the text you just searched for in
+  /// the Stash List, so you don't retype it.
+  final String? initialName;
+  const AddItemScreen(
+      {super.key, this.existing, this.autoStart, this.initialName});
 
   @override
   ConsumerState<AddItemScreen> createState() => _AddItemScreenState();
@@ -30,6 +35,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _qtyCtrl = TextEditingController(text: '1');
+  final _qtyFocus = FocusNode();
   final _storeCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
@@ -51,6 +57,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   @override
   void initState() {
     super.initState();
+    // Tapping the quantity field selects its contents, so typing replaces the
+    // value instead of inserting (1 + "4" was becoming "14").
+    _qtyFocus.addListener(() {
+      if (_qtyFocus.hasFocus) {
+        _qtyCtrl.selection = TextSelection(
+            baseOffset: 0, extentOffset: _qtyCtrl.text.length);
+      }
+    });
     final e = widget.existing;
     if (e != null) {
       _nameCtrl.text = e.name;
@@ -62,17 +76,25 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       _category = e.category;
       _customCategory = e.customCategory;
       _location = e.location;
-      _unit = _units.contains(e.unit) ? e.unit : _units.first;
+      _unit = e.unit; // any unit, including a household custom one
       _expiryDate = e.expiryDate;
       _barcode = e.barcode;
       _imageUrl = e.imageUrl;
       _categoryManuallySet = true; // don't auto-override an existing item's type
-    } else if (widget.autoStart != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (widget.autoStart == 'scan') _scanBarcode();
-        if (widget.autoStart == 'photo') _identifyByPhoto();
-      });
+    } else {
+      // Fresh add: pre-fill from the search text, if any, and guess its type.
+      final seed = widget.initialName?.trim() ?? '';
+      if (seed.isNotEmpty) {
+        _nameCtrl.text = seed;
+        _onNameChanged(seed);
+      }
+      if (widget.autoStart != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (widget.autoStart == 'scan') _scanBarcode();
+          if (widget.autoStart == 'photo') _identifyByPhoto();
+        });
+      }
     }
   }
 
@@ -195,8 +217,6 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       setState(() => _category = guess);
     }
   }
-
-  static const _units = ['item', 'g', 'kg', 'ml', 'L', 'oz', 'lb', 'cup', 'bunch'];
 
   Future<void> _identifyByPhoto() async {
     final l = AppLocalizations.of(context);
@@ -462,9 +482,23 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _qtyCtrl.dispose();
+    _qtyFocus.dispose();
     _storeCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
+  }
+
+  // Remember a freshly-typed unit (not a built-in, not already saved) so it's a
+  // quick-pick next time — mirrors how a new store is remembered.
+  Future<void> _maybeSaveNewUnit(String householdId, String unit) async {
+    final u = unit.trim();
+    if (u.isEmpty ||
+        kBuiltInUnits.any((b) => b.toLowerCase() == u.toLowerCase())) {
+      return;
+    }
+    final known = ref.read(customUnitsProvider).valueOrNull ?? const [];
+    if (known.any((k) => k.toLowerCase() == u.toLowerCase())) return;
+    await ref.read(firestoreServiceProvider).addUnit(householdId, u);
   }
 
   Future<void> _pickExpiry() async {
@@ -489,6 +523,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       await _maybeSaveNewStore(householdId, store);
       if (!mounted) return;
     }
+    final unit = _unit.trim().isEmpty ? 'item' : _unit.trim();
+    await _maybeSaveNewUnit(householdId, unit);
+    if (!mounted) return;
 
     setState(() => _loading = true);
     try {
@@ -501,11 +538,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         category: _category,
         customCategory: _customCategory,
         quantity: double.tryParse(_qtyCtrl.text) ?? 1,
-        unit: _unit,
+        unit: unit,
         location: _location,
         store: store.isEmpty ? null : store,
         expiryDate: _expiryDate,
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        // Editing an item must not silently un-archive it (addItem does a full
+        // set()); carry the existing flag through.
+        archived: e?.archived ?? false,
         addedAt: e?.addedAt ?? DateTime.now(),
         addedBy: e?.addedBy ?? uid,
       );
@@ -594,42 +634,27 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Qty + Unit
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _qtyCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: l.addItemQuantityLabel,
-                      border: const OutlineInputBorder(),
-                    ),
-                    validator: (v) {
-                      final n = double.tryParse(v ?? '');
-                      return n == null || n <= 0 ? l.addItemQuantityInvalid : null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 3,
-                  child: DropdownButtonFormField<String>(
-                    value: _unit,
-                    decoration: InputDecoration(
-                      labelText: l.addItemUnitLabel,
-                      border: const OutlineInputBorder(),
-                    ),
-                    // _units holds the STORED keys; only the label is localized.
-                    items: _units
-                        .map((u) => DropdownMenuItem(
-                            value: u, child: Text(unitLabelOf(l, u))))
-                        .toList(),
-                    onChanged: (v) => setState(() => _unit = v!),
-                  ),
-                ),
-              ],
+            // Quantity (tap selects all so typing overwrites)
+            TextFormField(
+              controller: _qtyCtrl,
+              focusNode: _qtyFocus,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l.addItemQuantityLabel,
+                border: const OutlineInputBorder(),
+              ),
+              validator: (v) {
+                final n = double.tryParse(v ?? '');
+                return n == null || n <= 0 ? l.addItemQuantityInvalid : null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Unit — type your own (e.g. "dozen") or tap a quick-pick
+            UnitField(
+              value: _unit,
+              customUnits: ref.watch(customUnitsProvider).valueOrNull ?? const [],
+              onChanged: (v) => _unit = v,
             ),
             const SizedBox(height: 16),
 
@@ -679,7 +704,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               final keys = [...ref.watch(allLocationKeysProvider)];
               if (!keys.contains(_location)) keys.add(_location);
               return DropdownButtonFormField<String>(
-                value: _location,
+                initialValue: _location,
                 isExpanded: true,
                 decoration: InputDecoration(
                   labelText: l.addItemLocationLabel,

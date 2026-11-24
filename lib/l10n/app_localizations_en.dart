@@ -1534,4 +1534,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recipeTagsNameTaken => 'That name is already a recipe tag.';
+
+  @override
+  String get addItemUnitHint => 'e.g. dozen';
+
+  @override
+  String pantryAddSearched(String query) {
+    return 'Add \"$query\"';
+  }
+
+  @override
+  String get pantryArchive => 'Archive';
+
+  @override
+  String get pantryArchivedTooltip => 'Archived items';
+
+  @override
+  String pantryArchivedSnack(String name) {
+    return 'Archived \"$name\"';
+  }
+
+  @override
+  String get archivedTitle => 'Archived';
+
+  @override
+  String get archivedEmptyTitle => 'Nothing archived';
+
+  @override
+  String get archivedEmptySubtitle =>
+      'Archive an item from the Stash List to keep it without stocking it. Archived items show up here and as quick-adds on the shopping list.';
+
+  @override
+  String get archivedAddToShopping => 'Add to shopping list';
+
+  @override
+  String get archivedRestore => 'Restore to Stash List';
+
+  @override
+  String archivedRestoredSnack(String name) {
+    return 'Restored \"$name\"';
+  }
+
+  @override
+  String archivedDeletedSnack(String name) {
+    return 'Deleted \"$name\"';
+  }
+
+  @override
+  String get shoppingAddFromArchive => 'Add from archive';
+
+  @override
+  String get shoppingFromArchiveTitle => 'Add from archive';
 }
